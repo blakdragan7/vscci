@@ -12,11 +12,12 @@ namespace vscci.src.Systems
     class TwitchEventSystem : ModSystem
     {
         private ICoreClientAPI capi;
-        private ICoreServerAPI sapi;
 
         public override void Start(ICoreAPI api)
         {
             base.Start(api);
+
+            // register the network message types on both sides but we only respond to the messages on the client side
 
             api.Network.RegisterChannel(Constants.NETWORK_CHANNEL)
                 .RegisterMessageType(typeof(TwitchRaidData))
@@ -25,41 +26,6 @@ namespace vscci.src.Systems
                 .RegisterMessageType(typeof(TwitchNewSubData))
                 .RegisterMessageType(typeof(TwitchPointRedemptionData));
         }
-
-        #region Server
-        public override void StartServerSide(ICoreServerAPI api)
-        {
-            base.StartServerSide(api);
-
-            sapi = api;
-            api.Event.RegisterEventBusListener(OnServerEvent);
-        }
-
-        private void OnServerEvent(string eventName, ref EnumHandling handling, IAttribute data)
-        {
-            switch (eventName)
-            {
-                case Constants.TWITCH_EVENT_BITS_RECIEVED:
-                    sapi.Network.GetChannel(Constants.NETWORK_CHANNEL).BroadcastPacket(data.GetValue() as TwitchBitsData);
-                    break;
-                case Constants.TWITCH_EVENT_REDEMPTION:
-                    sapi.Network.GetChannel(Constants.NETWORK_CHANNEL).BroadcastPacket(data.GetValue() as TwitchPointRedemptionData);
-                    break;
-                case Constants.TWITCH_EVENT_NEW_SUB:
-                    sapi.Network.GetChannel(Constants.NETWORK_CHANNEL).BroadcastPacket(data.GetValue() as TwitchNewSubData);
-                    break;
-                case Constants.TWITCH_EVENT_FOLLOW:
-                    sapi.Network.GetChannel(Constants.NETWORK_CHANNEL).BroadcastPacket(data.GetValue() as TwitchFollowData);
-                    break;
-                case Constants.TWITCH_EVENT_RAID:
-                    sapi.Network.GetChannel(Constants.NETWORK_CHANNEL).BroadcastPacket(data.GetValue() as TwitchRaidData);
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        #endregion
 
         #region Client
         public override void StartClientSide(ICoreClientAPI api)

@@ -1,4 +1,5 @@
 ﻿using ProtoBuf;
+using Vintagestory.API.Server;
 
 namespace vscci.src.CCIIntegrations.Twitch
 {
