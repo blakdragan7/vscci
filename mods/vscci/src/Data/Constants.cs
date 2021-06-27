@@ -8,7 +8,7 @@ namespace vscci.src.Data
 {
     class Constants
     {
-        public const string TWITH_AUTH_SAVE_TAG            = "vscci_tia_data";
+        public const int PROTO_TYPE_ATTRIBUTE_ID           = 100;
 
         // Server => Client Communication Constants
         public const string NETWORK_CHANNEL                = "cci_message_channel";
@@ -21,6 +21,7 @@ namespace vscci.src.Data
         public const string TWITCH_EVENT_FOLLOW            = "ccief";
 
         // Twitch Integration Constants
+        public const string TWITH_AUTH_SAVE_TAG            = "vscci_tia_data";
         public const string TWITCH_ID_URL                  = "https://id.twitch.tv/oauth2/authorize?";
         public const string TWITCH_VALIDATE_URL            = "https://id.twitch.tv/oauth2/validate";
         public const string TWITCH_CLIENT_ID               = "izjwtydb6a3i11ftc5uewgc2gzjbow";
