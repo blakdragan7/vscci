@@ -173,7 +173,7 @@
     <Compile Include="src\Data\Constants.cs" />
     <Compile Include="src\GUI\CCIConfigDialogGui.cs" />
     <Compile Include="src\Systems\CCIGuiSystem.cs" />
-    <Compile Include="src\Systems\TwitchEventSystem.cs" />
+    <Compile Include="src\Systems\TwitchClientEventSystem.cs" />
     <Compile Include="src\VSCCIModSystem.cs" />
   </ItemGroup>
   <ItemGroup>
