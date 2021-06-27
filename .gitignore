@@ -3,3 +3,5 @@ obj
 releases
 .vs
 packages
+*.dll
+*.pdb
