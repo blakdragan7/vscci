@@ -9,7 +9,7 @@ using vscci.src.CCIIntegrations.Twitch;
 
 namespace vscci.src.Systems
 {
-    class TwitchEventSystem : ModSystem
+    class TwitchClientEventSystem : ModSystem
     {
         private ICoreClientAPI capi;
 
