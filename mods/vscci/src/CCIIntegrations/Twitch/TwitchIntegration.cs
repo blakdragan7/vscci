@@ -5,6 +5,7 @@ using System;
 using TwitchLib.PubSub;
 using TwitchLib.PubSub.Events;
 
+using TwitchLib.Api;
 //using TwitchLib.Api.Core;
 using TwitchLib.Api.Helix;
 //using TwitchLib.Api.Core.RateLimiter;
@@ -15,6 +16,12 @@ using Vintagestory.API.Common;
 using vscci.src.Data;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.Util;
+using System.Net;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
+using Nito.AsyncEx;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace vscci.src.CCIIntegrations.Twitch
 {
@@ -35,26 +42,28 @@ namespace vscci.src.CCIIntegrations.Twitch
     }
     class TwitchIntegration
     {
-        private string TwitchID = "MischiefOfMice";
-        private int numberOfSuccesfulListens;
+        //private string                      TwitchID = "MischiefOfMice";
+        //private string                      TwitchID = "ChosenArchitect";
+        private string                      TwitchID;
+        private int                         numberOfSuccesfulListens;
         //private Users userClient;
-        private string authToken;
-        private bool connected;
-        private bool hasTopics;
-        private bool isWaitingOnTopics;
-        private IServerPlayer player;
+        private string                      authToken;
+        private bool                        connected;
+        private bool                        hasTopics;
+        private bool                        isWaitingOnTopics;
+        private IServerPlayer               player;
 
 #if TWITCH_INTEGRATION_EVENT_TESTING
-        private TwitchTestServer twitchInterface;
+        private TwitchTestServer pubSubClient;
 #else
-        private TwitchPubSub twitchInterface;
+        private TwitchPubSub                pubSubClient;
 #endif
+        private TwitchAPI                   apiClient;
+        private TwitchAutherizationHelper   ta;
 
-        private TwitchAutherizationHelper ta;
+        private ICoreServerAPI              api;
 
-        private ICoreServerAPI api;
-
-        public bool IsTwitchPartnerAccount { get; set; }
+        public bool IsTwitchCommerceAccount { get; set; }
         public bool IsFailedState { get; set; }
 
         public event EventHandler<OnAuthFailedArgs> OnLoginError;
@@ -67,12 +76,13 @@ namespace vscci.src.CCIIntegrations.Twitch
         {
             api = sapi;
             player = splayer;
-            IsTwitchPartnerAccount = false;
+            IsTwitchCommerceAccount = false;
             IsFailedState = false;
             numberOfSuccesfulListens = 0;
             connected = false;
             hasTopics = false;
             isWaitingOnTopics = false;
+            TwitchID = null;
 
             //ApiSettings settings = new ApiSettings();
 
@@ -85,7 +95,7 @@ namespace vscci.src.CCIIntegrations.Twitch
 #if TWITCH_INTEGRATION_EVENT_TESTING
             twitchInterface = new TwitchTestServer();
 #else
-            twitchInterface = new TwitchPubSub();
+            pubSubClient = new TwitchPubSub();
 #endif
 
             ta = new TwitchAutherizationHelper(sapi);
@@ -93,21 +103,24 @@ namespace vscci.src.CCIIntegrations.Twitch
             ta.OnAuthFailed += OnAuthError;
             ta.OnAuthBecameInvalid += OnAuthBecameInvalid;
 
-            twitchInterface.OnPubSubServiceConnected += OnPubSubServiceConnected;
-            twitchInterface.OnPubSubServiceError += OnPubServiceConnectionFailed;
-            twitchInterface.OnListenResponse += OnListenResponse;
-            twitchInterface.OnBitsReceived += OnBitsReceived;
-            twitchInterface.OnFollow += OnFollows;
-            twitchInterface.OnRaidGo += OnRaid;
-            twitchInterface.OnRewardRedeemed += OnRewardRedeemed;
-            twitchInterface.OnChannelSubscription += OnSubscription;
+            apiClient = new TwitchAPI();
+            apiClient.Settings.ClientId = Constants.TWITCH_CLIENT_ID;
+
+            pubSubClient.OnPubSubServiceConnected += OnPubSubServiceConnected;
+            pubSubClient.OnPubSubServiceError += OnPubServiceConnectionFailed;
+            pubSubClient.OnListenResponse += OnListenResponse;
+            pubSubClient.OnBitsReceived += OnBitsReceived;
+            pubSubClient.OnFollow += OnFollows;
+            pubSubClient.OnRaidGo += OnRaid;
+            pubSubClient.OnRewardRedeemed += OnRewardRedeemed;
+            pubSubClient.OnChannelSubscription += OnSubscription;
         }
 
         public void Reset()
         {
-            twitchInterface.Disconnect();
+            pubSubClient.Disconnect();
             ta.EndValidationPing();
-            IsTwitchPartnerAccount = false;
+            IsTwitchCommerceAccount = false;
             IsFailedState = false;
             numberOfSuccesfulListens = 0;
             connected = false;
@@ -115,7 +128,7 @@ namespace vscci.src.CCIIntegrations.Twitch
             isWaitingOnTopics = false;
         }
 
-        public void Connect(bool isPartner = false)
+        public void Connect()
         {
             if(connected && hasTopics)
             {
@@ -129,8 +142,7 @@ namespace vscci.src.CCIIntegrations.Twitch
 
             IsFailedState = false;
             numberOfSuccesfulListens = 0;
-            IsTwitchPartnerAccount = isPartner;
-            twitchInterface.Connect();
+            pubSubClient.Connect();
 
         }
 
@@ -144,12 +156,21 @@ namespace vscci.src.CCIIntegrations.Twitch
             return authToken;
         }
 
-        public void SetAuthDataFromSaveData(string savedAuth)
+        public async void SetAuthDataFromSaveData(string savedAuth)
         {
             if (ta.ValidateToken(savedAuth))
             {
                 authToken = savedAuth;
                 ta.BeginValidationPingForToken(authToken, Constants.AUTH_VALIDATION_INTERVAL);
+
+                apiClient.Settings.AccessToken = authToken;
+
+                var result = await apiClient.Helix.Users.GetUsersAsync(null, null, authToken);
+                if (result.Users.Length > 0)
+                {
+                    TwitchID = result.Users[0].Id;
+                    IsTwitchCommerceAccount = (result.Users[0].BroadcasterType == "partner" || result.Users[0].BroadcasterType == "affiliate");
+                }
             }
             else
             {
@@ -157,12 +178,21 @@ namespace vscci.src.CCIIntegrations.Twitch
             }
         }
 
-        private void OnAuthSucceful(object sender, string token)
+        private async void OnAuthSucceful(object sender, string token)
         {
             authToken = token;
+            apiClient.Settings.AccessToken = authToken;
+
             OnLoginSuccess?.Invoke(this, player);
 
             ta.BeginValidationPingForToken(authToken, Constants.AUTH_VALIDATION_INTERVAL);
+
+            var result = await apiClient.Helix.Users.GetUsersAsync(null, null, authToken);
+            if (result.Users.Length > 0)
+            {
+                TwitchID = result.Users[0].Id;
+                IsTwitchCommerceAccount = result.Users[0].BroadcasterType == "partner";
+            }
         }
 
         private void OnAuthError(object sender, string errorMessage)
@@ -203,24 +233,27 @@ namespace vscci.src.CCIIntegrations.Twitch
             }
         }
 
-        private void OnFollows(object sender, OnFollowArgs args)
+        private async void OnFollows(object sender, OnFollowArgs args)
         {
             if (args != null)
             {
+                var channelName = await GetChannelNameForId(args.FollowedChannelId);
                 var data = new TwitchFollowData() { who = args.DisplayName };
-                api.BroadcastMessageToAllGroups($"{args.DisplayName} is now Following {args.FollowedChannelId}!", EnumChatType.Notification);
+                api.BroadcastMessageToAllGroups($"{args.DisplayName} is now Following {channelName}!", EnumChatType.Notification);
                 api.Event.PushEvent(Constants.TWITCH_EVENT_FOLLOW, new ProtoDataTypeAttribute<TwitchFollowData>(data));
                 api.Network.GetChannel(Constants.NETWORK_EVENT_CHANNEL).SendPacket(data, new[] { player});
             }
         }
 
-        private void OnRaid(object sender, OnRaidGoArgs args)
+        private async void OnRaid(object sender, OnRaidGoArgs args)
         {
             if (args != null)
             {
-                var data = new TwitchRaidData() { raidChannel = args.Id.ToString(), numberOfViewers = args.ViewerCount };
+                var channelName = await GetChannelNameForId(args.ChannelId);
 
-                api.BroadcastMessageToAllGroups($"{args.ChannelId} is raiding with {args.ViewerCount} viewiers !", EnumChatType.Notification);
+                var data = new TwitchRaidData() { raidChannel = channelName, numberOfViewers = args.ViewerCount };
+
+                api.BroadcastMessageToAllGroups($"{channelName} is raiding with {args.ViewerCount} viewiers !", EnumChatType.Notification);
                 api.Event.PushEvent(Constants.TWITCH_EVENT_RAID, new ProtoDataTypeAttribute<TwitchRaidData>(data));
                 api.Network.GetChannel(Constants.NETWORK_EVENT_CHANNEL).SendPacket(data, new[] { player});
             }
@@ -256,19 +289,19 @@ namespace vscci.src.CCIIntegrations.Twitch
 
             api.World.Logger.Log(EnumLogType.Debug, "Twitch CCI Connected");
             // these are only possible if the user is a twitch partner
-            if (IsTwitchPartnerAccount)
+            if (IsTwitchCommerceAccount)
             {
-                twitchInterface.ListenToSubscriptions(TwitchID);
-                twitchInterface.ListenToBitsEvents(TwitchID);
+                pubSubClient.ListenToSubscriptions(TwitchID);
+                pubSubClient.ListenToBitsEvents(TwitchID);
             }
             // these always work
-            twitchInterface.ListenToFollows(TwitchID);
-            twitchInterface.ListenToRaid(TwitchID);
-            twitchInterface.ListenToRewards(TwitchID);
+            pubSubClient.ListenToFollows(TwitchID);
+            pubSubClient.ListenToRaid(TwitchID);
+            pubSubClient.ListenToRewards(TwitchID);
 
             // SendTopics accepts an oauth optionally, which is necessary for some topics
             // If the user has not logged in yet then this will be null, which is allowed
-            twitchInterface.SendTopics(authToken);
+            pubSubClient.SendTopics(authToken);
         }
 
         private void OnPubServiceConnectionFailed(object sender, OnPubSubServiceErrorArgs e)
@@ -285,7 +318,7 @@ namespace vscci.src.CCIIntegrations.Twitch
                 if (e.Successful)
                 {
                     numberOfSuccesfulListens++;
-                    if ((IsTwitchPartnerAccount && numberOfSuccesfulListens == 5) || (!IsTwitchPartnerAccount && numberOfSuccesfulListens == 3))
+                    if ((IsTwitchCommerceAccount && numberOfSuccesfulListens == 5) || (!IsTwitchCommerceAccount && numberOfSuccesfulListens == 3))
                     {
                         isWaitingOnTopics = false;
                         hasTopics = true;
@@ -300,9 +333,22 @@ namespace vscci.src.CCIIntegrations.Twitch
                     IsFailedState = true;
                     numberOfSuccesfulListens = 0;
                     OnConnectFailed?.Invoke(this, new OnConnectFailedArgs() { Reason=$"Listen Failed for tpoic: {e.Topic} with response: {e.Response}", Player = this.player });
-                    twitchInterface.Disconnect();
+                    pubSubClient.Disconnect();
                 }
             }
         }
-    }
+
+        // if failes, just returns the original id
+        private async Task<string> GetChannelNameForId(string channelID)
+        {
+            var channelInfo = await apiClient.Helix.Channels.GetChannelInformationAsync(channelID);
+
+            if(channelInfo.Data.Length > 0)
+            {
+                return channelInfo.Data[0].BroadcasterName;
+            }
+
+            return channelID;
+        }
+    }   
 }

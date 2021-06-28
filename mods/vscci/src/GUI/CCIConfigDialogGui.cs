@@ -31,7 +31,7 @@ namespace vscci.src.GUI
                     switch (i)
                     {
                         case 0:
-                            capi.Network.GetChannel(Constants.NETWORK_CHANNEL).SendPacket<CCIConnectRequest>(new CCIConnectRequest() {twitchid="",istwitchpartner=false });
+                            capi.Network.GetChannel(Constants.NETWORK_CHANNEL).SendPacket<CCIConnectRequest>(new CCIConnectRequest() {twitchid=""});
                             break;
                         case 1:
                             capi.Network.GetChannel(Constants.NETWORK_CHANNEL).SendPacket<CCILoginRequest>(new CCILoginRequest() { });

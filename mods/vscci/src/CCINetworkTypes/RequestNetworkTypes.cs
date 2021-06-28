@@ -30,7 +30,6 @@ namespace vscci.src.CCINetworkTypes
     public class CCIConnectRequest
     {
         public string twitchid;
-        public bool istwitchpartner;
     }
 
     [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]

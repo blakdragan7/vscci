@@ -120,7 +120,7 @@ namespace vscci.src
 
         private void OnCCIConnectRequest(IPlayer fromPlayer, CCIConnectRequest request)
         {
-            TIForPlayer(fromPlayer as IServerPlayer).Connect(request.istwitchpartner);
+            TIForPlayer(fromPlayer as IServerPlayer).Connect();
         }
 
         private void OnCCILogin(object sender, IServerPlayer player)

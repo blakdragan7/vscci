@@ -25,6 +25,7 @@ namespace vscci.src.Data
         public const string TWITH_AUTH_SAVE_TAG            = "vscci_tia_data";
         public const string TWITCH_ID_URL                  = "https://id.twitch.tv/oauth2/authorize?";
         public const string TWITCH_VALIDATE_URL            = "https://id.twitch.tv/oauth2/validate";
+        public const string TWITCH_CHANNELS_URL            = "https://api.twitch.tv/kraken/channels/";
         public const string TWITCH_CLIENT_ID               = "izjwtydb6a3i11ftc5uewgc2gzjbow";
         public const string TWITCH_REDIRECT_URI            = "http://localhost:4444/implicit";
         public const string LISTEN_PREFIX                  = "http://localhost:4444/";
