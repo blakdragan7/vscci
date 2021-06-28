@@ -165,6 +165,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="src\CCIIntegrations\Twitch\TwitchAutherizationHelper.cs" />
+    <Compile Include="src\CCIIntegrations\Twitch\TwitchTestServer.cs" />
     <Compile Include="src\Data\ProtoDataTypeAttribute.cs" />
     <Compile Include="src\CCIIntegrations\Twitch\TwitchIntegration.cs" />
     <Compile Include="src\CCINetworkTypes\RequestNetworkTypes.cs" />

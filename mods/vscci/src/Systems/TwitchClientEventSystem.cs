@@ -19,7 +19,7 @@ namespace vscci.src.Systems
 
             // register the network message types on both sides but we only respond to the messages on the client side
 
-            api.Network.RegisterChannel(Constants.NETWORK_CHANNEL)
+            api.Network.RegisterChannel(Constants.NETWORK_EVENT_CHANNEL)
                 .RegisterMessageType(typeof(TwitchRaidData))
                 .RegisterMessageType(typeof(TwitchBitsData))
                 .RegisterMessageType(typeof(TwitchFollowData))
@@ -33,7 +33,7 @@ namespace vscci.src.Systems
             base.StartClientSide(api);
             capi = api;
 
-            api.Network.GetChannel(Constants.NETWORK_CHANNEL)
+            api.Network.GetChannel(Constants.NETWORK_EVENT_CHANNEL)
                 .SetMessageHandler<TwitchRaidData>(OnTwitchRaidMessage)
                 .SetMessageHandler<TwitchBitsData>(OnTwitchBitsMessage)
                 .SetMessageHandler<TwitchFollowData>(OnTwitchFollowMessage)

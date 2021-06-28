@@ -34,10 +34,13 @@ namespace vscci.src.Data
 
                 foreach (var pair in sdti)
                 {
-                    IServerPlayer player = Array.Find(api.Server.Players, delegate (IServerPlayer p) { return p.PlayerUID == pair.Key; });
+                    if (pair.Value != null)
+                    {
+                        IServerPlayer player = Array.Find(api.Server.Players, delegate (IServerPlayer p) { return p.PlayerUID == pair.Key; });
 
-                    TwitchIntegration ti = vscci.TIForPlayer(player);
-                    ti.SetAuthDataFromSaveData(pair.Value);
+                        TwitchIntegration ti = vscci.TIForPlayer(player);
+                        ti.SetAuthDataFromSaveData(pair.Value);
+                    }
                 }
             }
         }

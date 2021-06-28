@@ -12,6 +12,7 @@ namespace vscci.src.Data
 
         // Server => Client Communication Constants
         public const string NETWORK_CHANNEL                = "cci_message_channel";
+        public const string NETWORK_EVENT_CHANNEL          = "cci_event_channel";
 
         // Twitch Event Constants
         public const string TWITCH_EVENT_BITS_RECIEVED     = "ccieb";

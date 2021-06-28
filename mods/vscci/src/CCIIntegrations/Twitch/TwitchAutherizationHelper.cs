@@ -26,6 +26,8 @@ namespace vscci.src.CCIIntegrations.Twitch
         {
             api = sapi;
             listener = new HttpListener();
+            listener.Prefixes.Add(Constants.LISTEN_PREFIX);
+
             validationTimer = new Timer();
             validationTimer.Elapsed += OnValidationTimer;
             validationTimer.AutoReset = true;
@@ -46,9 +48,7 @@ namespace vscci.src.CCIIntegrations.Twitch
 
             string url = Constants.TWITCH_ID_URL + $"client_id={Constants.TWITCH_CLIENT_ID}&redirect_uri={Constants.TWITCH_REDIRECT_URI}&response_type=token&scope={scopeStr}";
 
-            listener.Prefixes.Add(Constants.LISTEN_PREFIX);
             listener.Start();
-
             listener.BeginGetContext(OnReceiveAuthInfo, this); ;
 
             return url;
