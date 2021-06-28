@@ -12,6 +12,7 @@ namespace vscci.src
     class VSCCIModSystem : ModSystem
     {
         // server side variables
+        private Dictionary<string, string> cachedPlayerData;
         private Dictionary<IServerPlayer, TwitchIntegration> dti;
         private ICoreServerAPI sapi;
 
@@ -43,6 +44,21 @@ namespace vscci.src
 
             api.Event.SaveGameLoaded += OnGameLoad;
             api.Event.GameWorldSave += OnGameSave;
+            api.Event.PlayerJoin += OnPlayerLogin;
+            api.Event.PlayerLeave += OnPlayerLogout;
+        }
+
+        public override void Dispose()
+        {
+            if (sapi != null) // only if server should we do this
+            {
+                foreach (var pair in dti)
+                {
+                    pair.Value.Reset();
+                }
+            }
+
+            base.Dispose();
         }
 
         // this would normally be private but it's public so SaveDataUtil can access it
@@ -70,12 +86,29 @@ namespace vscci.src
 
         private void OnGameLoad()
         {
-            SaveDataUtil.LoadAuthData(sapi, this);
+            SaveDataUtil.LoadAuthData(sapi, this, ref cachedPlayerData);
         }
 
         private void OnGameSave()
         {
-            SaveDataUtil.SaveAuthData(sapi, dti);
+            SaveDataUtil.SaveAuthData(sapi, dti, cachedPlayerData);
+        }
+
+        private void OnPlayerLogin(IServerPlayer player)
+        {
+            var ti = TIForPlayer(player);
+
+            string oauth;
+            if(cachedPlayerData.TryGetValue(player.PlayerUID, out oauth))
+            {
+                ti.SetAuthDataFromSaveData(oauth);
+                cachedPlayerData.Remove(player.PlayerUID);
+            }
+        }
+
+        private void OnPlayerLogout(IServerPlayer player)
+        {
+            TIForPlayer(player).Reset();
         }
 
         private void OnCCILoginRequest(IPlayer fromPlayer, CCILoginRequest request)

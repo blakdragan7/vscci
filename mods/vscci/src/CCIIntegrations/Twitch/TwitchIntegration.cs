@@ -1,4 +1,4 @@
-﻿#define TWITCH_INTEGRATION_EVENT_TESTING
+﻿//#define TWITCH_INTEGRATION_EVENT_TESTING
 
 using System;
 
@@ -105,15 +105,14 @@ namespace vscci.src.CCIIntegrations.Twitch
 
         public void Reset()
         {
+            twitchInterface.Disconnect();
+            ta.EndValidationPing();
             IsTwitchPartnerAccount = false;
             IsFailedState = false;
             numberOfSuccesfulListens = 0;
             connected = false;
             hasTopics = false;
             isWaitingOnTopics = false;
-            authToken = null;
-            twitchInterface.Disconnect();
-            ta.EndValidationPing();
         }
 
         public void Connect(bool isPartner = false)
@@ -255,7 +254,7 @@ namespace vscci.src.CCIIntegrations.Twitch
             connected = true;
             isWaitingOnTopics = true;
 
-            api.World.Logger.Log(EnumLogType.Debug, $"Twitch CCI Connected");
+            api.World.Logger.Log(EnumLogType.Debug, "Twitch CCI Connected");
             // these are only possible if the user is a twitch partner
             if (IsTwitchPartnerAccount)
             {
@@ -281,7 +280,7 @@ namespace vscci.src.CCIIntegrations.Twitch
         {
             if (e != null && !IsFailedState)
             {
-                api.World.Logger.Chat($"onListenResponse:  was succeful {e.Successful} => wither error: {e.Response.Error}");
+                api.World.Logger.Chat("onListenResponse:  was succeful {0} => wither error: {1}", e.Successful, e.Response.Error);
 
                 if (e.Successful)
                 {

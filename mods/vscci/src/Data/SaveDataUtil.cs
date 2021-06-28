@@ -12,7 +12,7 @@ namespace vscci.src.Data
 {
     class SaveDataUtil
     {
-        public static void SaveAuthData(ICoreServerAPI api, Dictionary<IServerPlayer, TwitchIntegration> dti)
+        public static void SaveAuthData(ICoreServerAPI api, Dictionary<IServerPlayer, TwitchIntegration> dti, Dictionary<string, string> notFoundSavedData)
         {
             Dictionary<string, string> sdti = new Dictionary<string, string>();
 
@@ -21,12 +21,21 @@ namespace vscci.src.Data
                 sdti.Add(pair.Key.PlayerUID, pair.Value.GetAuthDataForSaving());
             }
 
+            if (notFoundSavedData != null)
+            {
+                foreach (var pair in notFoundSavedData)
+                {
+                    sdti.Add(pair.Key, pair.Value);
+                }
+            }
+
             api.WorldManager.SaveGame.StoreData(Constants.TWITH_AUTH_SAVE_TAG, SerializerUtil.Serialize<Dictionary<string,string>>(sdti));
         }
 
-        public static void LoadAuthData(ICoreServerAPI api,VSCCIModSystem vscci)
+        public static void LoadAuthData(ICoreServerAPI api,VSCCIModSystem vscci, ref Dictionary<string, string> notFoundSavedData)
         {
             byte[] data = api.WorldManager.SaveGame.GetData(Constants.TWITH_AUTH_SAVE_TAG);
+            List<string> toRemove = new List<string>();
 
             if(data != null)
             {
@@ -38,10 +47,22 @@ namespace vscci.src.Data
                     {
                         IServerPlayer player = Array.Find(api.Server.Players, delegate (IServerPlayer p) { return p.PlayerUID == pair.Key; });
 
-                        TwitchIntegration ti = vscci.TIForPlayer(player);
-                        ti.SetAuthDataFromSaveData(pair.Value);
+                        if (player != null)
+                        {
+                            toRemove.Add(pair.Key);
+                            TwitchIntegration ti = vscci.TIForPlayer(player);
+                            ti.SetAuthDataFromSaveData(pair.Value);
+                        }
                     }
                 }
+
+                foreach(var uuid in toRemove)
+                {
+                    sdti.Remove(uuid);
+                }
+
+                if(sdti.Count > 0)
+                    notFoundSavedData = sdti;
             }
         }
     }

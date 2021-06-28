@@ -62,13 +62,13 @@ namespace vscci.src.CCIIntegrations.Twitch
             try
             {
                 var result = client.DownloadString(Constants.TWITCH_VALIDATE_URL);
-                api.Logger.Log(Vintagestory.API.Common.EnumLogType.Debug, "Token Valid With Response " + result);
+                api.Logger.Log(Vintagestory.API.Common.EnumLogType.Debug, "Token Valid With Response {0}", result);
                 return result != null;
             }
             catch (WebException exception)
             {
                 // bad response means token is probably bad
-                api.Logger.Log(Vintagestory.API.Common.EnumLogType.Debug, "Dowload failed with exception " + exception.Message);
+                api.Logger.Log(Vintagestory.API.Common.EnumLogType.Debug, "Dowload failed with exception {0}", exception.Message);
             }
 
             return false;
@@ -104,13 +104,13 @@ namespace vscci.src.CCIIntegrations.Twitch
             try
             {
                 var result = client.DownloadString(Constants.TWITCH_VALIDATE_URL);
-                api.Logger.Log(Vintagestory.API.Common.EnumLogType.Debug, "Token Valid With Response " + result);
+                api.Logger.Log(Vintagestory.API.Common.EnumLogType.Debug, "Token Valid With Response {0}", result);
 
             }
             catch (WebException exception)
             {
                 // bad response means token is probably bad
-                api.Logger.Log(Vintagestory.API.Common.EnumLogType.Debug, "Dowload failed with exception " + exception.Message);
+                api.Logger.Log(Vintagestory.API.Common.EnumLogType.Debug, "Dowload failed with exception {0}", exception.Message);
                 EndValidationPing();
                 onAuthBecameInvalid?.Invoke(this, authForValidation);
             }
