@@ -1,32 +1,31 @@
 ﻿using System.Collections.Generic;
-using System.Net;
 using TwitchLib.Api.Core.Enums;
 using TwitchLib.Api.Core.Common;
 using vscci.src.Data;
 using System;
+using System.Net;
 using System.Timers;
 
 using Vintagestory.API.Server;
+using vscci.src.CCINetworkTypes;
 
 namespace vscci.src.CCIIntegrations.Twitch
 {
     class TwitchAutherizationHelper
     {
-        private HttpListener listener;
-        private List<AuthScopes> authScopes;
-        private string authForValidation;
-        private Timer validationTimer;
-        private ICoreServerAPI api;
+        private List<AuthScopes>    authScopes;
+        private string              authForValidation;
+        private Timer               validationTimer;
+        private ICoreServerAPI      api;
+        IServerPlayer               player;
 
-        public event EventHandler<string> onAuthSucceful;
-        public event EventHandler<string> onAuthFailed;
-        public event EventHandler<string> onAuthBecameInvalid;
+        public event EventHandler<string> OnAuthSucceful;
+        public event EventHandler<string> OnAuthFailed;
+        public event EventHandler<string> OnAuthBecameInvalid;
 
         public TwitchAutherizationHelper(ICoreServerAPI sapi)
         {
             api = sapi;
-            listener = new HttpListener();
-            listener.Prefixes.Add(Constants.LISTEN_PREFIX);
 
             validationTimer = new Timer();
             validationTimer.Elapsed += OnValidationTimer;
@@ -35,10 +34,14 @@ namespace vscci.src.CCIIntegrations.Twitch
             authScopes = new List<AuthScopes>{
                 AuthScopes.Channel_Feed_Read, AuthScopes.Helix_Channel_Read_Hype_Train,
                 AuthScopes.Helix_Channel_Read_Subscriptions, AuthScopes.Helix_Bits_Read , AuthScopes.Helix_Channel_Read_Redemptions};
+
+            api.Network.GetChannel(Constants.NETWORK_CHANNEL).SetMessageHandler<TwitchLoginStepResponse>(OnAuthResponse);
         }
          
-        public string StartAuthFlow()
+        public void StartAuthFlow(IServerPlayer player)
         {
+            this.player = player;
+
             string scopeStr = null;
             foreach (var scope in authScopes)
                 if (scopeStr == null)
@@ -48,10 +51,24 @@ namespace vscci.src.CCIIntegrations.Twitch
 
             string url = Constants.TWITCH_ID_URL + $"client_id={Constants.TWITCH_CLIENT_ID}&redirect_uri={Constants.TWITCH_REDIRECT_URI}&response_type=token&scope={scopeStr}";
 
-            listener.Start();
-            listener.BeginGetContext(OnReceiveAuthInfo, this); ;
+            api.Network.GetChannel(Constants.NETWORK_CHANNEL).SendPacket(new TwitchLoginStep() { url = url }, new[] { player });
+        }
 
-            return url;
+        private void OnAuthResponse(IServerPlayer fromPlayer, TwitchLoginStepResponse response)
+        {
+            if(this.player == fromPlayer)
+            {
+                if(response.success)
+                {
+                    OnAuthSucceful?.Invoke(this, response.authToken);
+                }
+                else
+                {
+                    OnAuthFailed?.Invoke(this, response.error);
+                }
+            }
+
+            // just ignore if not meant for us
         }
 
         public bool ValidateToken(string token)
@@ -112,73 +129,10 @@ namespace vscci.src.CCIIntegrations.Twitch
                 // bad response means token is probably bad
                 api.Logger.Log(Vintagestory.API.Common.EnumLogType.Debug, "Dowload failed with exception {0}", exception.Message);
                 EndValidationPing();
-                onAuthBecameInvalid?.Invoke(this, authForValidation);
+                OnAuthBecameInvalid?.Invoke(this, authForValidation);
             }
         }
 
-        void OnReceiveAuthInfo(IAsyncResult result)
-        {
-            var context = listener.EndGetContext(result);
-            HttpListenerRequest request = context.Request;
-            HttpListenerResponse response = context.Response;
-
-            if (request.Url.AbsolutePath == "/implicit")
-            {
-                string responseString = "<html><head>\n"+
-                                        "<script>\n" +
-                                        "function onLoadFunction() {\n" +
-                                        "\tvar hash = document.location.hash.substring(1);\n" +
-                                        "\twindow.location.href = \"http://localhost:4444/rdr?\" + hash;\n" +
-                                        //"\talert(\"hello\");"+
-                                        "}\n" +
-                                        "</script>\n"+
-                                        "</head>\n"+
-                                        "<body onload=\"onLoadFunction()\">\n"+
-                                        "</body></html>";
-                byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
-                response.ContentLength64 = buffer.Length;
-                response.AddHeader("Cache-Control", "no-store, must-revalidate");
-                response.AddHeader("Pragma", "no-cache");
-                response.AddHeader("Expires", "0");
-                System.IO.Stream output = response.OutputStream;
-                output.Write(buffer, 0, buffer.Length);
-                output.Close();
-                listener.BeginGetContext(OnReceiveAuthInfo, this);
-            }
-            else if (request.Url.AbsolutePath == "/rdr")
-            {
-                string authCode = request.QueryString.Get("access_token");
-
-                string responseString;
-
-                if (authCode != null)
-                {
-                    responseString = "<html><script>setTimeout(window.close, 5000);</script><body>Auth Code Found !\nThis Page will Close automatically after 5 seconds.</body></html>";
-                    onAuthSucceful?.Invoke(this, authCode);
-                }
-                else
-                {
-                    responseString = "<html><script>setTimeout(window.close, 5000);</script><body>Auth Code Not Found !\nThis Page will Close automatically after 5 seconds.</body></html>";
-                    onAuthFailed?.Invoke(this, "Failed to Receive Auth Token On Redirect");
-                }
-
-                byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
-                response.ContentLength64 = buffer.Length;
-                response.AddHeader("Cache-Control", "no-store, must-revalidate");
-                response.AddHeader("Pragma", "no-cache");
-                response.AddHeader("Expires", "0");
-
-                System.IO.Stream output = response.OutputStream;
-                output.Write(buffer, 0, buffer.Length);
-                output.Close();
-
-                listener.Stop();
-            }
-            else
-            {
-                response.Close();
-                listener.BeginGetContext(OnReceiveAuthInfo, this);
-            }
-        }
+        
     }
 }

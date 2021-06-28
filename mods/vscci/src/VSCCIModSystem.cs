@@ -18,13 +18,15 @@ namespace vscci.src
 
         // client side variables
         private ICoreClientAPI capi;
+        private TwitchAuthenticationHelperClient tiClient;
 
         public override void Start(ICoreAPI api)
         {
             base.Start(api);
 
             api.Network.RegisterChannel(Constants.NETWORK_CHANNEL)
-                .RegisterMessageType(typeof(CCILoginStep))
+                .RegisterMessageType(typeof(TwitchLoginStep))
+                .RegisterMessageType(typeof(TwitchLoginStepResponse))
                 .RegisterMessageType(typeof(CCILoginRequest))
                 .RegisterMessageType(typeof(CCIConnectRequest))
                 .RegisterMessageType(typeof(CCIRequestResponse));
@@ -113,8 +115,7 @@ namespace vscci.src
 
         private void OnCCILoginRequest(IPlayer fromPlayer, CCILoginRequest request)
         {
-            var url = TIForPlayer(fromPlayer as IServerPlayer).StartSignInFlow();
-            sapi.Network.GetChannel(Constants.NETWORK_CHANNEL).SendPacket<CCILoginStep>(new CCILoginStep() {url= url }, new[] {fromPlayer as IServerPlayer });
+            TIForPlayer(fromPlayer as IServerPlayer).StartSignInFlow();
         }
 
         private void OnCCIConnectRequest(IPlayer fromPlayer, CCIConnectRequest request)
@@ -129,7 +130,7 @@ namespace vscci.src
 
         private void OnCCILoginFailed(object sender, OnAuthFailedArgs args)
         {
-            sapi.Network.GetChannel(Constants.NETWORK_CHANNEL).SendPacket<CCIRequestResponse>(new CCIRequestResponse() { requestType = "login", response = args.Message, success = false }, new[] { args.player });
+            sapi.Network.GetChannel(Constants.NETWORK_CHANNEL).SendPacket<CCIRequestResponse>(new CCIRequestResponse() { requestType = "login", response = args.Message, success = false }, new[] { args.Player });
         }
 
         private void OnCCIConnect(object sender, IServerPlayer player)
@@ -139,7 +140,7 @@ namespace vscci.src
 
         private void OnCCIConnectFailed(object sender, OnConnectFailedArgs args)
         {
-            sapi.Network.GetChannel(Constants.NETWORK_CHANNEL).SendPacket<CCIRequestResponse>(new CCIRequestResponse() { requestType = "connect", response = args.reason, success = false }, new[] { args.player });
+            sapi.Network.GetChannel(Constants.NETWORK_CHANNEL).SendPacket<CCIRequestResponse>(new CCIRequestResponse() { requestType = "connect", response = args.Reason, success = false }, new[] { args.Player });
         }
         #endregion
 
@@ -150,16 +151,11 @@ namespace vscci.src
 
             api.Network.GetChannel(Constants.NETWORK_CHANNEL)
                 .SetMessageHandler<CCIRequestResponse>(OnRequestResponse)
-                .SetMessageHandler<CCILoginStep>(OnLoginStep)
             ;
 
             capi = api;
-        }
 
-        private void OnLoginStep(CCILoginStep step)
-        {
-            capi.ShowChatMessage("Login Step !");
-            System.Diagnostics.Process.Start($"{step.url}");
+            tiClient = new TwitchAuthenticationHelperClient(capi);
         }
 
         private void OnRequestResponse(CCIRequestResponse response)

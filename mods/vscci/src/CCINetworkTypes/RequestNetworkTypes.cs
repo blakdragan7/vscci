@@ -13,9 +13,17 @@ namespace vscci.src.CCINetworkTypes
     }
 
     [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
-    public class CCILoginStep
+    public class TwitchLoginStep
     {
         public string url;
+    }
+
+    [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
+    public class TwitchLoginStepResponse
+    {
+        public string authToken;
+        public bool success;
+        public string error;
     }
 
     [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]

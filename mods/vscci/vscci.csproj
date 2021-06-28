@@ -164,6 +164,7 @@
     <Content Include="modinfo.json" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="src\CCIIntegrations\Twitch\TwitchAuthenticationHelperClient.cs" />
     <Compile Include="src\CCIIntegrations\Twitch\TwitchAutherizationHelper.cs" />
     <Compile Include="src\CCIIntegrations\Twitch\TwitchTestServer.cs" />
     <Compile Include="src\Data\ProtoDataTypeAttribute.cs" />

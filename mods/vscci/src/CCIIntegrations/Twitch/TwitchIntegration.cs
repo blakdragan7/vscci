@@ -20,8 +20,8 @@ namespace vscci.src.CCIIntegrations.Twitch
 {
     public class OnConnectFailedArgs : EventArgs
     {
-        public string reason { get; set; }
-        public IServerPlayer player { get; set; }
+        public string Reason { get; set; }
+        public IServerPlayer Player { get; set; }
 
         public OnConnectFailedArgs() { }
     }
@@ -29,7 +29,7 @@ namespace vscci.src.CCIIntegrations.Twitch
     public class OnAuthFailedArgs : EventArgs
     {
         public string Message { get; set; }
-        public IServerPlayer player { get; set; }
+        public IServerPlayer Player { get; set; }
 
         public OnAuthFailedArgs() { }
     }
@@ -89,18 +89,18 @@ namespace vscci.src.CCIIntegrations.Twitch
 #endif
 
             ta = new TwitchAutherizationHelper(sapi);
-            ta.onAuthSucceful += onAuthSucceful;
-            ta.onAuthFailed += onAuthError;
-            ta.onAuthBecameInvalid += onAuthBecameInvalid;
+            ta.OnAuthSucceful += OnAuthSucceful;
+            ta.OnAuthFailed += OnAuthError;
+            ta.OnAuthBecameInvalid += OnAuthBecameInvalid;
 
-            twitchInterface.OnPubSubServiceConnected += onPubSubServiceConnected;
-            twitchInterface.OnPubSubServiceError += onPubServiceConnectionFailed;
-            twitchInterface.OnListenResponse += onListenResponse;
-            twitchInterface.OnBitsReceived += onBitsReceived;
-            twitchInterface.OnFollow += onFollows;
-            twitchInterface.OnRaidGo += onRaid;
-            twitchInterface.OnRewardRedeemed += onRewardRedeemed;
-            twitchInterface.OnChannelSubscription += onSubscription;
+            twitchInterface.OnPubSubServiceConnected += OnPubSubServiceConnected;
+            twitchInterface.OnPubSubServiceError += OnPubServiceConnectionFailed;
+            twitchInterface.OnListenResponse += OnListenResponse;
+            twitchInterface.OnBitsReceived += OnBitsReceived;
+            twitchInterface.OnFollow += OnFollows;
+            twitchInterface.OnRaidGo += OnRaid;
+            twitchInterface.OnRewardRedeemed += OnRewardRedeemed;
+            twitchInterface.OnChannelSubscription += OnSubscription;
         }
 
         public void Reset()
@@ -134,9 +134,9 @@ namespace vscci.src.CCIIntegrations.Twitch
 
         }
 
-        public string StartSignInFlow()
+        public void StartSignInFlow()
         {
-            return ta.StartAuthFlow();
+            ta.StartAuthFlow(player);
         }
 
         public string GetAuthDataForSaving()
@@ -157,7 +157,7 @@ namespace vscci.src.CCIIntegrations.Twitch
             }
         }
 
-        private void onAuthSucceful(object sender, string token)
+        private void OnAuthSucceful(object sender, string token)
         {
             authToken = token;
             OnLoginSuccess?.Invoke(this, player);
@@ -165,12 +165,12 @@ namespace vscci.src.CCIIntegrations.Twitch
             ta.BeginValidationPingForToken(authToken, Constants.AUTH_VALIDATION_INTERVAL);
         }
 
-        private void onAuthError(object sender, string errorMessage)
+        private void OnAuthError(object sender, string errorMessage)
         {
-            OnLoginError?.Invoke(this, new OnAuthFailedArgs() {Message= errorMessage,player=this.player });
+            OnLoginError?.Invoke(this, new OnAuthFailedArgs() {Message= errorMessage,Player=this.player });
         }
 
-        private void onAuthBecameInvalid(object sender,string nowInvalidAuth)
+        private void OnAuthBecameInvalid(object sender,string nowInvalidAuth)
         {
             if(nowInvalidAuth == authToken)
             {
@@ -180,7 +180,7 @@ namespace vscci.src.CCIIntegrations.Twitch
             }    
         }
 
-        private void onBitsReceived(object sender, OnBitsReceivedArgs args)
+        private void OnBitsReceived(object sender, OnBitsReceivedArgs args)
         {
             if (args != null)
             {
@@ -191,7 +191,7 @@ namespace vscci.src.CCIIntegrations.Twitch
             }
         }
 
-        private void onRewardRedeemed(object sender, OnRewardRedeemedArgs args)
+        private void OnRewardRedeemed(object sender, OnRewardRedeemedArgs args)
         {
             if (args != null)
             {
@@ -203,7 +203,7 @@ namespace vscci.src.CCIIntegrations.Twitch
             }
         }
 
-        private void onFollows(object sender, OnFollowArgs args)
+        private void OnFollows(object sender, OnFollowArgs args)
         {
             if (args != null)
             {
@@ -214,7 +214,7 @@ namespace vscci.src.CCIIntegrations.Twitch
             }
         }
 
-        private void onRaid(object sender, OnRaidGoArgs args)
+        private void OnRaid(object sender, OnRaidGoArgs args)
         {
             if (args != null)
             {
@@ -226,7 +226,7 @@ namespace vscci.src.CCIIntegrations.Twitch
             }
         }
 
-        private void onSubscription(object sender, OnChannelSubscriptionArgs args)
+        private void OnSubscription(object sender, OnChannelSubscriptionArgs args)
         {
             if (args != null)
             {
@@ -249,7 +249,7 @@ namespace vscci.src.CCIIntegrations.Twitch
             }
         }
 
-        private void onPubSubServiceConnected(object sender, EventArgs e)
+        private void OnPubSubServiceConnected(object sender, EventArgs e)
         {
             connected = true;
             isWaitingOnTopics = true;
@@ -271,12 +271,12 @@ namespace vscci.src.CCIIntegrations.Twitch
             twitchInterface.SendTopics(authToken);
         }
 
-        private void onPubServiceConnectionFailed(object sender, OnPubSubServiceErrorArgs e)
+        private void OnPubServiceConnectionFailed(object sender, OnPubSubServiceErrorArgs e)
         {
-            OnConnectFailed?.Invoke(this, new OnConnectFailedArgs() { reason=e.Exception.Message, player = this.player });
+            OnConnectFailed?.Invoke(this, new OnConnectFailedArgs() { Reason=e.Exception.Message, Player = this.player });
         }
 
-        private void onListenResponse(object sender, OnListenResponseArgs e)
+        private void OnListenResponse(object sender, OnListenResponseArgs e)
         {
             if (e != null && !IsFailedState)
             {
@@ -299,7 +299,7 @@ namespace vscci.src.CCIIntegrations.Twitch
                     connected = false;
                     IsFailedState = true;
                     numberOfSuccesfulListens = 0;
-                    OnConnectFailed?.Invoke(this, new OnConnectFailedArgs() { reason=$"Listen Failed for tpoic: {e.Topic} with response: {e.Response}", player = this.player });
+                    OnConnectFailed?.Invoke(this, new OnConnectFailedArgs() { Reason=$"Listen Failed for tpoic: {e.Topic} with response: {e.Response}", Player = this.player });
                     twitchInterface.Disconnect();
                 }
             }

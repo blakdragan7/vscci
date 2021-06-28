@@ -26,6 +26,8 @@ namespace vscci.src.CCIIntegrations.Twitch
         private bool FollowListen;
         private bool RewardsListen;
 
+        private bool ShouoldSimulateError;
+
         public event EventHandler OnPubSubServiceConnected;
         public event EventHandler<OnPubSubServiceErrorArgs> OnPubSubServiceError;
         public event EventHandler<OnListenResponseArgs> OnListenResponse;
@@ -46,34 +48,39 @@ namespace vscci.src.CCIIntegrations.Twitch
             FollowListen   = false;
             RewardsListen  = false;
 
+            ShouoldSimulateError = false;
+
             /*
                 public SubscriptionPlan SubscriptionPlan { get; }
              */
 
-            Dictionary<string, object> dsm = new Dictionary<string, object>();
+            Dictionary<string, object> dsm = new Dictionary<string, object>
+            {
+                { "message", "Channel Sub Test" },
+                { "emotes", null }
+            };
 
-            dsm.Add("message", "Channel Sub Test");
-            dsm.Add("emotes", null);
-
-            Dictionary<string, object> ds = new Dictionary<string, object>();
-            ds.Add("context", "test context");
-            ds.Add("streak_months", 1);
-            ds.Add("cumulative_months", 1);
-            ds.Add("months", 1);
-            ds.Add("time", DateTime.Now.ToString());
-            ds.Add("multi_month_duration", 1);
-            ds.Add("sub_plan_name", "test plan");
-            ds.Add("sub_plan", "prime");
-            ds.Add("channel_id", "testchannel");
-            ds.Add("channel_name", "testchannel");
-            ds.Add("display_name", "testuser");
-            ds.Add("recipient_display_name", "");
-            ds.Add("recipient_id", 0);
-            ds.Add("recipient_user_name", "");
-            ds.Add("sub_message", dsm);
-            ds.Add("user_id", "0123456789");
-            ds.Add("user_name", "testuser");
-            ds.Add("is_gift", false);
+            Dictionary<string, object> ds = new Dictionary<string, object>
+            {
+                { "context", "test context" },
+                { "streak_months", 1 },
+                { "cumulative_months", 1 },
+                { "months", 1 },
+                { "time", DateTime.Now.ToString() },
+                { "multi_month_duration", 1 },
+                { "sub_plan_name", "test plan" },
+                { "sub_plan", "prime" },
+                { "channel_id", "testchannel" },
+                { "channel_name", "testchannel" },
+                { "display_name", "testuser" },
+                { "recipient_display_name", "" },
+                { "recipient_id", 0 },
+                { "recipient_user_name", "" },
+                { "sub_message", dsm },
+                { "user_id", "0123456789" },
+                { "user_name", "testuser" },
+                { "is_gift", false }
+            };
 
             testSubJson = JsonUtil.ToString(ds);
 
@@ -92,6 +99,12 @@ namespace vscci.src.CCIIntegrations.Twitch
 
         public void Connect()
         {
+            if(ShouoldSimulateError)
+            {
+                OnPubSubServiceError?.Invoke(this, new OnPubSubServiceErrorArgs() { Exception=new Exception("testSubJson Pub Error Exception") });
+                return;
+            }
+
             listener.Start();
             listener.BeginGetContext(OnHttpCallback, this);
 
