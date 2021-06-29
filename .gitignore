@@ -5,3 +5,4 @@ releases
 packages
 *.dll
 *.pdb
+/stage
