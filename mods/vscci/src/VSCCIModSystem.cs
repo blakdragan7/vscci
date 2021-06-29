@@ -29,7 +29,9 @@ namespace vscci.src
                 .RegisterMessageType(typeof(TwitchLoginStepResponse))
                 .RegisterMessageType(typeof(CCILoginRequest))
                 .RegisterMessageType(typeof(CCIConnectRequest))
-                .RegisterMessageType(typeof(CCIRequestResponse));
+                .RegisterMessageType(typeof(CCIRequestResponse))
+                .RegisterMessageType(typeof(CCILoginUpdate))
+                .RegisterMessageType(typeof(CCIConnectionUpdate));
         }
         #region Server
         public override void StartServerSide(ICoreServerAPI api)

@@ -22,6 +22,7 @@ using Newtonsoft.Json;
 using Nito.AsyncEx;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using vscci.src.CCINetworkTypes;
 
 namespace vscci.src.CCIIntegrations.Twitch
 {
@@ -44,9 +45,9 @@ namespace vscci.src.CCIIntegrations.Twitch
     {
         //private string                      TwitchID = "MischiefOfMice";
         //private string                      TwitchID = "ChosenArchitect";
-        private string                      TwitchID;
+        private string                      twitchUsername;
+        private string                      twitchID;
         private int                         numberOfSuccesfulListens;
-        //private Users userClient;
         private string                      authToken;
         private bool                        connected;
         private bool                        hasTopics;
@@ -82,7 +83,7 @@ namespace vscci.src.CCIIntegrations.Twitch
             connected = false;
             hasTopics = false;
             isWaitingOnTopics = false;
-            TwitchID = null;
+            twitchID = null;
 
             //ApiSettings settings = new ApiSettings();
 
@@ -106,6 +107,7 @@ namespace vscci.src.CCIIntegrations.Twitch
             apiClient = new TwitchAPI();
             apiClient.Settings.ClientId = Constants.TWITCH_CLIENT_ID;
 
+            pubSubClient.OnPubSubServiceClosed += OnPubSubServiceDisconnected;
             pubSubClient.OnPubSubServiceConnected += OnPubSubServiceConnected;
             pubSubClient.OnPubSubServiceError += OnPubServiceConnectionFailed;
             pubSubClient.OnListenResponse += OnListenResponse;
@@ -168,8 +170,10 @@ namespace vscci.src.CCIIntegrations.Twitch
                 var result = await apiClient.Helix.Users.GetUsersAsync(null, null, authToken);
                 if (result.Users.Length > 0)
                 {
-                    TwitchID = result.Users[0].Id;
+                    twitchID = result.Users[0].Id;
+                    twitchUsername = result.Users[0].DisplayName;
                     IsTwitchCommerceAccount = (result.Users[0].BroadcasterType == "partner" || result.Users[0].BroadcasterType == "affiliate");
+                    api.Network.GetChannel(Constants.NETWORK_CHANNEL).SendPacket<CCILoginUpdate>(new CCILoginUpdate() { id = twitchID, user = twitchUsername }, player);
                 }
             }
             else
@@ -190,8 +194,10 @@ namespace vscci.src.CCIIntegrations.Twitch
             var result = await apiClient.Helix.Users.GetUsersAsync(null, null, authToken);
             if (result.Users.Length > 0)
             {
-                TwitchID = result.Users[0].Id;
-                IsTwitchCommerceAccount = result.Users[0].BroadcasterType == "partner";
+                twitchID = result.Users[0].Id;
+                twitchUsername = result.Users[0].DisplayName;
+                IsTwitchCommerceAccount = (result.Users[0].BroadcasterType == "partner" || result.Users[0].BroadcasterType == "affiliate");
+                api.Network.GetChannel(Constants.NETWORK_CHANNEL).SendPacket<CCILoginUpdate>(new CCILoginUpdate() { id = twitchID, user = twitchUsername }, player);
             }
         }
 
@@ -291,22 +297,28 @@ namespace vscci.src.CCIIntegrations.Twitch
             // these are only possible if the user is a twitch partner
             if (IsTwitchCommerceAccount)
             {
-                pubSubClient.ListenToSubscriptions(TwitchID);
-                pubSubClient.ListenToBitsEvents(TwitchID);
+                pubSubClient.ListenToSubscriptions(twitchID);
+                pubSubClient.ListenToBitsEvents(twitchID);
             }
             // these always work
-            pubSubClient.ListenToFollows(TwitchID);
-            pubSubClient.ListenToRaid(TwitchID);
-            pubSubClient.ListenToRewards(TwitchID);
+            pubSubClient.ListenToFollows(twitchID);
+            pubSubClient.ListenToRaid(twitchID);
+            pubSubClient.ListenToRewards(twitchID);
 
             // SendTopics accepts an oauth optionally, which is necessary for some topics
             // If the user has not logged in yet then this will be null, which is allowed
             pubSubClient.SendTopics(authToken);
         }
 
+        private void OnPubSubServiceDisconnected(object sender, EventArgs e)
+        {
+            api.Network.GetChannel(Constants.NETWORK_CHANNEL).SendPacket(new CCIConnectionUpdate() { status = $"Disconnected" }, player);
+        }
+
         private void OnPubServiceConnectionFailed(object sender, OnPubSubServiceErrorArgs e)
         {
             OnConnectFailed?.Invoke(this, new OnConnectFailedArgs() { Reason=e.Exception.Message, Player = this.player });
+            api.Network.GetChannel(Constants.NETWORK_CHANNEL).SendPacket(new CCIConnectionUpdate() { status=$"Failed With Error ${e.Exception.Message}" }, player);
         }
 
         private void OnListenResponse(object sender, OnListenResponseArgs e)
@@ -323,6 +335,8 @@ namespace vscci.src.CCIIntegrations.Twitch
                         isWaitingOnTopics = false;
                         hasTopics = true;
                         OnConnectSuccess?.Invoke(this, player);
+
+                        api.Network.GetChannel(Constants.NETWORK_CHANNEL).SendPacket(new CCIConnectionUpdate() { status="Connected" }, player);
                     }
                 }
                 else
@@ -334,6 +348,7 @@ namespace vscci.src.CCIIntegrations.Twitch
                     numberOfSuccesfulListens = 0;
                     OnConnectFailed?.Invoke(this, new OnConnectFailedArgs() { Reason=$"Listen Failed for tpoic: {e.Topic} with response: {e.Response}", Player = this.player });
                     pubSubClient.Disconnect();
+                    api.Network.GetChannel(Constants.NETWORK_CHANNEL).SendPacket(new CCIConnectionUpdate() { status="Failed Registering To Events" }, player);
                 }
             }
         }

@@ -39,4 +39,17 @@ namespace vscci.src.CCINetworkTypes
         public string response;
         public bool success;
     }
+
+    [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
+    public class CCILoginUpdate
+    {
+        public string user;
+        public string id;
+    }
+
+    [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
+    public class CCIConnectionUpdate
+    {
+        public string status;
+    }
 }
