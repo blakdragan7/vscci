@@ -53,6 +53,10 @@ namespace vscci.Data
                             ti.SetAuthDataFromSaveData(pair.Value);
                         }
                     }
+                    else
+                    {
+                        toRemove.Add(pair.Key);
+                    }
                 }
 
                 foreach(var uuid in toRemove)

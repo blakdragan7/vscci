@@ -107,7 +107,11 @@ namespace vscci.ModSystem
                 string oauth;
                 if (cachedPlayerData.TryGetValue(player.PlayerUID, out oauth))
                 {
-                    ti.SetAuthDataFromSaveData(oauth);
+                    if (oauth != null)
+                    {
+                        ti.SetAuthDataFromSaveData(oauth);
+                    }
+
                     cachedPlayerData.Remove(player.PlayerUID);
                 }
             }
