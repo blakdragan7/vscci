@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup Label="VSModTemplate Properties">
     <TargetFramework>netstandard2.0</TargetFramework>
     <!-- These are necessary because we're kind of jury rigging everything together between .NET Standard 2.0 and .NET 4.5.2. -->
@@ -44,10 +44,6 @@
       <HintPath>$(VINTAGE_STORY)/Mods/VSCreativeMod.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>$(VINTAGE_STORY)/Lib/Newtonsoft.Json.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Harmony">
       <HintPath>$(VINTAGE_STORY)/Lib/0Harmony.dll</HintPath>
       <Private>False</Private>
@@ -61,12 +57,15 @@
       <Private>False</Private>
     </Reference>
   </ItemGroup>
-
+  <PropertyGroup>
+    <NoWarn>NU1605</NoWarn>
+  </PropertyGroup>
   <!-- Template includes: -->
   <ItemGroup Label="VSModTemplate Includes">
     <!-- This is what allows us to do the fancy IL weaving so we end up with a single dependency-version-independent release .dll! -->
     <PackageReference Include="ILRepack.Lib.Task" Version="0.1.7" PrivateAssets="all" />
-    <PackageReference Include="protobuf-net" Version="3.0.101" />
+    <!-- Actual project includes -->
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="TwitchLib.Api" Version="3.2.3" />
   </ItemGroup>
 
