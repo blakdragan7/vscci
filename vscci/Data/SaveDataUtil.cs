@@ -46,7 +46,7 @@ namespace vscci.Data
                     {
                         IServerPlayer player = Array.Find(api.Server.Players, delegate (IServerPlayer p) { return p.PlayerUID == pair.Key; });
 
-                        if (player != null)
+                        if (player != null && player.ConnectionState == EnumClientState.Connected)
                         {
                             toRemove.Add(pair.Key);
                             TwitchIntegration ti = vscci.TIForPlayer(player);
