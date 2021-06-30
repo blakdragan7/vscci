@@ -1,0 +1,3 @@
+[submodule "TwitchLib.PubSub"]
+	path = TwitchLib.PubSub
+	url = git@github.com:blakdragan7/TwitchLib.PubSub.git
