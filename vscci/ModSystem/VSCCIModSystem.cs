@@ -99,13 +99,17 @@ namespace vscci.ModSystem
 
         private void OnPlayerLogin(IServerPlayer player)
         {
+            // we do this first so that it always created an instance for the player even if there is no data for them
             var ti = TIForPlayer(player);
 
-            string oauth;
-            if(cachedPlayerData.TryGetValue(player.PlayerUID, out oauth))
+            if (cachedPlayerData != null)
             {
-                ti.SetAuthDataFromSaveData(oauth);
-                cachedPlayerData.Remove(player.PlayerUID);
+                string oauth;
+                if (cachedPlayerData.TryGetValue(player.PlayerUID, out oauth))
+                {
+                    ti.SetAuthDataFromSaveData(oauth);
+                    cachedPlayerData.Remove(player.PlayerUID);
+                }
             }
         }
 
