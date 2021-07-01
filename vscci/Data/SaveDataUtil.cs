@@ -9,13 +9,13 @@ namespace vscci.Data
     using vscci.CCIIntegrations.Twitch;
     using vscci.ModSystem;
 
-    class SaveDataUtil
+    public class SaveDataUtil
     {
         public static void SaveAuthData(ICoreServerAPI api, Dictionary<IServerPlayer, TwitchIntegration> dti, Dictionary<string, string> notFoundSavedData)
         {
-            Dictionary<string, string> sdti = new Dictionary<string, string>();
+            var sdti = new Dictionary<string, string>();
 
-            foreach(var pair in dti)
+            foreach (var pair in dti)
             {
                 sdti.Add(pair.Key.PlayerUID, pair.Value.GetAuthDataForSaving());
             }
@@ -28,15 +28,15 @@ namespace vscci.Data
                 }
             }
 
-            api.WorldManager.SaveGame.StoreData(Constants.TWITH_AUTH_SAVE_TAG, SerializerUtil.Serialize<Dictionary<string,string>>(sdti));
+            api.WorldManager.SaveGame.StoreData(Constants.TWITH_AUTH_SAVE_TAG, SerializerUtil.Serialize(sdti));
         }
 
-        public static void LoadAuthData(ICoreServerAPI api,VSCCIModSystem vscci, ref Dictionary<string, string> notFoundSavedData)
+        public static void LoadAuthData(ICoreServerAPI api, VSCCIModSystem vscci, ref Dictionary<string, string> notFoundSavedData)
         {
-            byte[] data = api.WorldManager.SaveGame.GetData(Constants.TWITH_AUTH_SAVE_TAG);
-            List<string> toRemove = new List<string>();
+            var data = api.WorldManager.SaveGame.GetData(Constants.TWITH_AUTH_SAVE_TAG);
+            var toRemove = new List<string>();
 
-            if(data != null)
+            if (data != null)
             {
                 var sdti = SerializerUtil.Deserialize<Dictionary<string, string>>(data);
 
@@ -44,12 +44,13 @@ namespace vscci.Data
                 {
                     if (pair.Value != null)
                     {
-                        IServerPlayer player = Array.Find(api.Server.Players, delegate (IServerPlayer p) { return p.PlayerUID == pair.Key; });
+                        var player = Array.Find(api.Server.Players, delegate (IServerPlayer p)
+                        { return p.PlayerUID == pair.Key; });
 
                         if (player != null && player.ConnectionState == EnumClientState.Connected)
                         {
                             toRemove.Add(pair.Key);
-                            TwitchIntegration ti = vscci.TIForPlayer(player);
+                            var ti = vscci.TIForPlayer(player);
                             ti.SetAuthDataFromSaveData(pair.Value);
                         }
                     }
@@ -59,13 +60,15 @@ namespace vscci.Data
                     }
                 }
 
-                foreach(var uuid in toRemove)
+                foreach (var uuid in toRemove)
                 {
                     sdti.Remove(uuid);
                 }
 
-                if(sdti.Count > 0)
+                if (sdti.Count > 0)
+                {
                     notFoundSavedData = sdti;
+                }
             }
         }
     }

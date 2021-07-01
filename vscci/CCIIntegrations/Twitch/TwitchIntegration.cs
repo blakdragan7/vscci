@@ -30,31 +30,32 @@ namespace vscci.CCIIntegrations.Twitch
 
         public OnAuthFailedArgs() { }
     }
-    class TwitchIntegration
+    public class TwitchIntegration
     {
         //private string                      TwitchID = "MischiefOfMice";
         //private string                      TwitchID = "ChosenArchitect";
-        private string                      twitchUsername;
-        private string                      twitchID;
-        private int                         numberOfSuccesfulListens;
-        private string                      authToken;
-        private bool                        connected;
-        private bool                        hasTopics;
-        private bool                        isWaitingOnTopics;
-        private IServerPlayer               player;
+        private string twitchUsername;
+        private string twitchID;
+        private int numberOfSuccesfulListens;
+        private bool connected;
+        private bool hasTopics;
+        private bool isWaitingOnTopics;
+        private readonly IServerPlayer player;
 
 #if TWITCH_INTEGRATION_EVENT_TESTING
         private TwitchTestServer pubSubClient;
 #else
-        private TwitchPubSub                pubSubClient;
+        private readonly TwitchPubSub pubSubClient;
 #endif
-        private TwitchAPI                   apiClient;
-        private TwitchAutherizationHelper   ta;
+        private readonly TwitchAPI apiClient;
+        private readonly TwitchAutherizationHelper ta;
 
-        private ICoreServerAPI              api;
+        private readonly ICoreServerAPI api;
 
         public bool IsTwitchCommerceAccount { get; set; }
         public bool IsFailedState { get; set; }
+
+        public string AuthToken { get; set; }
 
         public event EventHandler<OnAuthFailedArgs> OnLoginError;
         public event EventHandler<IServerPlayer> OnLoginSuccess;
@@ -121,12 +122,12 @@ namespace vscci.CCIIntegrations.Twitch
 
         public void Connect()
         {
-            if(connected && hasTopics)
+            if (connected && hasTopics)
             {
                 OnConnectSuccess?.Invoke(this, null);
                 return;
             }
-            else if(isWaitingOnTopics)
+            else if (isWaitingOnTopics)
             {
                 return;
             }
@@ -144,24 +145,24 @@ namespace vscci.CCIIntegrations.Twitch
 
         public string GetAuthDataForSaving()
         {
-            return authToken;
+            return AuthToken;
         }
 
         public async void SetAuthDataFromSaveData(string savedAuth)
         {
             if (ta.ValidateToken(savedAuth))
             {
-                authToken = savedAuth;
-                ta.BeginValidationPingForToken(authToken, Constants.AUTH_VALIDATION_INTERVAL);
+                AuthToken = savedAuth;
+                ta.BeginValidationPingForToken(AuthToken, Constants.AUTH_VALIDATION_INTERVAL);
 
-                apiClient.Settings.AccessToken = authToken;
+                apiClient.Settings.AccessToken = AuthToken;
 
-                var result = await apiClient.Helix.Users.GetUsersAsync(null, null, authToken);
+                var result = await apiClient.Helix.Users.GetUsersAsync(null, null, AuthToken);
                 if (result.Users.Length > 0)
                 {
                     twitchID = result.Users[0].Id;
                     twitchUsername = result.Users[0].DisplayName;
-                    IsTwitchCommerceAccount = (result.Users[0].BroadcasterType == "partner" || result.Users[0].BroadcasterType == "affiliate");
+                    IsTwitchCommerceAccount = result.Users[0].BroadcasterType == "partner" || result.Users[0].BroadcasterType == "affiliate";
                     api.Network.GetChannel(Constants.NETWORK_GUI_CHANNEL).SendPacket(new CCILoginUpdate() { id = twitchID, user = twitchUsername }, player);
                 }
             }
@@ -173,36 +174,36 @@ namespace vscci.CCIIntegrations.Twitch
 
         private async void OnAuthSucceful(object sender, string token)
         {
-            authToken = token;
-            apiClient.Settings.AccessToken = authToken;
+            AuthToken = token;
+            apiClient.Settings.AccessToken = AuthToken;
 
             OnLoginSuccess?.Invoke(this, player);
 
-            ta.BeginValidationPingForToken(authToken, Constants.AUTH_VALIDATION_INTERVAL);
+            ta.BeginValidationPingForToken(AuthToken, Constants.AUTH_VALIDATION_INTERVAL);
 
-            var result = await apiClient.Helix.Users.GetUsersAsync(null, null, authToken);
+            var result = await apiClient.Helix.Users.GetUsersAsync(null, null, AuthToken);
             if (result.Users.Length > 0)
             {
                 twitchID = result.Users[0].Id;
                 twitchUsername = result.Users[0].DisplayName;
-                IsTwitchCommerceAccount = (result.Users[0].BroadcasterType == "partner" || result.Users[0].BroadcasterType == "affiliate");
+                IsTwitchCommerceAccount = result.Users[0].BroadcasterType == "partner" || result.Users[0].BroadcasterType == "affiliate";
                 api.Network.GetChannel(Constants.NETWORK_GUI_CHANNEL).SendPacket(new CCILoginUpdate() { id = twitchID, user = twitchUsername }, player);
             }
         }
 
         private void OnAuthError(object sender, string errorMessage)
         {
-            OnLoginError?.Invoke(this, new OnAuthFailedArgs() {Message= errorMessage,Player=this.player });
+            OnLoginError?.Invoke(this, new OnAuthFailedArgs() { Message = errorMessage, Player = player });
         }
 
-        private void OnAuthBecameInvalid(object sender,string nowInvalidAuth)
+        private void OnAuthBecameInvalid(object sender, string nowInvalidAuth)
         {
-            if(nowInvalidAuth == authToken)
+            if (nowInvalidAuth == AuthToken)
             {
-                authToken = null;
+                AuthToken = null;
                 // delete cache of auth token
                 api.SendMessage(player, player.Groups[0].GroupUid, "Auth Token Became Invalid, please re-connect with twitch", EnumChatType.Notification);
-            }    
+            }
         }
 
         private void OnBitsReceived(object sender, OnBitsReceivedArgs args)
@@ -212,7 +213,7 @@ namespace vscci.CCIIntegrations.Twitch
                 var data = new TwitchBitsData() { amount = args.BitsUsed, from = args.Username, message = args.ChatMessage };
                 api.BroadcastMessageToAllGroups($"{args.Username} gave {args.BitsUsed} with message {args.ChatMessage}", EnumChatType.Notification);
                 api.Event.PushEvent(Constants.TWITCH_EVENT_BITS_RECIEVED, new ProtoDataTypeAttribute<TwitchBitsData>(data));
-                api.Network.GetChannel(Constants.NETWORK_EVENT_CHANNEL).SendPacket(data, new[] { player});
+                api.Network.GetChannel(Constants.NETWORK_EVENT_CHANNEL).SendPacket(data, new[] { player });
             }
         }
 
@@ -224,7 +225,7 @@ namespace vscci.CCIIntegrations.Twitch
 
                 api.BroadcastMessageToAllGroups($"{args.DisplayName} redeemed {args.RewardTitle}", EnumChatType.Notification);
                 api.Event.PushEvent(Constants.TWITCH_EVENT_REDEMPTION, new ProtoDataTypeAttribute<TwitchPointRedemptionData>(data));
-                api.Network.GetChannel(Constants.NETWORK_EVENT_CHANNEL).SendPacket(data, new[] { player});
+                api.Network.GetChannel(Constants.NETWORK_EVENT_CHANNEL).SendPacket(data, new[] { player });
             }
         }
 
@@ -236,7 +237,7 @@ namespace vscci.CCIIntegrations.Twitch
                 var data = new TwitchFollowData() { who = args.DisplayName };
                 api.BroadcastMessageToAllGroups($"{args.DisplayName} is now Following {channelName}!", EnumChatType.Notification);
                 api.Event.PushEvent(Constants.TWITCH_EVENT_FOLLOW, new ProtoDataTypeAttribute<TwitchFollowData>(data));
-                api.Network.GetChannel(Constants.NETWORK_EVENT_CHANNEL).SendPacket(data, new[] { player});
+                api.Network.GetChannel(Constants.NETWORK_EVENT_CHANNEL).SendPacket(data, new[] { player });
             }
         }
 
@@ -250,7 +251,7 @@ namespace vscci.CCIIntegrations.Twitch
 
                 api.BroadcastMessageToAllGroups($"{channelName} is raiding with {args.ViewerCount} viewiers !", EnumChatType.Notification);
                 api.Event.PushEvent(Constants.TWITCH_EVENT_RAID, new ProtoDataTypeAttribute<TwitchRaidData>(data));
-                api.Network.GetChannel(Constants.NETWORK_EVENT_CHANNEL).SendPacket(data, new[] { player});
+                api.Network.GetChannel(Constants.NETWORK_EVENT_CHANNEL).SendPacket(data, new[] { player });
             }
         }
 
@@ -264,7 +265,7 @@ namespace vscci.CCIIntegrations.Twitch
 
                     api.BroadcastMessageToAllGroups($"{args.Subscription.DisplayName} Gifted Sub to {args.Subscription.RecipientDisplayName}!", EnumChatType.Notification);
                     api.Event.PushEvent(Constants.TWITCH_EVENT_NEW_SUB, new ProtoDataTypeAttribute<TwitchNewSubData>(data));
-                    api.Network.GetChannel(Constants.NETWORK_EVENT_CHANNEL).SendPacket(data, new[] { player});
+                    api.Network.GetChannel(Constants.NETWORK_EVENT_CHANNEL).SendPacket(data, new[] { player });
                 }
                 else
                 {
@@ -272,7 +273,7 @@ namespace vscci.CCIIntegrations.Twitch
 
                     api.BroadcastMessageToAllGroups($"{args.Subscription.DisplayName} Subscribed with message {args.Subscription.SubMessage.Message}", EnumChatType.Notification);
                     api.Event.PushEvent(Constants.TWITCH_EVENT_NEW_SUB, new ProtoDataTypeAttribute<TwitchNewSubData>(data));
-                    api.Network.GetChannel(Constants.NETWORK_EVENT_CHANNEL).SendPacket(data, new[] { player});
+                    api.Network.GetChannel(Constants.NETWORK_EVENT_CHANNEL).SendPacket(data, new[] { player });
                 }
             }
         }
@@ -296,7 +297,7 @@ namespace vscci.CCIIntegrations.Twitch
 
             // SendTopics accepts an oauth optionally, which is necessary for some topics
             // If the user has not logged in yet then this will be null, which is allowed
-            pubSubClient.SendTopics(authToken);
+            pubSubClient.SendTopics(AuthToken);
         }
 
         private void OnPubSubServiceDisconnected(object sender, EventArgs e)
@@ -306,8 +307,8 @@ namespace vscci.CCIIntegrations.Twitch
 
         private void OnPubServiceConnectionFailed(object sender, OnPubSubServiceErrorArgs e)
         {
-            OnConnectFailed?.Invoke(this, new OnConnectFailedArgs() { Reason=e.Exception.Message, Player = this.player });
-            api.Network.GetChannel(Constants.NETWORK_GUI_CHANNEL).SendPacket(new CCIConnectionUpdate() { status=$"Failed With Error ${e.Exception.Message}" }, player);
+            OnConnectFailed?.Invoke(this, new OnConnectFailedArgs() { Reason = e.Exception.Message, Player = player });
+            api.Network.GetChannel(Constants.NETWORK_GUI_CHANNEL).SendPacket(new CCIConnectionUpdate() { status = $"Failed With Error ${e.Exception.Message}" }, player);
         }
 
         private void OnListenResponse(object sender, OnListenResponseArgs e)
@@ -325,7 +326,7 @@ namespace vscci.CCIIntegrations.Twitch
                         hasTopics = true;
                         OnConnectSuccess?.Invoke(this, player);
 
-                        api.Network.GetChannel(Constants.NETWORK_GUI_CHANNEL).SendPacket(new CCIConnectionUpdate() { status="Connected" }, player);
+                        api.Network.GetChannel(Constants.NETWORK_GUI_CHANNEL).SendPacket(new CCIConnectionUpdate() { status = "Connected" }, player);
                     }
                 }
                 else
@@ -335,9 +336,9 @@ namespace vscci.CCIIntegrations.Twitch
                     connected = false;
                     IsFailedState = true;
                     numberOfSuccesfulListens = 0;
-                    OnConnectFailed?.Invoke(this, new OnConnectFailedArgs() { Reason=$"Listen Failed for tpoic: {e.Topic} with response: {e.Response}", Player = this.player });
+                    OnConnectFailed?.Invoke(this, new OnConnectFailedArgs() { Reason = $"Listen Failed for tpoic: {e.Topic} with response: {e.Response}", Player = player });
                     pubSubClient.Disconnect();
-                    api.Network.GetChannel(Constants.NETWORK_GUI_CHANNEL).SendPacket(new CCIConnectionUpdate() { status="Failed Registering To Events" }, player);
+                    api.Network.GetChannel(Constants.NETWORK_GUI_CHANNEL).SendPacket(new CCIConnectionUpdate() { status = "Failed Registering To Events" }, player);
                 }
             }
         }
@@ -347,12 +348,12 @@ namespace vscci.CCIIntegrations.Twitch
         {
             var channelInfo = await apiClient.Helix.Channels.GetChannelInformationAsync(channelID);
 
-            if(channelInfo.Data.Length > 0)
+            if (channelInfo.Data.Length > 0)
             {
                 return channelInfo.Data[0].BroadcasterName;
             }
 
             return channelID;
         }
-    }   
+    }
 }

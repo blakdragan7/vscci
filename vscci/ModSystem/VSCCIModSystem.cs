@@ -10,7 +10,7 @@ namespace vscci.ModSystem
     using Vintagestory.API.Server;
     using Vintagestory.API.Client;
 
-    class VSCCIModSystem : ModSystem
+    public class VSCCIModSystem : ModSystem
     {
         // server side variables
         private Dictionary<string, string> cachedPlayerData;
@@ -67,8 +67,7 @@ namespace vscci.ModSystem
         // this would normally be private but it's public so SaveDataUtil can access it
         public TwitchIntegration TIForPlayer(IServerPlayer player)
         {
-            TwitchIntegration ti;
-            if(dti.TryGetValue(player, out ti))
+            if (dti.TryGetValue(player, out var ti))
             {
                 return ti;
             }
@@ -104,8 +103,7 @@ namespace vscci.ModSystem
 
             if (cachedPlayerData != null)
             {
-                string oauth;
-                if (cachedPlayerData.TryGetValue(player.PlayerUID, out oauth))
+                if (cachedPlayerData.TryGetValue(player.PlayerUID, out var oauth))
                 {
                     if (oauth != null)
                     {
@@ -134,22 +132,22 @@ namespace vscci.ModSystem
 
         private void OnCCILogin(object sender, IServerPlayer player)
         {
-            sapi.Network.GetChannel(Constants.NETWORK_CHANNEL).SendPacket<CCIRequestResponse>(new CCIRequestResponse() { requestType = "login", response = $"success", success = true }, new[] { player });
+            sapi.Network.GetChannel(Constants.NETWORK_CHANNEL).SendPacket(new CCIRequestResponse() { requestType = "login", response = $"success", success = true }, new[] { player });
         }
 
         private void OnCCILoginFailed(object sender, OnAuthFailedArgs args)
         {
-            sapi.Network.GetChannel(Constants.NETWORK_CHANNEL).SendPacket<CCIRequestResponse>(new CCIRequestResponse() { requestType = "login", response = args.Message, success = false }, new[] { args.Player });
+            sapi.Network.GetChannel(Constants.NETWORK_CHANNEL).SendPacket(new CCIRequestResponse() { requestType = "login", response = args.Message, success = false }, new[] { args.Player });
         }
 
         private void OnCCIConnect(object sender, IServerPlayer player)
         {
-            sapi.Network.GetChannel(Constants.NETWORK_CHANNEL).SendPacket<CCIRequestResponse>(new CCIRequestResponse() { requestType = "connect", response = $"success", success = true }, new[] { player });
+            sapi.Network.GetChannel(Constants.NETWORK_CHANNEL).SendPacket(new CCIRequestResponse() { requestType = "connect", response = $"success", success = true }, new[] { player });
         }
 
         private void OnCCIConnectFailed(object sender, OnConnectFailedArgs args)
         {
-            sapi.Network.GetChannel(Constants.NETWORK_CHANNEL).SendPacket<CCIRequestResponse>(new CCIRequestResponse() { requestType = "connect", response = args.Reason, success = false }, new[] { args.Player });
+            sapi.Network.GetChannel(Constants.NETWORK_CHANNEL).SendPacket(new CCIRequestResponse() { requestType = "connect", response = args.Reason, success = false }, new[] { args.Player });
         }
         #endregion
 
