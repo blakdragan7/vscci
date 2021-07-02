@@ -22,7 +22,7 @@ namespace vscci.CCIIntegrations.Twitch
         private bool followListen;
         private bool rewardsListen;
 
-        private bool shouoldSimulateError;
+        private readonly bool shouoldSimulateError;
 
         public event EventHandler OnPubSubServiceClosed;
         public event EventHandler OnPubSubServiceConnected;
