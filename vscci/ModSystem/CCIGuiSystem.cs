@@ -9,7 +9,8 @@ namespace vscci.ModSystem
 
     class CCIGuiSystem : ModSystem
     {
-        CCIConfigDialogGui gui;
+        CCIConfigDialogGui configGui;
+        CCIEventDialogGui eventGui;
         private ICoreClientAPI api;
 
         public override void Start(ICoreAPI api)
@@ -24,7 +25,9 @@ namespace vscci.ModSystem
 
         public override void StartClientSide(ICoreClientAPI api)
         {
-            gui = new CCIConfigDialogGui(api);
+            configGui = new CCIConfigDialogGui(api);
+            eventGui = new CCIEventDialogGui(api);
+
             this.api = api;
 
             api.RegisterCommand("vscci", "Interface to vscci", "config", OnVsCCICommand);
@@ -36,12 +39,12 @@ namespace vscci.ModSystem
 
         private void OnLoginUpdate(CCILoginUpdate response)
         {
-            gui.UpdateGuiLoginText(response.user, response.id);
+            configGui.UpdateGuiLoginText(response.user, response.id);
         }
 
         private void OnConnectUpdate(CCIConnectionUpdate response)
         {
-            gui.UpdateGuiConnectionText(response.status);
+            configGui.UpdateGuiConnectionText(response.status);
         }
 
         private void OnVsCCICommand(int groupId, CmdArgs arg)
@@ -55,7 +58,10 @@ namespace vscci.ModSystem
             switch(arg[0])
             {
                 case "config":
-                    gui.TryOpen();
+                    configGui.TryOpen();
+                    break;
+                case "event":
+                    eventGui.TryOpen();
                     break;
                 default:
                     api.ShowChatMessage("Invalid Arguments");

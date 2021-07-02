@@ -22,7 +22,6 @@ namespace vscci.GUI
         public override void OnOwnPlayerDataReceived()
         {
             base.OnOwnPlayerDataReceived();
-
             
             ElementBounds dialogBounds = ElementBounds.Fixed(EnumDialogArea.CenterFixed, 0, 0, 350, 200)
                 .WithFixedAlignmentOffset(-GuiStyle.DialogToScreenPadding, 0);
