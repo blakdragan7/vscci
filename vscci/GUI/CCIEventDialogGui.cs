@@ -1,46 +1,34 @@
 namespace vscci.GUI
 {
-    using System;
     using Vintagestory.API.Client;
+
+    using vscci.GUI.Elements;
 
     public class CCIEventDialogGui : GuiDialog
     {
         public override string ToggleKeyCombinationCode => "ccievent";
+        public override string DebugName => "ccieventgui";
 
         public override float ZSize => 3000;
 
-        private readonly ICoreClientAPI api;
         public CCIEventDialogGui(ICoreClientAPI capi) : base(capi)
         {
-            api = capi;
         }
 
         public override void OnOwnPlayerDataReceived()
         {
             base.OnOwnPlayerDataReceived();
 
-            ElementBounds dialogBounds = ElementBounds.Fixed(EnumDialogArea.CenterMiddle, 0, 0, 1200, 700)
+            var dialogBounds = ElementBounds.Fixed(EnumDialogArea.CenterMiddle, 0, 0, 1200, 700)
                 .WithFixedAlignmentOffset(-GuiStyle.DialogToScreenPadding, 0);
-            ElementBounds bgBounds = dialogBounds.CopyOffsetedSibling(0, 0).WithFixedPadding(GuiStyle.DialogToScreenPadding);
+            var scriptAreaBounds = ElementBounds.Fixed(0, 32, 1200, 668);
+
+            dialogBounds.WithChild(scriptAreaBounds);
 
             SingleComposer = capi.Gui.CreateCompo("ccievent", dialogBounds)
                 .AddDialogTitleBarWithBg("CCI Event", () => TryClose(), CairoFont.WhiteSmallishText())
-                .AddGrayBG(bgBounds)
-                .AddStaticCustomDraw(dialogBounds.CopyOffsetedSibling(), OnCustomRender)
+                .AddInteractiveElement(new EventScriptingArea(capi, scriptAreaBounds))
                 .Compose();
-        }
-
-        private void OnCustomRender(Cairo.Context ctx, Cairo.ImageSurface surface, ElementBounds currentBounds)
-        {
-            if (ctx is null)
-            {
-                throw new ArgumentNullException(nameof(ctx));
-            }
-
-            if (surface is null)
-            {
-                throw new ArgumentNullException(nameof(surface));
-            }
         }
 
         public override bool TryOpen()
