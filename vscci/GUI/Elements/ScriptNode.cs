@@ -4,16 +4,21 @@ namespace vscci.GUI.Elements
     using Vintagestory.API.Client;
     public class ScriptNode : GuiElement
     {
-
-        public ScriptNode(ICoreClientAPI api, ElementBounds bounds) : base(api, bounds)
+        private Matrix nodeTransform;
+        public ScriptNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base(api, bounds)
         {
-
+            this.nodeTransform = nodeTransform;
         }
 
         public virtual void OnRender(Context ctx, float deltaTime)
         {
+            var x = Bounds.drawX;
+            var y = Bounds.drawY;
+
+            nodeTransform.TransformPoint(ref x,ref y);
+
             ctx.SetSourceRGBA(1, 0, 0, 1.0);
-            ElementRoundRectangle(ctx, Bounds);
+            RoundRectangle(ctx, x, y, Bounds.InnerWidth, Bounds.InnerHeight, GuiStyle.ElementBGRadius);
             ctx.Fill();
         }
 
