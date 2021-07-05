@@ -17,6 +17,7 @@ namespace vscci.CCIIntegrations.Twitch
         public string from; // this is null if isGift is false
         public bool isGift;
         public string to;
+        public string message;
     }
 
     [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
@@ -39,5 +40,6 @@ namespace vscci.CCIIntegrations.Twitch
     public class TwitchFollowData
     {
         public string who;
+        public string channel;
     }
 }

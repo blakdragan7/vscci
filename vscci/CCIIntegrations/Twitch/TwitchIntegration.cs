@@ -2,8 +2,9 @@
 namespace vscci.CCIIntegrations.Twitch
 {
     using System;
-
+#if !TWITCH_INTEGRATION_EVENT_TESTING
     using TwitchLib.PubSub;
+#endif
     using TwitchLib.PubSub.Events;
 
     using TwitchLib.Api;
@@ -227,7 +228,7 @@ namespace vscci.CCIIntegrations.Twitch
             if (args != null)
             {
                 var channelName = await GetChannelNameForId(args.FollowedChannelId);
-                var data = new TwitchFollowData() { who = args.DisplayName };
+                var data = new TwitchFollowData() { who = args.DisplayName, channel = channelName };
                 //api.BroadcastMessageToAllGroups($"{args.DisplayName} is now Following {channelName}!", EnumChatType.Notification);
                 api.Event.PushEvent(Constants.TWITCH_EVENT_FOLLOW, new ProtoDataTypeAttribute<TwitchFollowData>(data));
             }
@@ -259,7 +260,7 @@ namespace vscci.CCIIntegrations.Twitch
                 }
                 else
                 {
-                    var data = new TwitchNewSubData() { isGift = false, to = args.Subscription.DisplayName };
+                    var data = new TwitchNewSubData() { isGift = false, to = args.Subscription.DisplayName, message=args.Subscription.SubMessage.Message };
 
                     //api.BroadcastMessageToAllGroups($"{args.Subscription.DisplayName} Subscribed with message {args.Subscription.SubMessage.Message}", EnumChatType.Notification);
                     api.Event.PushEvent(Constants.TWITCH_EVENT_NEW_SUB, new ProtoDataTypeAttribute<TwitchNewSubData>(data));
@@ -335,11 +336,20 @@ namespace vscci.CCIIntegrations.Twitch
         // if failes, just returns the original id
         private async Task<string> GetChannelNameForId(string channelID)
         {
-            var channelInfo = await apiClient.Helix.Channels.GetChannelInformationAsync(channelID);
-
-            if (channelInfo.Data.Length > 0)
+            try
             {
-                return channelInfo.Data[0].BroadcasterName;
+                var channelInfo = await apiClient.Helix.Channels.GetChannelInformationAsync(channelID);
+
+                if (channelInfo.Data.Length > 0)
+                {
+                    return channelInfo.Data[0].BroadcasterName;
+                }
+
+                return channelID;
+            }
+            catch
+            {
+                api.Logger.Warning("Could Not find channel with id {0}", channelID);
             }
 
             return channelID;

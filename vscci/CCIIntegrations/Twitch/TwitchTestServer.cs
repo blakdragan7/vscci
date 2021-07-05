@@ -168,49 +168,59 @@ namespace vscci.CCIIntegrations.Twitch
 
         private void OnHttpCallback(IAsyncResult result)
         {
-            var context = listener.EndGetContext(result);
-            var request = context.Request;
-            var response = context.Response;
-
-            if (request.Url.AbsolutePath == "/bit")
+            if (result.IsCompleted)
             {
-                OnBitsReceived?.Invoke(this, new OnBitsReceivedArgs() { BitsUsed = 10, ChannelId = "testchannel", ChannelName = "testchannel", ChatMessage = "This is a test bit event", Context = "random context string", UserId = "123456789", Username = "testuser", TotalBitsUsed = 10, Time = "000000000" });
-            }
+                try
+                {
+                    var context = listener.EndGetContext(result);
+                    var request = context.Request;
+                    var response = context.Response;
 
-            else if (request.Url.AbsolutePath == "/sub")
-            {
-                var sub = new ChannelSubscription(testSubJson);
-                OnChannelSubscription?.Invoke(this, new OnChannelSubscriptionArgs() { ChannelId = "testchannel", Subscription = sub });
-            }
+                    if (request.Url.AbsolutePath == "/bit")
+                    {
+                        OnBitsReceived?.Invoke(this, new OnBitsReceivedArgs() { BitsUsed = 10, ChannelId = "testchannel", ChannelName = "testchannel", ChatMessage = "This is a test bit event", Context = "random context string", UserId = "123456789", Username = "testuser", TotalBitsUsed = 10, Time = "000000000" });
+                    }
 
-            else if (request.Url.AbsolutePath == "/subg")
-            {
-                var sub = new ChannelSubscription(testGiftSubJson);
-                OnChannelSubscription?.Invoke(this, new OnChannelSubscriptionArgs() { ChannelId = "testchannel", Subscription = sub });
-            }
+                    else if (request.Url.AbsolutePath == "/sub")
+                    {
+                        var sub = new ChannelSubscription(testSubJson);
+                        OnChannelSubscription?.Invoke(this, new OnChannelSubscriptionArgs() { ChannelId = "testchannel", Subscription = sub });
+                    }
 
-            else if (request.Url.AbsolutePath == "/follow")
-            {
-                OnFollow?.Invoke(this, new OnFollowArgs() { DisplayName = "testuser", FollowedChannelId = "testchannel", UserId = "0123456789", Username = "testuser" });
-            }
+                    else if (request.Url.AbsolutePath == "/subg")
+                    {
+                        var sub = new ChannelSubscription(testGiftSubJson);
+                        OnChannelSubscription?.Invoke(this, new OnChannelSubscriptionArgs() { ChannelId = "testchannel", Subscription = sub });
+                    }
 
-            else if (request.Url.AbsolutePath == "/raid")
-            {
-                OnRaidGo?.Invoke(this, new OnRaidGoArgs() { ChannelId = "testchannelraider", Id = Guid.NewGuid(), TargetChannelId = "testchannel", TargetDisplayName = "testchannel", TargetLogin = "testchannel", TargetProfileImage = "None", ViewerCount = 1 });
-            }
+                    else if (request.Url.AbsolutePath == "/follow")
+                    {
+                        OnFollow?.Invoke(this, new OnFollowArgs() { DisplayName = "testuser", FollowedChannelId = "testchannel", UserId = "0123456789", Username = "testuser" });
+                    }
 
-            else if (request.Url.AbsolutePath == "/redemption")
-            {
-                OnRewardRedeemed?.Invoke(this, new OnRewardRedeemedArgs() { ChannelId = "testchannel", DisplayName = "testuser", Login = "testuser", Message = "I test reward redemption", RedemptionId = Guid.NewGuid(), RewardCost = 0, RewardId = Guid.NewGuid(), RewardPrompt = "test prompt", RewardTitle = "test reward", Status = "Some status", TimeStamp = DateTime.Now });
-            }
+                    else if (request.Url.AbsolutePath == "/raid")
+                    {
+                        OnRaidGo?.Invoke(this, new OnRaidGoArgs() { ChannelId = "testchannelraider", Id = Guid.NewGuid(), TargetChannelId = "testchannel", TargetDisplayName = "testchannel", TargetLogin = "testchannel", TargetProfileImage = "None", ViewerCount = 1 });
+                    }
 
-            else
-            {
-                response.StatusCode = 404;
-            }
+                    else if (request.Url.AbsolutePath == "/redemption")
+                    {
+                        OnRewardRedeemed?.Invoke(this, new OnRewardRedeemedArgs() { ChannelId = "testchannel", DisplayName = "testuser", Login = "testuser", Message = "I test reward redemption", RedemptionId = Guid.NewGuid(), RewardCost = 0, RewardId = Guid.NewGuid(), RewardPrompt = "test prompt", RewardTitle = "test reward", Status = "Some status", TimeStamp = DateTime.Now });
+                    }
 
-            response.Close();
-            listener.BeginGetContext(OnHttpCallback, this);
+                    else
+                    {
+                        response.StatusCode = 404;
+                    }
+
+                    response.Close();
+                    listener.BeginGetContext(OnHttpCallback, this);
+                }
+                catch(Exception exc)
+                {
+                    Console.WriteLine(exc.Message);
+                }
+            }
         }
     }
 }

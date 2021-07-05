@@ -128,66 +128,77 @@ namespace vscci.CCIIntegrations.Twitch
 
         private void OnReceiveAuthInfo(IAsyncResult result)
         {
-            var context = listener.EndGetContext(result);
-            var request = context.Request;
-            var response = context.Response;
-
-            if (request.Url.AbsolutePath == "/implicit")
+            try
             {
-                var responseString = "<html><head>\n" +
-                                        "<script>\n" +
-                                        "function onLoadFunction() {\n" +
-                                        "\tvar hash = document.location.hash.substring(1);\n" +
-                                        "\twindow.location.href = \"http://localhost:4444/rdr?\" + hash;\n" +
-                                        "}\n" +
-                                        "</script>\n" +
-                                        "</head>\n" +
-                                        "<body onload=\"onLoadFunction()\">\n" +
-                                        "</body></html>";
-                var buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
-                response.ContentLength64 = buffer.Length;
-                response.AddHeader("Cache-Control", "no-store, must-revalidate");
-                response.AddHeader("Pragma", "no-cache");
-                response.AddHeader("Expires", "0");
-                var output = response.OutputStream;
-                output.Write(buffer, 0, buffer.Length);
-                output.Close();
-                listener.BeginGetContext(OnReceiveAuthInfo, this);
-            }
-            else if (request.Url.AbsolutePath == "/rdr")
-            {
-                var authCode = request.QueryString.Get("access_token");
+                var context = listener.EndGetContext(result);
+                var request = context.Request;
+                var response = context.Response;
 
-                string responseString;
-
-                if (authCode != null)
+                if (request.Url.AbsolutePath == "/implicit")
                 {
-                    responseString = "<html><script>setTimeout(window.close, 5000);</script><body>Auth Code Found !\nThis Page will Close automatically after 5 seconds.</body></html>";
-                    OnAuthSucceful?.Invoke(this, authCode);
+                    var responseString = "<html><head>\n" +
+                                            "<script>\n" +
+                                            "function onLoadFunction() {\n" +
+                                            "\tvar hash = document.location.hash.substring(1);\n" +
+                                            "\twindow.location.href = \"http://localhost:4444/rdr?\" + hash;\n" +
+                                            "}\n" +
+                                            "</script>\n" +
+                                            "</head>\n" +
+                                            "<body onload=\"onLoadFunction()\">\n" +
+                                            "</body></html>";
+                    var buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                    response.ContentLength64 = buffer.Length;
+                    response.AddHeader("Cache-Control", "no-store, must-revalidate");
+                    response.AddHeader("Pragma", "no-cache");
+                    response.AddHeader("Expires", "0");
+                    var output = response.OutputStream;
+                    output.Write(buffer, 0, buffer.Length);
+                    output.Close();
+                    listener.BeginGetContext(OnReceiveAuthInfo, this);
+                }
+                else if (request.Url.AbsolutePath == "/rdr")
+                {
+                    var authCode = request.QueryString.Get("access_token");
+
+                    string responseString;
+
+                    if (authCode != null)
+                    {
+                        responseString = "<html><script>setTimeout(window.close, 5000);</script><body>Auth Code Found !\nThis Page will Close automatically after 5 seconds.</body></html>";
+                        OnAuthSucceful?.Invoke(this, authCode);
+                    }
+                    else
+                    {
+                        responseString = "<html><script>setTimeout(window.close, 5000);</script><body>Auth Code Not Found !\nThis Page will Close automatically after 5 seconds.</body></html>";
+                        OnAuthFailed?.Invoke(this, "Failed to Receive Auth Token On Redirect");
+                    }
+
+                    var buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                    response.ContentLength64 = buffer.Length;
+                    response.AddHeader("Cache-Control", "no-store, must-revalidate");
+                    response.AddHeader("Pragma", "no-cache");
+                    response.AddHeader("Expires", "0");
+
+                    var output = response.OutputStream;
+                    output.Write(buffer, 0, buffer.Length);
+                    output.Close();
+
+                    listener.Stop();
                 }
                 else
                 {
-                    responseString = "<html><script>setTimeout(window.close, 5000);</script><body>Auth Code Not Found !\nThis Page will Close automatically after 5 seconds.</body></html>";
-                    OnAuthFailed?.Invoke(this, "Failed to Receive Auth Token On Redirect");
+                    response.StatusCode = 404;
+                    response.Close();
+                    listener.BeginGetContext(OnReceiveAuthInfo, this);
                 }
-
-                var buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
-                response.ContentLength64 = buffer.Length;
-                response.AddHeader("Cache-Control", "no-store, must-revalidate");
-                response.AddHeader("Pragma", "no-cache");
-                response.AddHeader("Expires", "0");
-
-                var output = response.OutputStream;
-                output.Write(buffer, 0, buffer.Length);
-                output.Close();
-
-                listener.Stop();
             }
-            else
+            catch(Exception exc)
             {
-                response.StatusCode = 404;
-                response.Close();
-                listener.BeginGetContext(OnReceiveAuthInfo, this);
+                if(api != null && api.Logger != null)
+                {
+                    api.Logger.Error("Error getting login response: {0}", exc.Message);
+                    OnAuthFailed?.Invoke(this, $"Error getting login response: {exc.Message}");
+                }
             }
         }
     }

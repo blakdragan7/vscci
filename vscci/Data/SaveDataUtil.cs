@@ -31,6 +31,7 @@ namespace vscci.Data
         {
             try
             {
+                var path = Path.GetFullPath(Constants.CLIENT_SAVE_FILE);
                 var jsonData = File.ReadAllText(Constants.CLIENT_SAVE_FILE);
                 if (jsonData != null)
                 {

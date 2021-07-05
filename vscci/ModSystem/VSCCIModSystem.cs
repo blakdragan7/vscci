@@ -79,6 +79,12 @@ namespace vscci.ModSystem
             ti.OnLoginSuccess += OnLoginSuccess;
 
             api.Event.LevelFinalize += EventLevelFinalize;
+            api.Event.LeftWorld += EventLeftWorld;
+        }
+
+        private void EventLeftWorld()
+        {
+            ti.Reset();
         }
 
         private void OnEvent(string eventName, ref EnumHandling handling, IAttribute data)
