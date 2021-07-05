@@ -1,4 +1,4 @@
-//#define TWITCH_INTEGRATION_EVENT_TESTING
+#define TWITCH_INTEGRATION_EVENT_TESTING
 namespace vscci.CCIIntegrations.Twitch
 {
     using System;

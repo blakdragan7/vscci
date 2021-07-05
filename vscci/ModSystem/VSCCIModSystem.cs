@@ -1,7 +1,6 @@
 namespace vscci.ModSystem
 {
     using vscci.CCIIntegrations.Twitch;
-    using vscci.CCINetworkTypes;
     using vscci.Data;
 
     using Vintagestory.API.Common;
@@ -51,6 +50,7 @@ namespace vscci.ModSystem
 
         private void OnServerGameLoad()
         {
+            ConfigData.LoadConfig(sapi);
         }
 
         private void OnServerGameSave()
