@@ -1,8 +1,17 @@
 namespace vscci.Data
 {
-    class Constants
+    public class Constants
     {
         public const int PROTO_TYPE_ATTRIBUTE_ID           = 100;
+        public const string CLIENT_SAVE_FILE = "vscci_data.json";
+
+        // GUI Rendering Constants
+        public const double NODE_SCIPRT_TEXT_PADDING = 10.0;
+        public const string CCI_EVENT_LOGIN_UPDATE = "ccilu";
+        public const string CCI_EVENT_CONNECT_UPDATE = "ccicu";
+        public const string CCI_EVENT_LOGIN_REQUEST = "ccilr";
+        public const string CCI_EVENT_CONNECT_REQUEST = "ccicr";
+
 
         // Server => Client Communication Constants
         public const string NETWORK_CHANNEL                = "cci_message_channel";

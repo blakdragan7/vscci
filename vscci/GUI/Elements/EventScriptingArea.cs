@@ -7,7 +7,7 @@ namespace vscci.GUI.Elements
 
     public class EventScriptingArea : GuiElement
     {
-        private List<ScriptNode> allNodes;
+        private readonly List<ScriptNode> allNodes;
         private int texId;
         private ScriptNode draggedNode;
 
@@ -16,7 +16,7 @@ namespace vscci.GUI.Elements
 
         private bool isPanningView;
 
-        private Matrix nodeTransform;
+        private readonly Matrix nodeTransform;
         private Matrix inverseNodeTransform;
 
         public EventScriptingArea(ICoreClientAPI api, ElementBounds bounds) : base(api, bounds)

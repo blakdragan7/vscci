@@ -23,20 +23,20 @@ namespace vscci.GUI
         {
             base.OnOwnPlayerDataReceived();
             
-            ElementBounds dialogBounds = ElementBounds.Fixed(EnumDialogArea.CenterFixed, 0, 0, 350, 200)
+            var dialogBounds = ElementBounds.Fixed(EnumDialogArea.CenterFixed, 0, 0, 350, 200)
                 .WithFixedAlignmentOffset(-GuiStyle.DialogToScreenPadding, 0);
-            ElementBounds bgBounds = dialogBounds.CopyOffsetedSibling(0, 0).WithFixedPadding(GuiStyle.DialogToScreenPadding);
+            var bgBounds = dialogBounds.CopyOffsetedSibling(0, 0).WithFixedPadding(GuiStyle.DialogToScreenPadding);
             bgBounds.verticalSizing = ElementSizing.FitToChildren;
 
-            ElementBounds elementStart                  = ElementBounds.Fixed(25, 0);
-            ElementBounds twitchUserNameBounds          = elementStart.CopyOffsetedSibling(0,   45, 100, 50);
-            ElementBounds twitchUserNameBoundsDyn       = elementStart.CopyOffsetedSibling(100, 45, 100, 50);
-            ElementBounds twitchUserIdBounds            = elementStart.CopyOffsetedSibling(00,  60, 100, 50);
-            ElementBounds twitchUserIdBoundsDyn         = elementStart.CopyOffsetedSibling(100, 60, 100, 50);
-            ElementBounds twitchStatusBounds            = elementStart.CopyOffsetedSibling(0,   75, 100, 50);
-            ElementBounds twitchStatusBoundsDyn         = elementStart.CopyOffsetedSibling(100, 75, 100, 50);
-            ElementBounds connectToTwitchButtonBounds   = elementStart.CopyOffsetedSibling(0,   110, 75, 25);
-            ElementBounds loginToTwitchButtonBounds     = elementStart.CopyOffsetedSibling(0,   140, 75, 25);
+            var elementStart                  = ElementBounds.Fixed(25, 0);
+            var twitchUserNameBounds          = elementStart.CopyOffsetedSibling(0,   45, 100, 50);
+            var twitchUserNameBoundsDyn       = elementStart.CopyOffsetedSibling(100, 45, 100, 50);
+            var twitchUserIdBounds            = elementStart.CopyOffsetedSibling(00,  60, 100, 50);
+            var twitchUserIdBoundsDyn         = elementStart.CopyOffsetedSibling(100, 60, 100, 50);
+            var twitchStatusBounds            = elementStart.CopyOffsetedSibling(0,   75, 100, 50);
+            var twitchStatusBoundsDyn         = elementStart.CopyOffsetedSibling(100, 75, 100, 50);
+            var connectToTwitchButtonBounds   = elementStart.CopyOffsetedSibling(0,   110, 75, 25);
+            var loginToTwitchButtonBounds     = elementStart.CopyOffsetedSibling(0,   140, 75, 25);
 
             bgBounds.WithChildren(elementStart, twitchUserNameBounds, twitchUserNameBoundsDyn, twitchUserIdBounds, twitchUserIdBoundsDyn,
                 twitchStatusBounds, twitchStatusBoundsDyn, connectToTwitchButtonBounds, loginToTwitchButtonBounds);
@@ -56,10 +56,10 @@ namespace vscci.GUI
                     switch (i)
                     {
                         case 0:
-                            capi.Network.GetChannel(Constants.NETWORK_CHANNEL).SendPacket(new CCIConnectRequest() {twitchid=""});
+                            capi.Event.PushEvent(Constants.CCI_EVENT_CONNECT_REQUEST);
                             break;
                         case 1:
-                            capi.Network.GetChannel(Constants.NETWORK_CHANNEL).SendPacket(new CCILoginRequest() { });
+                            capi.Event.PushEvent(Constants.CCI_EVENT_LOGIN_REQUEST);
                             break;
                         default:
                             break;

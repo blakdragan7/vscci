@@ -1,7 +1,5 @@
 namespace vscci.ModSystem
 {
-    using System.Collections.Generic;
-
     using vscci.CCIIntegrations.Twitch;
     using vscci.CCINetworkTypes;
     using vscci.Data;
@@ -9,146 +7,64 @@ namespace vscci.ModSystem
     using Vintagestory.API.Common;
     using Vintagestory.API.Server;
     using Vintagestory.API.Client;
+    using Vintagestory.API.Datastructures;
 
     public class VSCCIModSystem : ModSystem
     {
         // server side variables
-        private Dictionary<string, string> cachedPlayerData;
-        private Dictionary<IServerPlayer, TwitchIntegration> dti;
         private ICoreServerAPI sapi;
 
         // client side variables
         private ICoreClientAPI capi;
-        private TwitchAuthenticationHelperClient tiClient;
+        private TwitchIntegration ti;
 
         public override void Start(ICoreAPI api)
         {
             base.Start(api);
 
-            api.Network.RegisterChannel(Constants.NETWORK_CHANNEL)
-                .RegisterMessageType(typeof(TwitchLoginStep))
-                .RegisterMessageType(typeof(TwitchLoginStepResponse))
-                .RegisterMessageType(typeof(CCILoginRequest))
-                .RegisterMessageType(typeof(CCIConnectRequest))
-                .RegisterMessageType(typeof(CCIRequestResponse));
+            api.Network.RegisterChannel(Constants.NETWORK_CHANNEL);
         }
         #region Server
         public override void StartServerSide(ICoreServerAPI api)
         {
             base.StartServerSide(api);
 
-            dti = new Dictionary<IServerPlayer, TwitchIntegration>();
-
             api.Network.GetChannel(Constants.NETWORK_CHANNEL)
-                .SetMessageHandler<CCILoginRequest>(OnCCILoginRequest)
-                .SetMessageHandler<CCIConnectRequest>(OnCCIConnectRequest)
             ;
             sapi = api;
 
-            api.Event.SaveGameLoaded += OnGameLoad;
-            api.Event.GameWorldSave += OnGameSave;
+            api.Event.SaveGameLoaded += OnServerGameLoad;
+            api.Event.GameWorldSave += OnServerGameSave;
             api.Event.PlayerJoin += OnPlayerLogin;
             api.Event.PlayerLeave += OnPlayerLogout;
         }
 
         public override void Dispose()
         {
-            if (sapi != null) // only if server should we do this
+            if (capi != null) // only if client should we do this
             {
-                foreach (var pair in dti)
-                {
-                    pair.Value.Reset();
-                }
+                ti.Reset();
             }
 
             base.Dispose();
         }
 
-        // this would normally be private but it's public so SaveDataUtil can access it
-        public TwitchIntegration TIForPlayer(IServerPlayer player)
+        private void OnServerGameLoad()
         {
-            if (dti.TryGetValue(player, out var ti))
-            {
-                return ti;
-            }
-            else
-            {
-                ti = new TwitchIntegration(sapi, player);
-
-                ti.OnConnectFailed += OnCCIConnectFailed;
-                ti.OnConnectSuccess += OnCCIConnect;
-                ti.OnLoginError += OnCCILoginFailed;
-                ti.OnLoginSuccess += OnCCILogin;
-
-                dti.Add(player, ti);
-
-                return ti;
-            }
         }
 
-        private void OnGameLoad()
+        private void OnServerGameSave()
         {
-            SaveDataUtil.LoadAuthData(sapi, this, ref cachedPlayerData);
-        }
-
-        private void OnGameSave()
-        {
-            SaveDataUtil.SaveAuthData(sapi, dti, cachedPlayerData);
         }
 
         private void OnPlayerLogin(IServerPlayer player)
         {
-            // we do this first so that it always created an instance for the player even if there is no data for them
-            var ti = TIForPlayer(player);
-
-            if (cachedPlayerData != null)
-            {
-                if (cachedPlayerData.TryGetValue(player.PlayerUID, out var oauth))
-                {
-                    if (oauth != null)
-                    {
-                        ti.SetAuthDataFromSaveData(oauth);
-                    }
-
-                    cachedPlayerData.Remove(player.PlayerUID);
-                }
-            }
         }
 
         private void OnPlayerLogout(IServerPlayer player)
         {
-            TIForPlayer(player).Reset();
         }
 
-        private void OnCCILoginRequest(IPlayer fromPlayer, CCILoginRequest request)
-        {
-            TIForPlayer(fromPlayer as IServerPlayer).StartSignInFlow();
-        }
-
-        private void OnCCIConnectRequest(IPlayer fromPlayer, CCIConnectRequest request)
-        {
-            TIForPlayer(fromPlayer as IServerPlayer).Connect();
-        }
-
-        private void OnCCILogin(object sender, IServerPlayer player)
-        {
-            sapi.Network.GetChannel(Constants.NETWORK_CHANNEL).SendPacket(new CCIRequestResponse() { requestType = "login", response = $"success", success = true }, new[] { player });
-        }
-
-        private void OnCCILoginFailed(object sender, OnAuthFailedArgs args)
-        {
-            sapi.Network.GetChannel(Constants.NETWORK_CHANNEL).SendPacket(new CCIRequestResponse() { requestType = "login", response = args.Message, success = false }, new[] { args.Player });
-        }
-
-        private void OnCCIConnect(object sender, IServerPlayer player)
-        {
-            sapi.Network.GetChannel(Constants.NETWORK_CHANNEL).SendPacket(new CCIRequestResponse() { requestType = "connect", response = $"success", success = true }, new[] { player });
-        }
-
-        private void OnCCIConnectFailed(object sender, OnConnectFailedArgs args)
-        {
-            sapi.Network.GetChannel(Constants.NETWORK_CHANNEL).SendPacket(new CCIRequestResponse() { requestType = "connect", response = args.Reason, success = false }, new[] { args.Player });
-        }
         #endregion
 
         #region Client
@@ -156,19 +72,47 @@ namespace vscci.ModSystem
         {
             base.StartClientSide(api);
 
-            api.Network.GetChannel(Constants.NETWORK_CHANNEL)
-                .SetMessageHandler<CCIRequestResponse>(OnRequestResponse)
-            ;
+            api.Event.RegisterEventBusListener(OnEvent);
 
             capi = api;
+            ti = new TwitchIntegration(capi);
+            ti.OnLoginSuccess += OnLoginSuccess;
 
-            tiClient = new TwitchAuthenticationHelperClient(capi);
+            api.Event.LevelFinalize += EventLevelFinalize;
         }
 
-        private void OnRequestResponse(CCIRequestResponse response)
+        private void OnEvent(string eventName, ref EnumHandling handling, IAttribute data)
         {
-            capi.ShowChatMessage($"response for request: {response.requestType} = {{succes:{response.success} , response:{response.response}}}");
+            switch (eventName)
+            {
+                case Constants.CCI_EVENT_CONNECT_REQUEST:
+                    handling = EnumHandling.PreventSubsequent;
+                    ti.Connect();
+                    break;
+                case Constants.CCI_EVENT_LOGIN_REQUEST:
+                    handling = EnumHandling.PreventSubsequent;
+                    ti.StartSignInFlow();
+                    break;
+                default:
+                    break;
+            }
         }
+
+        private void OnLoginSuccess(object sender, string token)
+        {
+            SaveDataUtil.SaveClientData(capi, token);
+        }
+
+        private void EventLevelFinalize()
+        {
+            string token = null;
+            SaveDataUtil.LoadClientData(capi, ref token);
+            if(token != null)
+            {
+                ti.SetAuthDataFromSaveData(token);
+            }
+        }
+
         #endregion
     }
 }

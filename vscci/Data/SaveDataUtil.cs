@@ -1,74 +1,55 @@
 namespace vscci.Data
 {
-    using System;
+    using System.IO;
     using System.Collections.Generic;
 
-    using Vintagestory.API.Server;
-    using Vintagestory.API.Util;
-
-    using vscci.CCIIntegrations.Twitch;
-    using vscci.ModSystem;
+    using Newtonsoft.Json.Linq;
+    using Vintagestory.API.Common;
+    using Vintagestory.API.Client;
 
     public class SaveDataUtil
     {
-        public static void SaveAuthData(ICoreServerAPI api, Dictionary<IServerPlayer, TwitchIntegration> dti, Dictionary<string, string> notFoundSavedData)
+        public static void SaveClientData(ICoreClientAPI api, string token)
         {
-            var sdti = new Dictionary<string, string>();
-
-            foreach (var pair in dti)
+            try
             {
-                sdti.Add(pair.Key.PlayerUID, pair.Value.GetAuthDataForSaving());
-            }
-
-            if (notFoundSavedData != null)
-            {
-                foreach (var pair in notFoundSavedData)
+                var d = new Dictionary<string, string>
                 {
-                    sdti.Add(pair.Key, pair.Value);
-                }
-            }
+                    { "auth", token }
+                };
 
-            api.WorldManager.SaveGame.StoreData(Constants.TWITH_AUTH_SAVE_TAG, SerializerUtil.Serialize(sdti));
+                var jsonData = JsonUtil.ToString(d);
+                File.WriteAllText(Constants.CLIENT_SAVE_FILE, jsonData);
+            }
+            catch (IOException exception)
+            {
+                api.Logger.Error("Could Not Save Client Save Data With Exception {0}", exception.Message);
+            }
         }
 
-        public static void LoadAuthData(ICoreServerAPI api, VSCCIModSystem vscci, ref Dictionary<string, string> notFoundSavedData)
+        public static void LoadClientData(ICoreClientAPI api, ref string token)
         {
-            var data = api.WorldManager.SaveGame.GetData(Constants.TWITH_AUTH_SAVE_TAG);
-            var toRemove = new List<string>();
-
-            if (data != null)
+            try
             {
-                var sdti = SerializerUtil.Deserialize<Dictionary<string, string>>(data);
-
-                foreach (var pair in sdti)
+                var jsonData = File.ReadAllText(Constants.CLIENT_SAVE_FILE);
+                if (jsonData != null)
                 {
-                    if (pair.Value != null)
-                    {
-                        var player = Array.Find(api.Server.Players, delegate (IServerPlayer p)
-                        { return p.PlayerUID == pair.Key; });
+                    var obj = JObject.Parse(jsonData);
 
-                        if (player != null && player.ConnectionState == EnumClientState.Connected)
+                    if (obj != null)
+                    {
+                        var authObject = obj.SelectToken("auth");
+                        if (authObject != null)
                         {
-                            toRemove.Add(pair.Key);
-                            var ti = vscci.TIForPlayer(player);
-                            ti.SetAuthDataFromSaveData(pair.Value);
+                            token = authObject.ToString();
                         }
                     }
-                    else
-                    {
-                        toRemove.Add(pair.Key);
-                    }
                 }
-
-                foreach (var uuid in toRemove)
-                {
-                    sdti.Remove(uuid);
-                }
-
-                if (sdti.Count > 0)
-                {
-                    notFoundSavedData = sdti;
-                }
+            }
+            catch(IOException exception)
+            {
+                // catch the no file exception because it doesnt matter
+                api.Logger.Warning("Could Not Load Client Save Data With Exception {0}", exception.Message);
             }
         }
     }

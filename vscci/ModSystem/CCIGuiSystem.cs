@@ -6,23 +6,18 @@ namespace vscci.ModSystem
     using vscci.Data;
     using vscci.GUI;
     using vscci.CCINetworkTypes;
+    using Vintagestory.API.Datastructures;
 
     class CCIGuiSystem : ModSystem
     {
-        CCIConfigDialogGui configGui;
-        CCIEventDialogGui eventGui;
+        private CCIConfigDialogGui configGui;
+        private CCIEventDialogGui eventGui;
         private ICoreClientAPI api;
 
-        public override void Start(ICoreAPI api)
+        public override bool ShouldLoad(EnumAppSide forSide)
         {
-            base.Start(api);
-
-            api.Network.RegisterChannel(Constants.NETWORK_GUI_CHANNEL)
-                .RegisterMessageType(typeof(CCILoginUpdate))
-                .RegisterMessageType(typeof(CCIConnectionUpdate))
-            ;
+            return forSide == EnumAppSide.Client;
         }
-
         public override void StartClientSide(ICoreClientAPI api)
         {
             configGui = new CCIConfigDialogGui(api);
@@ -30,11 +25,24 @@ namespace vscci.ModSystem
 
             this.api = api;
 
-            api.RegisterCommand("vscci", "Interface to vscci", "config", OnVsCCICommand);
-            api.Network.GetChannel(Constants.NETWORK_GUI_CHANNEL)
-                .SetMessageHandler<CCILoginUpdate>(OnLoginUpdate)
-                .SetMessageHandler<CCIConnectionUpdate>(OnConnectUpdate)
-            ;
+            api.RegisterCommand("vscci", "Interface to vscci", "config | event", OnVsCCICommand);
+
+            api.Event.RegisterEventBusListener(OnEvent);
+        }
+
+        private void OnEvent(string eventName, ref EnumHandling handling, IAttribute data)
+        {
+            switch (eventName)
+            {
+                case Constants.CCI_EVENT_CONNECT_UPDATE:
+                    var cu = data.GetValue() as CCIConnectionUpdate;
+                    configGui.UpdateGuiConnectionText(cu.status);
+                    break;
+                case Constants.CCI_EVENT_LOGIN_UPDATE:
+                    var cl = data.GetValue() as CCILoginUpdate;
+                    configGui.UpdateGuiLoginText(cl.user, cl.id);
+                    break;
+            }
         }
 
         private void OnLoginUpdate(CCILoginUpdate response)
