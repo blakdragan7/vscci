@@ -1,4 +1,4 @@
-#define TWITCH_INTEGRATION_EVENT_TESTING
+//#define TWITCH_INTEGRATION_EVENT_TESTING
 namespace vscci.CCIIntegrations.Twitch
 {
     using System;
@@ -39,7 +39,7 @@ namespace vscci.CCIIntegrations.Twitch
         private bool isWaitingOnTopics;
 
 #if TWITCH_INTEGRATION_EVENT_TESTING
-        private TwitchTestServer pubSubClient;
+        private readonly TwitchTestServer pubSubClient;
 #else
         private readonly TwitchPubSub pubSubClient;
 #endif
@@ -125,6 +125,22 @@ namespace vscci.CCIIntegrations.Twitch
 
         }
 
+        public void Disconnect()
+        {
+            if (connected == false)
+            {
+                return;
+            }
+
+            pubSubClient.Disconnect();
+
+            isWaitingOnTopics = false;
+            hasTopics = false;
+            connected = false;
+            IsFailedState = false;
+            numberOfSuccesfulListens = 0;
+        }
+
         public void StartSignInFlow()
         {
             if (AuthToken != null)
@@ -157,6 +173,7 @@ namespace vscci.CCIIntegrations.Twitch
                     twitchUsername = result.Users[0].DisplayName;
                     IsTwitchCommerceAccount = result.Users[0].BroadcasterType == "partner" || result.Users[0].BroadcasterType == "affiliate";
                     api.Event.PushEvent(Constants.CCI_EVENT_LOGIN_UPDATE, new ProtoDataTypeAttribute<CCILoginUpdate>(new CCILoginUpdate() { id = twitchID, user = twitchUsername }));
+                    OnLoginSuccess?.Invoke(this, null);
                 }
             }
             else
@@ -297,8 +314,16 @@ namespace vscci.CCIIntegrations.Twitch
 
         private void OnPubServiceConnectionFailed(object sender, OnPubSubServiceErrorArgs e)
         {
-            api.Event.PushEvent(Constants.CCI_EVENT_CONNECT_UPDATE, new ProtoDataTypeAttribute<CCIConnectionUpdate>(new CCIConnectionUpdate() { status = $"Failed With Error ${e.Exception.Message}" }));
-            OnConnectFailed?.Invoke(this, new OnConnectFailedArgs() { Reason = e.Exception.Message });
+            if (e.Exception.GetType() == typeof(OperationCanceledException))
+            {
+                // if the reqeust was just cancceled then act like disconnect
+                api.Event.PushEvent(Constants.CCI_EVENT_CONNECT_UPDATE, new ProtoDataTypeAttribute<CCIConnectionUpdate>(new CCIConnectionUpdate() { status = "Disconnected" }));
+            }
+            else
+            {
+                api.Event.PushEvent(Constants.CCI_EVENT_CONNECT_UPDATE, new ProtoDataTypeAttribute<CCIConnectionUpdate>(new CCIConnectionUpdate() { status = $"Failed With Error {e.Exception.Message}" }));
+                OnConnectFailed?.Invoke(this, new OnConnectFailedArgs() { Reason = e.Exception.Message });
+            }
         }
 
         private void OnListenResponse(object sender, OnListenResponseArgs e)

@@ -91,9 +91,9 @@ namespace vscci.ModSystem
         {
             switch (eventName)
             {
-                case Constants.CCI_EVENT_CONNECT_REQUEST:
+                case Constants.CCI_EVENT_DISCONNECT_REQUEST:
                     handling = EnumHandling.PreventSubsequent;
-                    ti.Connect();
+                    ti.Disconnect();
                     break;
                 case Constants.CCI_EVENT_LOGIN_REQUEST:
                     handling = EnumHandling.PreventSubsequent;
@@ -106,7 +106,12 @@ namespace vscci.ModSystem
 
         private void OnLoginSuccess(object sender, string token)
         {
-            SaveDataUtil.SaveClientData(capi, token);
+            // if token is null this was received from save file, so no reason to save again
+            if (token != null)
+            {
+                SaveDataUtil.SaveClientData(capi, token);
+            }
+            ti.Connect();
         }
 
         private void EventLevelFinalize()

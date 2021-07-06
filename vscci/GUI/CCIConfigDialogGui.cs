@@ -29,14 +29,14 @@ namespace vscci.GUI
             bgBounds.verticalSizing = ElementSizing.FitToChildren;
 
             var elementStart                  = ElementBounds.Fixed(25, 0);
-            var twitchUserNameBounds          = elementStart.CopyOffsetedSibling(0,   45, 100, 50);
-            var twitchUserNameBoundsDyn       = elementStart.CopyOffsetedSibling(100, 45, 100, 50);
-            var twitchUserIdBounds            = elementStart.CopyOffsetedSibling(00,  60, 100, 50);
-            var twitchUserIdBoundsDyn         = elementStart.CopyOffsetedSibling(100, 60, 100, 50);
-            var twitchStatusBounds            = elementStart.CopyOffsetedSibling(0,   75, 100, 50);
-            var twitchStatusBoundsDyn         = elementStart.CopyOffsetedSibling(100, 75, 100, 50);
-            var connectToTwitchButtonBounds   = elementStart.CopyOffsetedSibling(0,   110, 75, 25);
-            var loginToTwitchButtonBounds     = elementStart.CopyOffsetedSibling(0,   140, 75, 25);
+            var twitchUserNameBounds          = elementStart.CopyOffsetedSibling(0,   45,  100, 50);
+            var twitchUserNameBoundsDyn       = elementStart.CopyOffsetedSibling(100, 45,  100, 50);
+            var twitchUserIdBounds            = elementStart.CopyOffsetedSibling(00,  60,  100, 50);
+            var twitchUserIdBoundsDyn         = elementStart.CopyOffsetedSibling(100, 60,  100, 50);
+            var twitchStatusBounds            = elementStart.CopyOffsetedSibling(0,   75,  100, 50);
+            var twitchStatusBoundsDyn         = elementStart.CopyOffsetedSibling(100, 75,  100, 50);
+            var connectToTwitchButtonBounds   = elementStart.CopyOffsetedSibling(0,   110, 100, 25);
+            var loginToTwitchButtonBounds     = elementStart.CopyOffsetedSibling(0,   140, 100, 25);
 
             bgBounds.WithChildren(elementStart, twitchUserNameBounds, twitchUserNameBoundsDyn, twitchUserIdBounds, twitchUserIdBoundsDyn,
                 twitchStatusBounds, twitchStatusBoundsDyn, connectToTwitchButtonBounds, loginToTwitchButtonBounds);
@@ -50,13 +50,13 @@ namespace vscci.GUI
                 .AddDynamicText(id, CairoFont.WhiteSmallText().WithFontSize(10), EnumTextOrientation.Left, twitchUserIdBoundsDyn, "twitch_id")
                 .AddStaticText("Twitch Status: ", CairoFont.WhiteSmallText().WithFontSize(10), twitchStatusBounds)
                 .AddDynamicText(status, CairoFont.WhiteSmallText().WithFontSize(10), EnumTextOrientation.Left, twitchStatusBoundsDyn, "twitch_status")
-                .AddTextToggleButtons(new string[] { "Connect", "Login"}, CairoFont.ButtonText().WithFontSize(10),
+                .AddTextToggleButtons(new string[] { "Disconnect", "Login/Connect" }, CairoFont.ButtonText().WithFontSize(10),
                 i =>
                 {
                     switch (i)
                     {
                         case 0:
-                            capi.Event.PushEvent(Constants.CCI_EVENT_CONNECT_REQUEST);
+                            capi.Event.PushEvent(Constants.CCI_EVENT_DISCONNECT_REQUEST);
                             break;
                         case 1:
                             capi.Event.PushEvent(Constants.CCI_EVENT_LOGIN_REQUEST);
@@ -73,6 +73,8 @@ namespace vscci.GUI
                     dialogBounds
                 }, "buttons")
                 .Compose();
+
+            SingleComposer.GetToggleButton("buttons-0").Enabled = false;
         }
 
         public void UpdateGuiLoginText(string username, string userid)
@@ -93,6 +95,16 @@ namespace vscci.GUI
             if (SingleComposer != null)
             {
                 SingleComposer.GetDynamicText("twitch_status").SetNewTextAsync(connection_status);
+                if(connection_status == "Connected")
+                {
+                    SingleComposer.GetToggleButton("buttons-0").Enabled = true;
+                    SingleComposer.GetToggleButton("buttons-0").On = false;
+                }
+                else
+                {
+                    SingleComposer.GetToggleButton("buttons-0").Enabled = false;
+                    SingleComposer.GetToggleButton("buttons-0").On = true;
+                }
             }
         }
 

@@ -8,7 +8,7 @@ namespace vscci.Data
     using System;
     using Newtonsoft.Json.Linq;
 
-    class ConfigData
+    public class ConfigData
     {
         public static List<string> VSCCIAllowedPlayers { get; } = new List<string>();
 

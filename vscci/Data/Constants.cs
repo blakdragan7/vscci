@@ -12,7 +12,7 @@ namespace vscci.Data
         public const string CCI_EVENT_LOGIN_UPDATE = "ccilu";
         public const string CCI_EVENT_CONNECT_UPDATE = "ccicu";
         public const string CCI_EVENT_LOGIN_REQUEST = "ccilr";
-        public const string CCI_EVENT_CONNECT_REQUEST = "ccicr";
+        public const string CCI_EVENT_DISCONNECT_REQUEST = "ccidr";
 
 
         // Server => Client Communication Constants
