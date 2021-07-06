@@ -31,6 +31,7 @@ namespace vscci.Data
             catch(FileNotFoundException)
             {
                 // generate empty config file
+
                 var di = new Dictionary<string, object>();
                 var root = new Dictionary<string, string[]>
                 {
@@ -40,14 +41,39 @@ namespace vscci.Data
 
                 try
                 {
-                    if(Directory.Exists(Constants.CONFIG_FILE_DIR) == false)
-                    {
-                        Directory.CreateDirectory(Constants.CONFIG_FILE_DIR);
-                    }
 
                     File.WriteAllText(Constants.CONFIG_FILE_PATH, JsonUtil.ToString(di));
                 }
-                catch(Exception exc)
+                catch (Exception exc)
+                {
+                    api.Logger.Error("Could not make default config file {0}", exc.Message);
+                }
+
+            }
+            catch(DirectoryNotFoundException)
+            {
+                try
+                {
+                    Directory.CreateDirectory(Constants.CONFIG_FILE_DIR);
+                }
+                catch (Exception exc)
+                {
+                    api.Logger.Error("Could not make default config directory {0}", exc.Message);
+                    return;
+                }
+
+                var di = new Dictionary<string, object>();
+                var root = new Dictionary<string, string[]>
+                {
+                    { "whitelist", new string[]{ } }
+                };
+                di.Add("vscci", root);
+
+                try
+                {
+                    File.WriteAllText(Constants.CONFIG_FILE_PATH, JsonUtil.ToString(di));
+                }
+                catch (Exception exc)
                 {
                     api.Logger.Error("Could not make default config file {0}", exc.Message);
                 }
