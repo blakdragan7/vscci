@@ -40,6 +40,11 @@ namespace vscci.Data
 
                 try
                 {
+                    if(Directory.Exists(Constants.CONFIG_FILE_DIR) == false)
+                    {
+                        Directory.CreateDirectory(Constants.CONFIG_FILE_DIR);
+                    }
+
                     File.WriteAllText(Constants.CONFIG_FILE_PATH, JsonUtil.ToString(di));
                 }
                 catch(Exception exc)

@@ -4,7 +4,8 @@ namespace vscci.Data
     {
         public const int PROTO_TYPE_ATTRIBUTE_ID           = 100;
         public const string CLIENT_SAVE_FILE = "vscci_data.json";
-        public const string CONFIG_FILE_PATH = "vscci_config.json";
+        public const string CONFIG_FILE_DIR = "data/ModConfig";
+        public const string CONFIG_FILE_PATH = "data/ModConfig/vscci_config.json";
 
         // GUI Rendering Constants
         public const double NODE_SCIPRT_TEXT_PADDING = 10.0;
