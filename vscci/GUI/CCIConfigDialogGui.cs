@@ -1,15 +1,15 @@
 namespace vscci.GUI
 {
     using Vintagestory.API.Client;
-    using vscci.CCINetworkTypes;
     using vscci.Data;
 
-    class CCIConfigDialogGui : GuiDialog
+    public class CCIConfigDialogGui : GuiDialog
     {
         public override string ToggleKeyCombinationCode => "ccigui";
         private string userName;
         private string id;
         private string status;
+        private string serverStatus;
 
         public CCIConfigDialogGui(ICoreClientAPI capi) : base(capi)
         {
@@ -17,6 +17,7 @@ namespace vscci.GUI
             userName = "None";
             id = "None";
             status = "Disconnected";
+            serverStatus = "None-Allowed";
         }
 
         public override void OnOwnPlayerDataReceived()
@@ -35,11 +36,13 @@ namespace vscci.GUI
             var twitchUserIdBoundsDyn         = elementStart.CopyOffsetedSibling(100, 60,  100, 50);
             var twitchStatusBounds            = elementStart.CopyOffsetedSibling(0,   75,  100, 50);
             var twitchStatusBoundsDyn         = elementStart.CopyOffsetedSibling(100, 75,  100, 50);
-            var connectToTwitchButtonBounds   = elementStart.CopyOffsetedSibling(0,   110, 100, 25);
-            var loginToTwitchButtonBounds     = elementStart.CopyOffsetedSibling(0,   140, 100, 25);
+            var serverStatusBounds            = elementStart.CopyOffsetedSibling(0,   90,  100, 50);
+            var serverStatusBoundsDyn         = elementStart.CopyOffsetedSibling(100, 90,  100, 50);
+            var connectToTwitchButtonBounds   = elementStart.CopyOffsetedSibling(0,   125, 100, 25);
+            var loginToTwitchButtonBounds     = elementStart.CopyOffsetedSibling(0,   155, 100, 25);
 
             bgBounds.WithChildren(elementStart, twitchUserNameBounds, twitchUserNameBoundsDyn, twitchUserIdBounds, twitchUserIdBoundsDyn,
-                twitchStatusBounds, twitchStatusBoundsDyn, connectToTwitchButtonBounds, loginToTwitchButtonBounds);
+                twitchStatusBounds, twitchStatusBoundsDyn, serverStatusBounds, serverStatusBoundsDyn, connectToTwitchButtonBounds, loginToTwitchButtonBounds);
 
             SingleComposer = capi.Gui.CreateCompo("cciconfig", dialogBounds)
                 .AddDialogTitleBar("Content Creator Integration Config", () => TryClose(), CairoFont.WhiteSmallText())
@@ -50,6 +53,8 @@ namespace vscci.GUI
                 .AddDynamicText(id, CairoFont.WhiteSmallText().WithFontSize(10), EnumTextOrientation.Left, twitchUserIdBoundsDyn, "twitch_id")
                 .AddStaticText("Twitch Status: ", CairoFont.WhiteSmallText().WithFontSize(10), twitchStatusBounds)
                 .AddDynamicText(status, CairoFont.WhiteSmallText().WithFontSize(10), EnumTextOrientation.Left, twitchStatusBoundsDyn, "twitch_status")
+                .AddStaticText("Server Events: ", CairoFont.WhiteSmallText().WithFontSize(10), serverStatusBounds)
+                .AddDynamicText(serverStatus, CairoFont.WhiteSmallText().WithFontSize(10), EnumTextOrientation.Left, serverStatusBoundsDyn, "server_status")
                 .AddTextToggleButtons(new string[] { "Disconnect", "Login/Connect" }, CairoFont.ButtonText().WithFontSize(10),
                 i =>
                 {
@@ -105,6 +110,15 @@ namespace vscci.GUI
                     SingleComposer.GetToggleButton("buttons-0").Enabled = false;
                     SingleComposer.GetToggleButton("buttons-0").On = true;
                 }
+            }
+        }
+
+        public void UpdateGuiServerStatusText(string server_status)
+        {
+            serverStatus = server_status;
+            if(SingleComposer != null)
+            {
+                SingleComposer.GetDynamicText("server_status").SetNewTextAsync(serverStatus);
             }
         }
 

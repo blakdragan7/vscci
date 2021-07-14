@@ -7,6 +7,7 @@ namespace vscci.ModSystem
     using Vintagestory.API.Server;
     using Vintagestory.API.Client;
     using Vintagestory.API.Datastructures;
+    using vscci.CCINetworkTypes;
 
     public class VSCCIModSystem : ModSystem
     {
@@ -59,6 +60,8 @@ namespace vscci.ModSystem
 
         private void OnPlayerLogin(IServerPlayer player)
         {
+            var status = ConfigData.PlayerIsAllowed(player) ? "All-Allowed" : "None-Allowed";
+            sapi.Network.GetChannel(Constants.NETWORK_GUI_CHANNEL).SendPacket(new CCIServerEventStatusUpdate() {status=status}, player);
         }
 
         private void OnPlayerLogout(IServerPlayer player)

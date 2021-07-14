@@ -43,6 +43,12 @@ namespace vscci.CCINetworkTypes
     }
 
     [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
+    public class CCIServerEventStatusUpdate
+    {
+        public string status;
+    }
+
+    [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
     public class CCIConnectionUpdate
     {
         public string status;

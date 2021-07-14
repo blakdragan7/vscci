@@ -9,6 +9,5 @@
     "game": ""
   },
   "side": "Universal",
-  "requiredOnClient": true,
   "RequiredOnServer": true
 }

@@ -2,17 +2,19 @@ namespace vscci.Data
 {
     public class Constants
     {
-        public const int PROTO_TYPE_ATTRIBUTE_ID           = 100;
-        public const string CLIENT_SAVE_FILE = "vscci_data.json";
-        public const string CONFIG_FILE_DIR = "data/ModConfig";
-        public const string CONFIG_FILE_PATH = "data/ModConfig/vscci_config.json";
+        public const int PROTO_TYPE_ATTRIBUTE_ID            = 100;
+        public const string CLIENT_SAVE_FILE                = "vscci_data.json";
+        public const string CONFIG_FILE_DIR                 = "data/ModConfig";
+        public const string CONFIG_FILE_PATH                = "data/ModConfig/vscci_config.json";
 
         // GUI Rendering Constants
-        public const double NODE_SCIPRT_TEXT_PADDING = 10.0;
-        public const string CCI_EVENT_LOGIN_UPDATE = "ccilu";
-        public const string CCI_EVENT_CONNECT_UPDATE = "ccicu";
-        public const string CCI_EVENT_LOGIN_REQUEST = "ccilr";
-        public const string CCI_EVENT_DISCONNECT_REQUEST = "ccidr";
+        public const double NODE_SCIPRT_TEXT_PADDING        = 10.0;
+        public const string CCI_EVENT_SERVER_UPDATE         = "ccisu";
+        public const string CCI_EVENT_LOGIN_UPDATE          = "ccilu";
+        public const string CCI_EVENT_CONNECT_UPDATE        = "ccicu";
+        public const string CCI_EVENT_LOGIN_REQUEST         = "ccilr";
+        public const string CCI_EVENT_DISCONNECT_REQUEST    = "ccidr";
+        public const string CCI_EVENT_SERVER_UPDATE_REQUEST = "ccisr";
 
 
         // Server => Client Communication Constants
