@@ -7,7 +7,6 @@ namespace vscci.ModSystem
     using vscci.GUI;
     using vscci.CCINetworkTypes;
     using Vintagestory.API.Datastructures;
-    using Vintagestory.API.Server;
 
     internal class CCIGuiSystem : ModSystem
     {
