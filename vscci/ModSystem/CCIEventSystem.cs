@@ -7,7 +7,7 @@ namespace vscci.ModSystem
 
     using vscci.Data;
     using vscci.CCIIntegrations.Twitch;
-    public class TwitchEventSystem : ModSystem
+    public class CCIEventSystem : ModSystem
     {
         private ICoreClientAPI capi;
         private ICoreServerAPI sapi;

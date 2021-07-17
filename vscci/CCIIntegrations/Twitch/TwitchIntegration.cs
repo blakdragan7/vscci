@@ -15,6 +15,7 @@ namespace vscci.CCIIntegrations.Twitch
     using System.Threading.Tasks;
     using vscci.CCINetworkTypes;
     using vscci.Data;
+    using System.Collections.Generic;
 
     public class OnConnectFailedArgs : EventArgs
     {
@@ -93,6 +94,7 @@ namespace vscci.CCIIntegrations.Twitch
             pubSubClient.OnRaidGo += OnRaid;
             pubSubClient.OnRewardRedeemed += OnRewardRedeemed;
             pubSubClient.OnChannelSubscription += OnSubscription;
+            pubSubClient.OnHost += OnHost;
         }
 
         public void Reset()
@@ -216,6 +218,18 @@ namespace vscci.CCIIntegrations.Twitch
 
                 api.ShowChatMessage("Auth Token Became Invalid, please re-connect with twitch");
                 api.Event.PushEvent(Constants.CCI_EVENT_LOGIN_UPDATE, new ProtoDataTypeAttribute<CCILoginUpdate>(new CCILoginUpdate() { id = twitchID, user = twitchUsername }));
+            }
+        }
+
+        private async void OnHost(object sender, OnHostArgs e)
+        {
+            if(e != null)
+            {
+                api.Event.PushEvent(Constants.EVENT_HOST, new ProtoDataTypeAttribute<HostData>(new HostData()
+                {
+                    who = await GetChannelNameForId(e.ChannelId),
+                    viewers = await GetChannelViewersForId(e.ChannelId)
+                }));
             }
         }
 
@@ -378,6 +392,33 @@ namespace vscci.CCIIntegrations.Twitch
             }
 
             return channelID;
+        }
+
+
+        private async Task<int> GetChannelViewersForId(string channelID)
+        {
+            try
+            {
+                var userIds = new List<string>()
+                {
+                    channelID
+                };
+
+                var channelInfo = await apiClient.Helix.Streams.GetStreamsAsync(null, null, 1, null, null, "live", userIds, null);
+
+                if (channelInfo.Streams.Length > 0)
+                {
+                    return channelInfo.Streams[0].ViewerCount;
+                }
+
+                return 0;
+            }
+            catch
+            {
+                api.Logger.Warning("Could Not find channel with id {0}", channelID);
+            }
+
+            return 0;
         }
     }
 }

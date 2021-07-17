@@ -29,6 +29,9 @@ namespace vscci.Data
         public const string EVENT_RAID                     = "ccier";
         public const string EVENT_REDEMPTION               = "cciee";
         public const string EVENT_FOLLOW                   = "ccief";
+        public const string EVENT_DONATION                 = "ccied";
+        public const string EVENT_HOST                     = "ccieh";
+        public const string EVENT_SCHAT                    = "cciesc";
 
         // Twitch Integration Constants
         public const string TWITH_AUTH_SAVE_TAG            = "vscci_tia_data";

@@ -65,7 +65,8 @@ namespace vscci.CCIIntegrations.Streamlabs
 
             socket.On("event", (data) =>
             {
-                var token = JToken.Parse(data.ToString());
+                var str = data.ToString();
+                var token = JToken.Parse(str);
                 var type = token.SelectToken("type").ToString();
                 switch (type)
                 {
@@ -74,6 +75,25 @@ namespace vscci.CCIIntegrations.Streamlabs
                         break;
                     case "donation":
                         ParseDonation(token.SelectToken("message"));
+                        break;
+                    case "subscription":
+                    case "resub":
+                        ParseSubscription(token.SelectToken("message"));
+                        break;
+                    case "host":
+                        ParseHost(token.SelectToken("message"));
+                        break;
+                    case "bits":
+                        ParseBits(token.SelectToken("message"));
+                        break;
+                    case "raid":
+                        ParseRaid(token.SelectToken("message"));
+                        break;
+                    case "superchat":
+                        ParseSuperChat(token.SelectToken("message"));
+                        break;
+                    case "loyalty_store_redemption":
+                        ParseLoyaltyStoreRedemption(token.SelectToken("message"));
                         break;
                     default:
                         break;
@@ -97,11 +117,93 @@ namespace vscci.CCIIntegrations.Streamlabs
         {
             foreach (var donation in token)
             {
-                api.Event.PushEvent(Constants.EVENT_FOLLOW, new ProtoDataTypeAttribute<DonationData>(new DonationData()
+                api.Event.PushEvent(Constants.EVENT_DONATION, new ProtoDataTypeAttribute<DonationData>(new DonationData()
                 {
                     who = donation.SelectToken("name").ToString(),
-                    amount = donation.SelectToken("amount").ToString(),
+                    amount = float.Parse(donation.SelectToken("amount").ToString()),
                     message = donation.SelectToken("message").ToString()
+                }));
+            }
+        }
+
+        private void ParseSubscription(JToken token)
+        {
+            foreach (var sub in token)
+            {
+                var monthToken = sub.SelectToken("months");
+                api.Event.PushEvent(Constants.EVENT_NEW_SUB, new ProtoDataTypeAttribute<NewSubData>(new NewSubData()
+                {
+                    message = sub.SelectToken("message")?.ToString(),
+                    to = sub.SelectToken("name").ToString(),
+                    isGift = false,
+                    months = monthToken != null ? (int)monthToken : 0
+                }));
+            }
+        }
+
+        private void ParseHost(JToken token)
+        {
+            foreach (var host in token)
+            {
+                api.Event.PushEvent(Constants.EVENT_HOST, new ProtoDataTypeAttribute<HostData>(new HostData()
+                {
+                    who = host.SelectToken("name").ToString(),
+                    viewers = int.Parse(host.SelectToken("viewers").ToString())
+                }));
+            }
+        }
+
+        private void ParseBits(JToken token)
+        {
+            foreach (var bits in token)
+            {
+                api.Event.PushEvent(Constants.EVENT_BITS_RECIEVED, new ProtoDataTypeAttribute<BitsData>(new BitsData()
+                {
+                    from = bits.SelectToken("name").ToString(),
+                    amount = int.Parse(bits.SelectToken("amount").ToString()),
+                    message = bits.SelectToken("message").ToString()
+                }));
+            }
+        }
+
+        private void ParseRaid(JToken token)
+        {
+            foreach (var raid in token)
+            {
+                api.Event.PushEvent(Constants.EVENT_RAID, new ProtoDataTypeAttribute<RaidData>(new RaidData()
+                {
+                    raidChannel = raid.SelectToken("name").ToString(),
+                    numberOfViewers = (int)raid.SelectToken("raiders")
+                }));
+            }
+        }
+
+        private void ParseSuperChat(JToken token)
+        {
+            foreach (var superChat in token)
+            {
+                var iamount = int.Parse(superChat.SelectToken("amount").ToString());
+#pragma warning disable IDE0004 // Remove Unnecessary Cast
+                float amount = (float)iamount / 100.0f;
+#pragma warning restore IDE0004 // Remove Unnecessary Cast
+                api.Event.PushEvent(Constants.EVENT_SCHAT, new ProtoDataTypeAttribute<SuperChatData>(new SuperChatData()
+                {
+                    who = superChat.SelectToken("name").ToString(),
+                    amount = amount,
+                    comment = superChat.SelectToken("comment").ToString()
+                }));
+            }
+        }
+
+        private void ParseLoyaltyStoreRedemption(JToken token)
+        {
+            foreach (var redemption in token)
+            {
+                api.Event.PushEvent(Constants.EVENT_REDEMPTION, new ProtoDataTypeAttribute<PointRedemptionData>(new PointRedemptionData()
+                {
+                    who = redemption.SelectToken("from").ToString(),
+                    message = redemption.SelectToken("message").ToString(),
+                    redemptionName = redemption.SelectToken("product").ToString(),
                 }));
             }
         }

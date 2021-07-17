@@ -15,7 +15,7 @@ namespace vscci.Data
     public class DonationData
     {
         public string who;
-        public string amount;
+        public float  amount;
         public string message;
     }
 
@@ -26,6 +26,7 @@ namespace vscci.Data
         public bool isGift;
         public string to;
         public string message;
+        public int months;
     }
 
     [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
@@ -57,5 +58,13 @@ namespace vscci.Data
     {
         public string who;
         public int viewers;
+    }
+
+    [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
+    public class SuperChatData
+    {
+        public string who;
+        public float amount;
+        public string comment;
     }
 }
