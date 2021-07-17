@@ -13,7 +13,7 @@ namespace vscci.CCIIntegrations.Twitch
     using Vintagestory.API.Client;
     using Vintagestory.API.Util;
 
-    public class TwitchAutherizationHelper
+    internal class TwitchAutherizationHelper
     {
         private readonly List<AuthScopes> authScopes;
         private string authForValidation;

@@ -29,7 +29,7 @@ namespace vscci.CCIIntegrations.Twitch
 
         public OnAuthFailedArgs() { }
     }
-    public class TwitchIntegration
+    internal class TwitchIntegration
     {
         private string twitchUsername;
         private string twitchID;
@@ -223,9 +223,9 @@ namespace vscci.CCIIntegrations.Twitch
         {
             if (args != null)
             {
-                var data = new TwitchBitsData() { amount = args.BitsUsed, from = args.Username, message = args.ChatMessage };
+                var data = new BitsData() { amount = args.BitsUsed, from = args.Username, message = args.ChatMessage };
                 //api.BroadcastMessageToAllGroups($"{args.Username} gave {args.BitsUsed} with message {args.ChatMessage}", EnumChatType.Notification);
-                api.Event.PushEvent(Constants.TWITCH_EVENT_BITS_RECIEVED, new ProtoDataTypeAttribute<TwitchBitsData>(data));
+                api.Event.PushEvent(Constants.EVENT_BITS_RECIEVED, new ProtoDataTypeAttribute<BitsData>(data));
             }
         }
 
@@ -233,10 +233,10 @@ namespace vscci.CCIIntegrations.Twitch
         {
             if (args != null)
             {
-                var data = new TwitchPointRedemptionData() { redemptionID = args.RedemptionId.ToString(), redemptionName = args.RewardTitle, who = args.DisplayName, message = args.Message };
+                var data = new PointRedemptionData() { redemptionID = args.RedemptionId.ToString(), redemptionName = args.RewardTitle, who = args.DisplayName, message = args.Message };
 
                 //api.BroadcastMessageToAllGroups($"{args.DisplayName} redeemed {args.RewardTitle}", EnumChatType.Notification);
-                api.Event.PushEvent(Constants.TWITCH_EVENT_REDEMPTION, new ProtoDataTypeAttribute<TwitchPointRedemptionData>(data));
+                api.Event.PushEvent(Constants.EVENT_REDEMPTION, new ProtoDataTypeAttribute<PointRedemptionData>(data));
             }
         }
 
@@ -245,9 +245,9 @@ namespace vscci.CCIIntegrations.Twitch
             if (args != null)
             {
                 var channelName = await GetChannelNameForId(args.FollowedChannelId);
-                var data = new TwitchFollowData() { who = args.DisplayName, channel = channelName };
+                var data = new FollowData() { who = args.DisplayName, channel = channelName, platform="Twitch" };
                 //api.BroadcastMessageToAllGroups($"{args.DisplayName} is now Following {channelName}!", EnumChatType.Notification);
-                api.Event.PushEvent(Constants.TWITCH_EVENT_FOLLOW, new ProtoDataTypeAttribute<TwitchFollowData>(data));
+                api.Event.PushEvent(Constants.EVENT_FOLLOW, new ProtoDataTypeAttribute<FollowData>(data));
             }
         }
 
@@ -257,10 +257,10 @@ namespace vscci.CCIIntegrations.Twitch
             {
                 var channelName = await GetChannelNameForId(args.ChannelId);
 
-                var data = new TwitchRaidData() { raidChannel = channelName, numberOfViewers = args.ViewerCount };
+                var data = new RaidData() { raidChannel = channelName, numberOfViewers = args.ViewerCount };
 
                 //api.BroadcastMessageToAllGroups($"{channelName} is raiding with {args.ViewerCount} viewiers !", EnumChatType.Notification);
-                api.Event.PushEvent(Constants.TWITCH_EVENT_RAID, new ProtoDataTypeAttribute<TwitchRaidData>(data));
+                api.Event.PushEvent(Constants.EVENT_RAID, new ProtoDataTypeAttribute<RaidData>(data));
             }
         }
 
@@ -270,17 +270,17 @@ namespace vscci.CCIIntegrations.Twitch
             {
                 if (args.Subscription.IsGift.GetValueOrDefault(false))
                 {
-                    var data = new TwitchNewSubData() { isGift = true, from = args.Subscription.DisplayName, to = args.Subscription.RecipientDisplayName };
+                    var data = new NewSubData() { isGift = true, from = args.Subscription.DisplayName, to = args.Subscription.RecipientDisplayName };
 
                     //api.BroadcastMessageToAllGroups($"{args.Subscription.DisplayName} Gifted Sub to {args.Subscription.RecipientDisplayName}!", EnumChatType.Notification);
-                    api.Event.PushEvent(Constants.TWITCH_EVENT_NEW_SUB, new ProtoDataTypeAttribute<TwitchNewSubData>(data));
+                    api.Event.PushEvent(Constants.EVENT_NEW_SUB, new ProtoDataTypeAttribute<NewSubData>(data));
                 }
                 else
                 {
-                    var data = new TwitchNewSubData() { isGift = false, to = args.Subscription.DisplayName, message=args.Subscription.SubMessage.Message };
+                    var data = new NewSubData() { isGift = false, to = args.Subscription.DisplayName, message=args.Subscription.SubMessage.Message };
 
                     //api.BroadcastMessageToAllGroups($"{args.Subscription.DisplayName} Subscribed with message {args.Subscription.SubMessage.Message}", EnumChatType.Notification);
-                    api.Event.PushEvent(Constants.TWITCH_EVENT_NEW_SUB, new ProtoDataTypeAttribute<TwitchNewSubData>(data));
+                    api.Event.PushEvent(Constants.EVENT_NEW_SUB, new ProtoDataTypeAttribute<NewSubData>(data));
                 }
             }
         }

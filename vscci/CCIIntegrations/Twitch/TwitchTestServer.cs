@@ -10,7 +10,7 @@ namespace vscci.CCIIntegrations.Twitch
     using Vintagestory.API.Common;
     using TwitchLib.PubSub.Models.Responses;
 
-    public class TwitchTestServer
+    internal class TwitchTestServer
     {
         private readonly HttpListener listener;
         private readonly string testSubJson;

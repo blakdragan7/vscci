@@ -23,12 +23,12 @@ namespace vscci.Data
         public const string NETWORK_GUI_CHANNEL            = "cci_guiupdate_channel";
         public const string NETWORK_EVENT_CHANNEL          = "cci_event_channel";
 
-        // Twitch Event Constants
-        public const string TWITCH_EVENT_BITS_RECIEVED     = "ccieb";
-        public const string TWITCH_EVENT_NEW_SUB           = "ccies";
-        public const string TWITCH_EVENT_RAID              = "ccier";
-        public const string TWITCH_EVENT_REDEMPTION        = "cciee";
-        public const string TWITCH_EVENT_FOLLOW            = "ccief";
+        // CCI Event Constants
+        public const string EVENT_BITS_RECIEVED            = "ccieb";
+        public const string EVENT_NEW_SUB                  = "ccies";
+        public const string EVENT_RAID                     = "ccier";
+        public const string EVENT_REDEMPTION               = "cciee";
+        public const string EVENT_FOLLOW                   = "ccief";
 
         // Twitch Integration Constants
         public const string TWITH_AUTH_SAVE_TAG            = "vscci_tia_data";
@@ -39,5 +39,8 @@ namespace vscci.Data
         public const string TWITCH_REDIRECT_URI            = "http://localhost:4444/implicit";
         public const string LISTEN_PREFIX                  = "http://localhost:4444/";
         public const int AUTH_VALIDATION_INTERVAL          = 10000;
+
+        // StreamLabs Constants
+        public const string SL_SOCKET_API_URL              = "https://sockets.streamlabs.com/token=";
     }
 }

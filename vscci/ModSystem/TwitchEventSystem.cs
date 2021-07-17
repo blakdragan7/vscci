@@ -17,11 +17,11 @@ namespace vscci.ModSystem
             base.Start(api);
 
             api.Network.RegisterChannel(Constants.NETWORK_EVENT_CHANNEL)
-                .RegisterMessageType(typeof(TwitchRaidData))
-                .RegisterMessageType(typeof(TwitchBitsData))
-                .RegisterMessageType(typeof(TwitchFollowData))
-                .RegisterMessageType(typeof(TwitchNewSubData))
-                .RegisterMessageType(typeof(TwitchPointRedemptionData));
+                .RegisterMessageType(typeof(RaidData))
+                .RegisterMessageType(typeof(BitsData))
+                .RegisterMessageType(typeof(FollowData))
+                .RegisterMessageType(typeof(NewSubData))
+                .RegisterMessageType(typeof(PointRedemptionData));
         }
 
         public override void StartServerSide(ICoreServerAPI api)
@@ -31,14 +31,14 @@ namespace vscci.ModSystem
             sapi = api;
 
             api.Network.GetChannel(Constants.NETWORK_EVENT_CHANNEL)
-                .SetMessageHandler<TwitchRaidData>(OnTwitchRaidMessage)
-                .SetMessageHandler<TwitchBitsData>(OnTwitchBitsMessage)
-                .SetMessageHandler<TwitchFollowData>(OnTwitchFollowMessage)
-                .SetMessageHandler<TwitchNewSubData>(OnTwitchNewSubMessage)
-                .SetMessageHandler<TwitchPointRedemptionData>(OnTwitchPointRedemptionMessage);
+                .SetMessageHandler<RaidData>(OnTwitchRaidMessage)
+                .SetMessageHandler<BitsData>(OnTwitchBitsMessage)
+                .SetMessageHandler<FollowData>(OnTwitchFollowMessage)
+                .SetMessageHandler<NewSubData>(OnTwitchNewSubMessage)
+                .SetMessageHandler<PointRedemptionData>(OnTwitchPointRedemptionMessage);
         }
 
-        private void OnTwitchRaidMessage(IServerPlayer player, TwitchRaidData @event)
+        private void OnTwitchRaidMessage(IServerPlayer player, RaidData @event)
         {
             if (ConfigData.PlayerIsAllowed(player))
             {
@@ -46,7 +46,7 @@ namespace vscci.ModSystem
             }
         }
 
-        private void OnTwitchBitsMessage(IServerPlayer player, TwitchBitsData @event)
+        private void OnTwitchBitsMessage(IServerPlayer player, BitsData @event)
         {
             if (ConfigData.PlayerIsAllowed(player))
             {
@@ -54,7 +54,7 @@ namespace vscci.ModSystem
             }
         }
 
-        private void OnTwitchFollowMessage(IServerPlayer player, TwitchFollowData @event)
+        private void OnTwitchFollowMessage(IServerPlayer player, FollowData @event)
         {
             if (ConfigData.PlayerIsAllowed(player))
             {
@@ -62,7 +62,7 @@ namespace vscci.ModSystem
             }
         }
 
-        private void OnTwitchNewSubMessage(IServerPlayer player, TwitchNewSubData @event)
+        private void OnTwitchNewSubMessage(IServerPlayer player, NewSubData @event)
         {
             if (ConfigData.PlayerIsAllowed(player))
             {
@@ -77,7 +77,7 @@ namespace vscci.ModSystem
             }
         }
 
-        private void OnTwitchPointRedemptionMessage(IServerPlayer player, TwitchPointRedemptionData @event)
+        private void OnTwitchPointRedemptionMessage(IServerPlayer player, PointRedemptionData @event)
         {
             if (ConfigData.PlayerIsAllowed(player))
             {
@@ -98,20 +98,20 @@ namespace vscci.ModSystem
         {
             switch (eventName)
             {
-                case Constants.TWITCH_EVENT_BITS_RECIEVED:
-                    capi.Network.GetChannel(Constants.NETWORK_EVENT_CHANNEL).SendPacket(data.GetValue() as TwitchBitsData);
+                case Constants.EVENT_BITS_RECIEVED:
+                    capi.Network.GetChannel(Constants.NETWORK_EVENT_CHANNEL).SendPacket(data.GetValue() as BitsData);
                     break;
-                case Constants.TWITCH_EVENT_FOLLOW:
-                    capi.Network.GetChannel(Constants.NETWORK_EVENT_CHANNEL).SendPacket(data.GetValue() as TwitchFollowData);
+                case Constants.EVENT_FOLLOW:
+                    capi.Network.GetChannel(Constants.NETWORK_EVENT_CHANNEL).SendPacket(data.GetValue() as FollowData);
                     break;
-                case Constants.TWITCH_EVENT_REDEMPTION:
-                    capi.Network.GetChannel(Constants.NETWORK_EVENT_CHANNEL).SendPacket(data.GetValue() as TwitchPointRedemptionData);
+                case Constants.EVENT_REDEMPTION:
+                    capi.Network.GetChannel(Constants.NETWORK_EVENT_CHANNEL).SendPacket(data.GetValue() as PointRedemptionData);
                     break;
-                case Constants.TWITCH_EVENT_RAID:
-                    capi.Network.GetChannel(Constants.NETWORK_EVENT_CHANNEL).SendPacket(data.GetValue() as TwitchRaidData);
+                case Constants.EVENT_RAID:
+                    capi.Network.GetChannel(Constants.NETWORK_EVENT_CHANNEL).SendPacket(data.GetValue() as RaidData);
                     break;
-                case Constants.TWITCH_EVENT_NEW_SUB:
-                    capi.Network.GetChannel(Constants.NETWORK_EVENT_CHANNEL).SendPacket(data.GetValue() as TwitchNewSubData);
+                case Constants.EVENT_NEW_SUB:
+                    capi.Network.GetChannel(Constants.NETWORK_EVENT_CHANNEL).SendPacket(data.GetValue() as NewSubData);
                     break;
                 default:
                     break;

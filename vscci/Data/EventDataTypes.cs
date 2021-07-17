@@ -1,10 +1,10 @@
 using ProtoBuf;
 using Vintagestory.API.Server;
 
-namespace vscci.CCIIntegrations.Twitch
+namespace vscci.Data
 {
     [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
-    public class TwitchBitsData
+    public class BitsData
     {
         public int amount;
         public string from;
@@ -12,7 +12,15 @@ namespace vscci.CCIIntegrations.Twitch
     }
 
     [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
-    public class TwitchNewSubData
+    public class DonationData
+    {
+        public string who;
+        public string amount;
+        public string message;
+    }
+
+    [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
+    public class NewSubData
     {
         public string from; // this is null if isGift is false
         public bool isGift;
@@ -21,14 +29,14 @@ namespace vscci.CCIIntegrations.Twitch
     }
 
     [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
-    public class TwitchRaidData
+    public class RaidData
     {
         public string raidChannel;
         public int numberOfViewers;
     }
 
     [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
-    public class TwitchPointRedemptionData
+    public class PointRedemptionData
     {
         public string who;
         public string message;
@@ -37,9 +45,17 @@ namespace vscci.CCIIntegrations.Twitch
     }
 
     [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
-    public class TwitchFollowData
+    public class FollowData
     {
         public string who;
         public string channel;
+        public string platform;
+    }
+
+    [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
+    public class HostData
+    {
+        public string who;
+        public int viewers;
     }
 }

@@ -1,6 +1,7 @@
 namespace vscci.ModSystem
 {
     using vscci.CCIIntegrations.Twitch;
+    using vscci.CCIIntegrations.Streamlabs;
     using vscci.Data;
 
     using Vintagestory.API.Common;
@@ -17,6 +18,7 @@ namespace vscci.ModSystem
         // client side variables
         private ICoreClientAPI capi;
         private TwitchIntegration ti;
+        private SteamLabsIntegration si;
 
         public override void Start(ICoreAPI api)
         {
@@ -80,6 +82,9 @@ namespace vscci.ModSystem
             capi = api;
             ti = new TwitchIntegration(capi);
             ti.OnLoginSuccess += OnLoginSuccess;
+
+            si = new SteamLabsIntegration(api);
+            si.Connect();
 
             api.Event.LevelFinalize += EventLevelFinalize;
             api.Event.LeftWorld += EventLeftWorld;
