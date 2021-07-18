@@ -6,7 +6,6 @@ namespace vscci.ModSystem
     using Vintagestory.API.Datastructures;
 
     using vscci.Data;
-    using vscci.CCIIntegrations.Twitch;
     public class CCIEventSystem : ModSystem
     {
         private ICoreClientAPI capi;

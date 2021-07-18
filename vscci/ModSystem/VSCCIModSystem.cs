@@ -1,5 +1,7 @@
 namespace vscci.ModSystem
 {
+    using vscci.CCINetworkTypes;
+    using vscci.CCIIntegrations;
     using vscci.CCIIntegrations.Twitch;
     using vscci.CCIIntegrations.Streamlabs;
     using vscci.Data;
@@ -8,7 +10,6 @@ namespace vscci.ModSystem
     using Vintagestory.API.Server;
     using Vintagestory.API.Client;
     using Vintagestory.API.Datastructures;
-    using vscci.CCINetworkTypes;
 
     public class VSCCIModSystem : ModSystem
     {
@@ -46,6 +47,7 @@ namespace vscci.ModSystem
             if (capi != null) // only if client should we do this
             {
                 ti.Reset();
+                si.Reset();
             }
 
             base.Dispose();
@@ -81,10 +83,10 @@ namespace vscci.ModSystem
 
             capi = api;
             ti = new TwitchIntegration(capi);
-            ti.OnLoginSuccess += OnLoginSuccess;
+            ti.OnLoginSuccess += OnTwitchLoginSuccess;
 
             si = new SteamLabsIntegration(api);
-            si.Connect();
+            si.OnLoginSuccess += OnStreamlabsLoginSuccess;
 
             api.Event.LevelFinalize += EventLevelFinalize;
             api.Event.LeftWorld += EventLeftWorld;
@@ -93,6 +95,7 @@ namespace vscci.ModSystem
         private void EventLeftWorld()
         {
             ti.Reset();
+            si.Reset();
         }
 
         private void OnEvent(string eventName, ref EnumHandling handling, IAttribute data)
@@ -104,31 +107,61 @@ namespace vscci.ModSystem
                     ti.Disconnect();
                     break;
                 case Constants.CCI_EVENT_LOGIN_REQUEST:
-                    handling = EnumHandling.PreventSubsequent;
-                    ti.StartSignInFlow();
+                    var ld = data.GetValue() as CCILoginRequest;
+                    foreach (var type in ld.type)
+                    {
+                        switch (type)
+                        {
+                            case CCIType.Twitch:
+                                handling = EnumHandling.PreventSubsequent;
+                                ti.StartSignInFlow();
+                                break;
+                            case CCIType.Streamlabs:
+                                si.SetRawAuthData(ld.data);
+                                si.Connect();
+                                break;
+                            default:
+                                break;
+                        }
+                    }
                     break;
                 default:
                     break;
             }
         }
+        private void OnStreamlabsLoginSuccess(object sender, string token)
+        {
+            if (token != null)
+            {
+                var data = new ClientSaveData() { TwitchAuth = ti.GetAuthDataForSaving(), StreamlabsAuth = token };
+                SaveDataUtil.SaveClientData(capi, data);
+            }
+        }
 
-        private void OnLoginSuccess(object sender, string token)
+        private void OnTwitchLoginSuccess(object sender, string token)
         {
             // if token is null this was received from save file, so no reason to save again
             if (token != null)
             {
-                SaveDataUtil.SaveClientData(capi, token);
+                var data = new ClientSaveData() { TwitchAuth = token, StreamlabsAuth = si.GetAuthDataForSaving() };
+                SaveDataUtil.SaveClientData(capi, data);
             }
             ti.Connect();
         }
 
         private void EventLevelFinalize()
         {
-            string token = null;
-            SaveDataUtil.LoadClientData(capi, ref token);
-            if(token != null)
+            var data = SaveDataUtil.LoadClientData(capi);
+            if(data != null)
             {
-                ti.SetAuthDataFromSaveData(token);
+                if (data.TwitchAuth != null)
+                {
+                    ti.SetAuthDataFromSaveData(data.TwitchAuth);
+                }
+                if(data.StreamlabsAuth != null)
+                {
+                    si.SetAuthDataFromSaveData(data.StreamlabsAuth);
+                }
             }
         }
 

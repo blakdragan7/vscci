@@ -1,66 +1,132 @@
 
 namespace vscci.CCIIntegrations.Streamlabs
 {
-    using System.Collections.Generic;
     using Vintagestory.API.Client;
     using Quobject.Collections.Immutable;
     using Quobject.EngineIoClientDotNet.Client.Transports;
     using Quobject.SocketIoClientDotNet.Client;
     using Newtonsoft.Json.Linq;
     using vscci.Data;
+    using vscci.CCINetworkTypes;
 
-    public class SteamLabsIntegration
+    public class SteamLabsIntegration : CCIInterface
     {
-        public const string SOCKET_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbiI6IkVGNTk3MkE2RTRGRDgyN0I0QTczIiwicmVhZF9vbmx5Ijp0cnVlLCJwcmV2ZW50X21hc3RlciI6dHJ1ZSwidHdpdGNoX2lkIjoiMTY3MjEzMjg3In0.5FhgvOEZERGaMzB5_wD_OU5-WkwJeRjyyGE388XGUj8";
-        private ICoreClientAPI api;
+        private readonly ICoreClientAPI api;
         private Socket socket;
-        private Dictionary<string,string> channels;
+        private string authToken;
+        private bool connected;
 
         public SteamLabsIntegration(ICoreClientAPI capi)
         {
             api = capi;
             socket = null;
-            channels = new Dictionary<string, string>();
+            connected = false;
         }
 
-        public void Connect()
+        public override void Connect()
         {
             if (socket == null)
             {
                 CreateSocket();
             }
+
             socket.Connect();
         }
 
-        public void Disconnect()
+        public override void Disconnect()
         {
-            socket.Disconnect();
+            socket?.Disconnect();
+        }
+
+        public override void Reset()
+        {
+            if (connected)
+            {
+                socket?.Disconnect();
+            }
+            connected = false;
+            socket = null;
+        }
+
+        public override string GetAuthDataForSaving()
+        {
+            return authToken;
+        }
+
+        public override void SetRawAuthData(string authData)
+        {
+            if (authToken != authData)
+            {
+                authToken = authData;
+
+                // reset socket if we changed auth token
+                if (connected)
+                {
+                    socket.Disconnect();
+                    socket = null;
+                }
+            }
+        }
+
+        public override void SetAuthDataFromSaveData(string savedAuth)
+        {
+            authToken = savedAuth;
+
+            // create / re-create the socket to update the token info
+            // connect automaitcally from save
+
+            CreateSocket();
+            Connect();
         }
 
         private void CreateSocket()
         {
+            if (socket != null)
+            {
+                if (connected)
+                {
+                    socket.Disconnect();
+                }
+                socket = null;
+            }
+
             socket = IO.Socket($"wss://sockets.streamlabs.com",
                 new IO.Options
                 {
                     AutoConnect = false,
                     // Upgrade = true,
                     Transports = ImmutableList.Create(WebSocket.NAME),
-                    QueryString = $"token={SOCKET_TOKEN}"
+                    QueryString = $"token={authToken}"
                 });
 
             socket.On(Socket.EVENT_CONNECT, () =>
             {
-                 api.Logger.Notification("Socket Connected");
+                api.Logger.Notification("Streamlabs Socket Connected");
+                api.Event.EnqueueMainThreadTask(() => api.ShowChatMessage("Streamlabs Socket Connected"), null);
+                connected = true;
+
+                CallLoginSuccess(authToken);
+                CallConnectSuccess();
+                api.Event.PushEvent(Constants.CCI_EVENT_CONNECT_UPDATE, new ProtoDataTypeAttribute<CCIConnectionUpdate>(new CCIConnectionUpdate() { type = CCIType.Streamlabs, status = "Connected" }));
             });
 
             socket.On(Socket.EVENT_DISCONNECT, (data) =>
             {
-                 api.Logger.Notification("Socket Disconnected {0}", data);
+                api.Logger.Notification("Streamlabs Socket Disconnected {0}", data);
+                api.Event.EnqueueMainThreadTask(() => api.ShowChatMessage($"Streamlabs Socket Disconnected {data}"), null);
+                api.Event.PushEvent(Constants.CCI_EVENT_CONNECT_UPDATE, new ProtoDataTypeAttribute<CCIConnectionUpdate>(new CCIConnectionUpdate() { type = CCIType.Streamlabs, status = "Disconnected" }));
+
+                connected = false;
             });
 
             socket.On(Socket.EVENT_ERROR, (data) =>
             {
-                 api.Logger.Error("Socket Error: {0}", data);
+                api.Logger.Error("Streamlabs Socket Error: {0}", data);
+                api.Event.EnqueueMainThreadTask(() => api.ShowChatMessage($"Streamlabs Socket Error: {data}"), null);
+                connected = false;
+
+                api.Event.PushEvent(Constants.CCI_EVENT_CONNECT_UPDATE, new ProtoDataTypeAttribute<CCIConnectionUpdate>(new CCIConnectionUpdate() { type = CCIType.Streamlabs, status = "Error" }));
+                CallLoginError(new OnAuthFailedArgs() { Message = data.ToString() });
             });
 
             socket.On("event", (data) =>

@@ -1,10 +1,14 @@
 namespace vscci.CCINetworkTypes
 {
     using ProtoBuf;
+    using vscci.CCIIntegrations;
+    using System.Collections.Generic;
 
     [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
     public class CCILoginRequest
     {
+        public List<CCIType> type;
+        public string data;
     }
 
     [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
@@ -51,6 +55,7 @@ namespace vscci.CCINetworkTypes
     [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
     public class CCIConnectionUpdate
     {
+        public CCIType type;
         public string status;
     }
 }

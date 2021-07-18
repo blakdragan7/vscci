@@ -50,11 +50,18 @@ namespace vscci.ModSystem
             {
                 case Constants.CCI_EVENT_CONNECT_UPDATE:
                     var cu = data.GetValue() as CCIConnectionUpdate;
-                    configGui.UpdateGuiConnectionText(cu.status);
+                    if (cu.type == CCIIntegrations.CCIType.Twitch)
+                    {
+                        configGui.UpdateGuiTwitchConnectionText(cu.status);
+                    }
+                    else if (cu.type == CCIIntegrations.CCIType.Streamlabs)
+                    {
+                        configGui.UpdateGuiStreamlabsConnectionText(cu.status);
+                    }
                     break;
                 case Constants.CCI_EVENT_LOGIN_UPDATE:
                     var cl = data.GetValue() as CCILoginUpdate;
-                    configGui.UpdateGuiLoginText(cl.user, cl.id);
+                    configGui.UpdateGuiTwitchLoginText(cl.user, cl.id);
                     break;
                 case Constants.CCI_EVENT_SERVER_UPDATE:
                     var su = data.GetValue() as CCIServerEventStatusUpdate;
