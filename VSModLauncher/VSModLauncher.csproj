@@ -10,11 +10,21 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
+  <!--#if false -->
+  <!-- This is kind of silly, but it just makes it easier for handling the Template solution. It should never enter the created project. -->
+  <ItemGroup Label="VSModTemplate Project References">
+    <Reference Include="VintagestoryAPI">
+      <HintPath>$(VINTAGE_STORY)/VintagestoryAPI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+  <!--#endif -->
 
   <!-- Template includes: -->
   <ItemGroup Label="VSModTemplate Includes">
     <Reference Include="VintagestoryAPI">
       <HintPath>$(VINTAGE_STORY)/VintagestoryAPI.dll</HintPath>
+      <Private>false</Private>
     </Reference>
   </ItemGroup>
 
