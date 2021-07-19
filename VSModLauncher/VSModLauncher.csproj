@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net452</TargetFramework>
+    <TargetFramework>net461</TargetFramework>
     <!-- We have a custom Configuration, so need to add it here -->
     <Configurations>Debug;Release;ReleaseAndZip</Configurations>
   </PropertyGroup>
@@ -15,7 +15,6 @@
   <ItemGroup Label="VSModTemplate Includes">
     <Reference Include="VintagestoryAPI">
       <HintPath>$(VINTAGE_STORY)/VintagestoryAPI.dll</HintPath>
-      <Private>false</Private>
     </Reference>
   </ItemGroup>
 
