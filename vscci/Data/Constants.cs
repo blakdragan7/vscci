@@ -9,6 +9,7 @@ namespace vscci.Data
         public const string CONFIG_FILE_PATH_OBSELETE       = "data/ModConfig/vscci_config.json";
 
         // GUI Rendering Constants
+        public const double NODE_SCIPRT_DRAW_PADDING        = 10.0;
         public const double NODE_SCIPRT_TEXT_PADDING        = 10.0;
         public const string CCI_EVENT_SERVER_UPDATE         = "ccisu";
         public const string CCI_EVENT_LOGIN_UPDATE          = "ccilu";

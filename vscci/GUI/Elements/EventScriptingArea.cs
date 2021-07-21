@@ -1,15 +1,18 @@
 namespace vscci.GUI.Elements
 {
-    using System.Collections.Generic;
     using Cairo;
+    using System.Collections.Generic;
+
     using Vintagestory.API.Client;
     using Vintagestory.API.Common;
+
+    using vscci.GUI.Nodes;
 
     public class EventScriptingArea : GuiElement
     {
         private readonly List<ScriptNode> allNodes;
         private int texId;
-        private ScriptNode draggedNode;
+        private ScriptNode activeNode;
 
         private int lastMouseX;
         private int lastMouseY;
@@ -24,12 +27,13 @@ namespace vscci.GUI.Elements
             bounds.IsDrawingSurface = true;
             isPanningView = false;
 
-            draggedNode = null;
+            activeNode = null;
             allNodes = new List<ScriptNode>();
 
             nodeTransform = new Matrix();
             inverseNodeTransform = new Matrix();
 
+            AddTest();
             AddTest();
         }
 
@@ -47,7 +51,7 @@ namespace vscci.GUI.Elements
 
         public void AddTest()
         {
-            var b = ElementBounds.Fixed(0, 0, 32, 32);
+            var b = ElementBounds.Fixed(0, 0);
 
             Bounds.WithChild(b);
             allNodes.Add(new ScriptNode(api, nodeTransform, b));
@@ -57,12 +61,12 @@ namespace vscci.GUI.Elements
         {
             base.RenderInteractiveElements(deltaTime);
 
-            ImageSurface surface = new ImageSurface(Format.Argb32, Bounds.OuterWidthInt, Bounds.OuterHeightInt);
-            Context ctx = new Context(surface);
+            var surface = new ImageSurface(Format.Argb32, Bounds.OuterWidthInt, Bounds.OuterHeightInt);
+            var ctx = new Context(surface);
 
             foreach(var node in allNodes)
             {
-                node.OnRender(ctx, deltaTime);
+                node.OnRender(ctx, surface, deltaTime);
             }
 
             generateTexture(surface, ref texId);
@@ -89,24 +93,25 @@ namespace vscci.GUI.Elements
         {
             base.OnMouseDownOnElement(api, args);
 
-            switch(args.Button)
+            double transformedX = args.X;
+            double transformedY = args.Y;
+
+            inverseNodeTransform.TransformPoint(ref transformedX, ref transformedY);
+
+            foreach (var node in allNodes)
+            {
+                if (node.MouseDown(transformedX, transformedY, args.Button))
+                {
+                    activeNode = node;
+                    lastMouseX = args.X;
+                    lastMouseY = args.Y;
+                    return;
+                }
+            }
+
+            switch (args.Button)
             {
                 case EnumMouseButton.Left:
-                    double transformedX = args.X;
-                    double transformedY = args.Y;
-
-                    inverseNodeTransform.TransformPoint(ref transformedX, ref transformedY);
-
-                    foreach (var node in allNodes)
-                    {
-                        if (node.IsPositionInside((int)transformedX, (int)transformedY))
-                        {
-                            draggedNode = node;
-                            lastMouseX = args.X;
-                            lastMouseY = args.Y;
-                            break;
-                        }
-                    }
                     break;
 
                 case EnumMouseButton.Middle:
@@ -128,9 +133,9 @@ namespace vscci.GUI.Elements
             {
                 nodeTransform.Translate(args.X - lastMouseX, args.Y - lastMouseY);
             }
-            else if(draggedNode != null)
+            else if (activeNode != null)
             {
-                draggedNode.Move(args.X - lastMouseX, args.Y - lastMouseY);
+                activeNode.MouseMove(args.X - lastMouseX, args.Y - lastMouseY);
             }
 
             lastMouseX = args.X;
@@ -147,17 +152,35 @@ namespace vscci.GUI.Elements
                 inverseNodeTransform = (Matrix)nodeTransform.Clone();
                 inverseNodeTransform.Invert();
             }
-            else
+            else if (activeNode != null)
             {
-                draggedNode = null;
+                double transformedX = args.X;
+                double transformedY = args.Y;
+
+                inverseNodeTransform.TransformPoint(ref transformedX, ref transformedY);
+
+                if (activeNode.ActiveConnection != null)
+                {
+                    foreach (var node in allNodes)
+                    {
+                        if (node.ConnectionWillConnecttPoint(activeNode.ActiveConnection, transformedX, transformedY))
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                activeNode.MouseUp(transformedX, transformedY);
+                activeNode = null;
             }
         }
 
-        private void DrawBackground(Context ctxStatic)
+        private void DrawBackground(Context ctx)
         {
-            ctxStatic.SetSourceRGBA(0, 0.1, 1, 1.0);
+            ctx.SetSourceRGBA(GuiStyle.DialogStrongBgColor[0], GuiStyle.DialogStrongBgColor[1], GuiStyle.DialogStrongBgColor[2], GuiStyle.DialogStrongBgColor[3]);
+            //ctx.SetSourceRGBA(0, 0.1, 1, 1.0);
 
-            ElementRoundRectangle(ctxStatic, Bounds);
+            ElementRoundRectangle(ctx, Bounds);
             /*  RoundRectangle(ctx, bounds.drawX, bounds.drawY, bounds.InnerWidth, bounds.InnerHeight, radius);
              *
              *  double degrees = Math.PI / 180.0;
@@ -171,7 +194,7 @@ namespace vscci.GUI.Elements
              *  ctx.ClosePath();
              */
 
-            ctxStatic.Fill();
+            ctx.Fill();
         }
     }
 }
