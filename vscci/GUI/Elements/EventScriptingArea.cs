@@ -54,9 +54,9 @@ namespace vscci.GUI.Elements
             allNodes.Add(new PrintToChatLocalExecNode(api, nodeTransform, MakeBoundsAtPoint(300, 300)));
         }
 
-        public ElementBounds MakeBoundsAtPoint(double x, double y)
+        public ElementBounds MakeBoundsAtPoint(int x, int y)
         {
-            var b = ElementBounds.Fixed(0, 0);
+            var b = ElementBounds.Fixed(x, y);
             Bounds.WithChild(b);
 
             return b;

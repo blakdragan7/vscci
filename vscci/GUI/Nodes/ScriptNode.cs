@@ -22,13 +22,17 @@ namespace vscci.GUI.Nodes
 
         private string title;
 
+        private TextExtents titleExtents;
+
         public ScriptNodePinConnection ActiveConnection => activeConnection;
 
-        public ScriptNode(string _title, ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base(api, bounds)
+        public ScriptNode(string _title, ICoreClientAPI api, Matrix _nodeTransform, ElementBounds bounds) : base(api, bounds)
         {
+            nodeTransform = _nodeTransform;
+
             textUtil = new TextDrawUtil();
-            this.nodeTransform = nodeTransform;
             font = CairoFont.WhiteDetailText().WithFontSize(20);
+
             isMoving = false;
             activePin = null;
             activeConnection = null;
@@ -38,6 +42,7 @@ namespace vscci.GUI.Nodes
             outputs = new List<ScriptNodeOutput>();
 
             needsSize = true;
+            titleExtents = new TextExtents();
         }
 
         public virtual void OnRender(Context ctx, ImageSurface surface, float deltaTime)
@@ -47,17 +52,26 @@ namespace vscci.GUI.Nodes
 
             nodeTransform.TransformPoint(ref x,ref y);
 
+            // Draw Title Background
             ctx.SetSourceRGBA(GuiStyle.DialogDefaultBgColor[0], GuiStyle.DialogDefaultBgColor[1], GuiStyle.DialogDefaultBgColor[2], GuiStyle.DialogDefaultBgColor[3]);
-            EmbossRoundRectangleElement(ctx, x, y, Bounds.InnerWidth, Bounds.InnerHeight);
-            //RoundRectangle(ctx, x, y, Bounds.InnerWidth, Bounds.InnerHeight, GuiStyle.ElementBGRadius);
+            RoundRectangle(ctx, x, y, Bounds.InnerWidth, titleExtents.Height + 4, 1);
             ctx.Fill();
 
+            EmbossRoundRectangleElement(ctx, x, y, Bounds.InnerWidth, titleExtents.Height + 4);
+
+            // Draw Pin Background
+            ctx.SetSourceRGBA(GuiStyle.DialogDefaultBgColor[0], GuiStyle.DialogDefaultBgColor[1], GuiStyle.DialogDefaultBgColor[2], GuiStyle.DialogDefaultBgColor[3]);
+            RoundRectangle(ctx, x, y + titleExtents.Height + 4, Bounds.InnerWidth, Bounds.InnerHeight - titleExtents.Height - 4, 1);
+            ctx.Fill();
+            
+            EmbossRoundRectangleElement(ctx, x, y + titleExtents.Height + 4, Bounds.InnerWidth, Bounds.InnerHeight - titleExtents.Height - 4);
+            
             ctx.Save();
 
             ctx.SetSourceRGBA(1.0, 1.0, 1.0, 1.0);
             font.SetupContext(ctx);
 
-            var titleExtents = ctx.TextExtents(title);
+            titleExtents = ctx.TextExtents(title);
             textUtil.DrawTextLine(ctx, font, title, x + (Bounds.InnerWidth / 2.0) - (titleExtents.Width / 2.0), y);
 
             var startDrawX = x + (Constants.NODE_SCIPRT_DRAW_PADDING / 2.0);
