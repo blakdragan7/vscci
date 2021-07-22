@@ -33,8 +33,7 @@ namespace vscci.GUI.Elements
             nodeTransform = new Matrix();
             inverseNodeTransform = new Matrix();
 
-            AddTest();
-            AddTest();
+            AddTests();
         }
 
         public void Deserialize(string json)
@@ -49,12 +48,18 @@ namespace vscci.GUI.Elements
             return "";
         }
 
-        public void AddTest()
+        public void AddTests()
+        {
+            allNodes.Add(new BitsEventExecNode(api, nodeTransform, MakeBoundsAtPoint(0, 0)));
+            allNodes.Add(new PrintToChatLocalExecNode(api, nodeTransform, MakeBoundsAtPoint(300, 300)));
+        }
+
+        public ElementBounds MakeBoundsAtPoint(double x, double y)
         {
             var b = ElementBounds.Fixed(0, 0);
-
             Bounds.WithChild(b);
-            allNodes.Add(new ScriptNode(api, nodeTransform, b));
+
+            return b;
         }
 
         public override void RenderInteractiveElements(float deltaTime)

@@ -13,6 +13,9 @@ namespace vscci.GUI.Nodes
         public bool NeedsOutput => output == null;
         public bool NeedsInput => input == null;
 
+        public ScriptNodeInput Input => input;
+        public ScriptNodeOutput Output => output;
+
         public ScriptNodePinConnection(ScriptNodeOutput output)
         {
             this.input = null;

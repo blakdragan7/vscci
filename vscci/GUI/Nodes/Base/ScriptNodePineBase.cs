@@ -28,6 +28,9 @@ namespace vscci.GUI.Nodes
 
         protected readonly List<ScriptNodePinConnection> connections;
 
+        public double X { get; set; }
+        public double Y { get; set; }
+
         /*
          * @PinConnectionPoint is the point at which a ScriptNodePinConnection will draw too.
          * Invalid until first render
@@ -64,7 +67,9 @@ namespace vscci.GUI.Nodes
             this.pinConnectionPoint = new PointD();
         }
 
-        public abstract void Render(double x, double y, TextDrawUtil textUtil, CairoFont font, Context ctx, ImageSurface surface);
+        public abstract void RenderText(TextDrawUtil textUtil, CairoFont font, Context ctx, ImageSurface surface);
+
+        public abstract void RenderPin(Context ctx, ImageSurface surface);
 
         public virtual void MarkDirty()
         {
@@ -127,6 +132,10 @@ namespace vscci.GUI.Nodes
             else if (type.IsAssignableFrom(typeof(string)))
             {
                 return new Color(0.4980392156862745, 0, 1.0, 1.0);
+            }
+            else if (type.IsAssignableFrom(typeof(bool)))
+            {
+                return new Color(0.8, 0.1, 0.1, 1.0);
             }
 
             return new Color(0.8,0.8,0.8,1.0);

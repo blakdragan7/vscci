@@ -20,9 +20,11 @@ namespace vscci.GUI.Nodes
         private ScriptNodePinBase activePin;
         private ScriptNodePinConnection activeConnection;
 
+        private string title;
+
         public ScriptNodePinConnection ActiveConnection => activeConnection;
 
-        public ScriptNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base(api, bounds)
+        public ScriptNode(string _title, ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base(api, bounds)
         {
             textUtil = new TextDrawUtil();
             this.nodeTransform = nodeTransform;
@@ -30,18 +32,10 @@ namespace vscci.GUI.Nodes
             isMoving = false;
             activePin = null;
             activeConnection = null;
+            title = _title;
 
-            inputs = new List<ScriptNodeInput>()
-            {
-                { new ScriptNodeInput(this, "exec", typeof(Exec)) },
-                { new ScriptNodeInput(this, "value", typeof(string)) }
-            };
-
-            outputs = new List<ScriptNodeOutput>()
-            {
-                { new ScriptNodeOutput(this, "exec", 1, typeof(Exec)) },
-                { new ScriptNodeOutput(this, "value", 1, typeof(string)) }
-            };
+            inputs = new List<ScriptNodeInput>();
+            outputs = new List<ScriptNodeOutput>();
 
             needsSize = true;
         }
@@ -58,12 +52,17 @@ namespace vscci.GUI.Nodes
             //RoundRectangle(ctx, x, y, Bounds.InnerWidth, Bounds.InnerHeight, GuiStyle.ElementBGRadius);
             ctx.Fill();
 
-            ctx.SetSourceRGBA(1.0, 1.0, 1.0, 1.0); 
             ctx.Save();
 
+            ctx.SetSourceRGBA(1.0, 1.0, 1.0, 1.0);
+            font.SetupContext(ctx);
+
+            var titleExtents = ctx.TextExtents(title);
+            textUtil.DrawTextLine(ctx, font, title, x + (Bounds.InnerWidth / 2.0) - (titleExtents.Width / 2.0), y);
+
             var startDrawX = x + (Constants.NODE_SCIPRT_DRAW_PADDING / 2.0);
-            var startDrawY = y + (Constants.NODE_SCIPRT_DRAW_PADDING / 2.0);
-            var bigestWidth = 0.0d;
+            var startDrawY = y + titleExtents.Height + (Constants.NODE_SCIPRT_DRAW_PADDING / 2.0);
+            var bigestWidth = titleExtents.Width;
             var bigestHeight = 0.0d;
 
             x = startDrawX;
@@ -71,7 +70,9 @@ namespace vscci.GUI.Nodes
 
             foreach (var input in inputs)
             {
-                input.Render(x, y, textUtil, font, ctx, surface);
+                input.X = x;
+                input.Y = y;
+                input.RenderText(textUtil, font, ctx, surface);
                 y += input.Extents.Height + Constants.NODE_SCIPRT_TEXT_PADDING;
                 bigestWidth = bigestWidth > input.Extents.Width ? bigestWidth : input.Extents.Width;
                 bigestHeight = bigestHeight > ( y  - startDrawY ) ? bigestWidth : (y - startDrawY);
@@ -82,17 +83,31 @@ namespace vscci.GUI.Nodes
 
             foreach (var output in outputs)
             {
-                output.Render(x, y, textUtil, font, ctx, surface);
+                output.X = x;
+                output.Y = y;
+                output.RenderText(textUtil, font, ctx, surface);
                 y += output.Extents.Height + Constants.NODE_SCIPRT_TEXT_PADDING;
                 bigestWidth = bigestWidth > (x + output.Extents.Width) - startDrawX ? bigestWidth : (x + output.Extents.Width) - startDrawX;
                 bigestHeight = bigestHeight > (y - startDrawY) ? bigestWidth : (y - startDrawY);
+            }
+
+            ctx.Restore();
+
+            foreach (var input in inputs)
+            {
+                input.RenderPin(ctx, surface);
+            }
+
+            foreach (var output in outputs)
+            {
+                output.RenderPin(ctx, surface);
             }
 
             activeConnection?.Render(ctx, surface);
 
             if (needsSize)
             {
-                Bounds = Bounds.WithFixedSize(bigestWidth + Constants.NODE_SCIPRT_DRAW_PADDING, bigestHeight + Constants.NODE_SCIPRT_DRAW_PADDING);
+                Bounds = Bounds.WithFixedSize(bigestWidth + Constants.NODE_SCIPRT_DRAW_PADDING, bigestHeight + titleExtents.Height + Constants.NODE_SCIPRT_DRAW_PADDING);
                 Bounds.CalcWorldBounds();
                 needsSize = false;
             }

@@ -1,36 +1,23 @@
 namespace vscci.GUI.Nodes
 {
     using Cairo;
+    using System;
     using Vintagestory.API.Client;
 
     public class ScriptNodeInput : ScriptNodePinBase
     {
+        public bool HasInputValue => connections.Count > 0;
+
         public ScriptNodeInput(ScriptNode owner, string name, System.Type pinType) : base(owner, name, 1, pinType)
         {
 
         }
-        public override void Render(double x, double y, TextDrawUtil textUtil, CairoFont font, Context ctx, ImageSurface surface)
+        public override void RenderText(TextDrawUtil textUtil, CairoFont font, Context ctx, ImageSurface surface)
         {
-            ctx.Save();
             ctx.SetSourceRGBA(1, 1, 1, 1.0);
-            font.SetupContext(ctx);
             extents = ctx.TextExtents(name);
 
-            textUtil.DrawTextLine(ctx, font, name, x + extents.Height, y);
-
-            ctx.Restore();
-
-            ctx.SetSourceColor(PinColor);
-            ctx.LineWidth = 2;
-            RoundRectangle(ctx, x, y + extents.Height, extents.Height, extents.Height, GuiStyle.ElementBGRadius);
-            if (hasConnection)
-            {
-                ctx.Fill();
-            }
-            else
-            {
-                ctx.Stroke();
-            }
+            textUtil.DrawTextLine(ctx, font, name, X + extents.Height, Y);
 
             extents.Width += extents.Height;
 
@@ -40,13 +27,47 @@ namespace vscci.GUI.Nodes
                 {
                     owner.Bounds.ParentBounds.ChildBounds.Remove(pinSelectBounds);
                 }
-                pinSelectBounds = ElementBounds.Fixed(x, y + extents.Height, extents.Height, extents.Height);
+                pinSelectBounds = ElementBounds.Fixed(X, Y + extents.Height, extents.Height, extents.Height);
                 owner.Bounds.ParentBounds.WithChild(pinSelectBounds);
                 pinSelectBounds.CalcWorldBounds();
                 pinConnectionPoint.X = pinSelectBounds.drawX + (pinSelectBounds.OuterWidth / 2.0);
                 pinConnectionPoint.Y = pinSelectBounds.drawY + (pinSelectBounds.OuterHeight / 2.0);
                 isDirty = false;
             }
+        }
+
+        public override void RenderPin(Context ctx, ImageSurface surface)
+        {
+            ctx.SetSourceColor(PinColor);
+            ctx.LineWidth = 2;
+            RoundRectangle(ctx, X, Y + extents.Height, extents.Height, extents.Height, GuiStyle.ElementBGRadius);
+            if (hasConnection)
+            {
+                ctx.Fill();
+            }
+            else
+            {
+                ctx.Stroke();
+            }
+        }
+
+        public dynamic GetInput()
+        {
+            if(connections.Count > 0)
+            {
+                return connections[0].Output.Value;
+            }
+
+            return GetDefault();
+        }
+
+        public dynamic GetDefault()
+        {
+            if (pinValueType.IsValueType)
+            {
+                return Activator.CreateInstance(pinValueType);
+            }
+            return null;
         }
     }
 }
