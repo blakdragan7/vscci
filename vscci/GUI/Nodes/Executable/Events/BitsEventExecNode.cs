@@ -16,7 +16,7 @@
         private string message;
         private string from;
 
-        public BitsEventExecNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("Bit Event", api, nodeTransform, bounds, true)
+        public BitsEventExecNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("Bit Event", api, nodeTransform, bounds, true, false)
         {
             outputs.Add(new ScriptNodeOutput(this, "amount", 1, typeof(int)));
             outputs.Add(new ScriptNodeOutput(this, "from", 1, typeof(string)));

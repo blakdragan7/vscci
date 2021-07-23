@@ -11,6 +11,7 @@ namespace vscci.Data
         // GUI Rendering Constants
         public const double NODE_SCIPRT_DRAW_PADDING        = 10.0;
         public const double NODE_SCIPRT_TEXT_PADDING        = 10.0;
+        public const double NODE_SCIPRT_PIN_PADDING         = 2.0;
         public const string CCI_EVENT_SERVER_UPDATE         = "ccisu";
         public const string CCI_EVENT_LOGIN_UPDATE          = "ccilu";
         public const string CCI_EVENT_CONNECT_UPDATE        = "ccicu";

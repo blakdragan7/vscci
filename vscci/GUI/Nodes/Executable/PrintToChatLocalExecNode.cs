@@ -16,7 +16,7 @@
 
             if(message != null)
             {
-                api.ShowChatMessage(message);
+                api.Event.EnqueueMainThreadTask(() => api.ShowChatMessage(message) , "Print To Chat Local");
             }
 
             ExecuteNextNode();

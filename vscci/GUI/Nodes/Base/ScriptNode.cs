@@ -54,17 +54,17 @@ namespace vscci.GUI.Nodes
 
             // Draw Title Background
             ctx.SetSourceRGBA(GuiStyle.DialogDefaultBgColor[0], GuiStyle.DialogDefaultBgColor[1], GuiStyle.DialogDefaultBgColor[2], GuiStyle.DialogDefaultBgColor[3]);
-            RoundRectangle(ctx, x, y, Bounds.InnerWidth, titleExtents.Height + 4, 1);
+            RoundRectangle(ctx, x, y, Bounds.InnerWidth, titleExtents.Height, 1);
             ctx.Fill();
 
-            EmbossRoundRectangleElement(ctx, x, y, Bounds.InnerWidth, titleExtents.Height + 4);
+            EmbossRoundRectangleElement(ctx, x, y, Bounds.InnerWidth, titleExtents.Height);
 
             // Draw Pin Background
             ctx.SetSourceRGBA(GuiStyle.DialogDefaultBgColor[0], GuiStyle.DialogDefaultBgColor[1], GuiStyle.DialogDefaultBgColor[2], GuiStyle.DialogDefaultBgColor[3]);
-            RoundRectangle(ctx, x, y + titleExtents.Height + 4, Bounds.InnerWidth, Bounds.InnerHeight - titleExtents.Height - 4, 1);
+            RoundRectangle(ctx, x, y, Bounds.InnerWidth, Bounds.InnerHeight, 1);
             ctx.Fill();
             
-            EmbossRoundRectangleElement(ctx, x, y + titleExtents.Height + 4, Bounds.InnerWidth, Bounds.InnerHeight - titleExtents.Height - 4);
+            EmbossRoundRectangleElement(ctx, x, y + titleExtents.Height, Bounds.InnerWidth, Bounds.InnerHeight - titleExtents.Height);
             
             ctx.Save();
 
@@ -72,6 +72,7 @@ namespace vscci.GUI.Nodes
             font.SetupContext(ctx);
 
             titleExtents = ctx.TextExtents(title);
+            titleExtents.Height += 4;
             textUtil.DrawTextLine(ctx, font, title, x + (Bounds.InnerWidth / 2.0) - (titleExtents.Width / 2.0), y);
 
             var startDrawX = x + (Constants.NODE_SCIPRT_DRAW_PADDING / 2.0);
@@ -87,9 +88,9 @@ namespace vscci.GUI.Nodes
                 input.X = x;
                 input.Y = y;
                 input.RenderText(textUtil, font, ctx, surface);
-                y += input.Extents.Height + Constants.NODE_SCIPRT_TEXT_PADDING;
+                y += input.Extents.Height + Constants.NODE_SCIPRT_TEXT_PADDING * Scale;
                 bigestWidth = bigestWidth > input.Extents.Width ? bigestWidth : input.Extents.Width;
-                bigestHeight = bigestHeight > ( y  - startDrawY ) ? bigestWidth : (y - startDrawY);
+                bigestHeight = bigestHeight > ( y  - startDrawY ) ? bigestHeight : (y - startDrawY);
             }
 
             x += bigestWidth + Constants.NODE_SCIPRT_TEXT_PADDING * Scale;
@@ -100,9 +101,9 @@ namespace vscci.GUI.Nodes
                 output.X = x;
                 output.Y = y;
                 output.RenderText(textUtil, font, ctx, surface);
-                y += output.Extents.Height + Constants.NODE_SCIPRT_TEXT_PADDING;
+                y += output.Extents.Height + Constants.NODE_SCIPRT_TEXT_PADDING * Scale;
                 bigestWidth = bigestWidth > (x + output.Extents.Width) - startDrawX ? bigestWidth : (x + output.Extents.Width) - startDrawX;
-                bigestHeight = bigestHeight > (y - startDrawY) ? bigestWidth : (y - startDrawY);
+                bigestHeight = bigestHeight > (y - startDrawY) ? bigestHeight : (y - startDrawY);
             }
 
             ctx.Restore();
@@ -121,7 +122,7 @@ namespace vscci.GUI.Nodes
 
             if (needsSize)
             {
-                Bounds = Bounds.WithFixedSize(bigestWidth + Constants.NODE_SCIPRT_DRAW_PADDING, bigestHeight + titleExtents.Height + Constants.NODE_SCIPRT_DRAW_PADDING);
+                Bounds = Bounds.WithFixedSize(bigestWidth + (Constants.NODE_SCIPRT_DRAW_PADDING / 2.0), bigestHeight + titleExtents.Height + (Constants.NODE_SCIPRT_DRAW_PADDING / 2.0));
                 Bounds.CalcWorldBounds();
                 needsSize = false;
             }

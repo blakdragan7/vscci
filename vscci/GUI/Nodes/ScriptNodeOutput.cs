@@ -3,10 +3,30 @@ namespace vscci.GUI.Nodes
     using Cairo;
     using System;
     using Vintagestory.API.Client;
+    using vscci.Data;
 
     public class ScriptNodeOutput : ScriptNodePinBase
     {
-        public dynamic Value { get; set; }
+        private dynamic value;
+
+        public dynamic Value 
+        { 
+            get
+            {
+                var exec = owner as ExecutableScriptNode;
+                if(exec != null && exec.IsPure)
+                {
+                    exec.Execute();
+                }
+
+                return this.value;
+            }
+
+            set
+            {
+                this.value = value;
+            }
+        }
 
         public ScriptNodeOutput(ScriptNode owner, string name, int maxNumberOfConnections, System.Type pinType) : base(owner, name, maxNumberOfConnections, pinType)
         {
@@ -27,7 +47,7 @@ namespace vscci.GUI.Nodes
 
             textUtil.DrawTextLine(ctx, font, name, X, Y);
             extents = ctx.TextExtents(name);
-            extents.Width += extents.Height;
+            extents.Width += extents.Height + Constants.NODE_SCIPRT_TEXT_PADDING;
 
             if (isDirty)
             {
@@ -35,7 +55,7 @@ namespace vscci.GUI.Nodes
                 {
                     owner.Bounds.ParentBounds.ChildBounds.Remove(pinSelectBounds);
                 }
-                pinSelectBounds = ElementBounds.Fixed(X + extents.Width - extents.Height, Y + extents.Height, extents.Height, extents.Height);
+                pinSelectBounds = ElementBounds.Fixed(X + extents.Width - extents.Height, Y + (extents.Height / 2.0), extents.Height, extents.Height);
                 owner.Bounds.ParentBounds.WithChild(pinSelectBounds);
                 pinSelectBounds.CalcWorldBounds();
                 pinConnectionPoint.X = pinSelectBounds.drawX + (pinSelectBounds.OuterWidth / 2.0);
@@ -48,7 +68,7 @@ namespace vscci.GUI.Nodes
         {
             ctx.SetSourceColor(PinColor);
             ctx.LineWidth = 2;
-            RoundRectangle(ctx, X + extents.Width - extents.Height, Y + extents.Height, extents.Height, extents.Height, GuiStyle.ElementBGRadius);
+            RoundRectangle(ctx, X + extents.Width - extents.Height, Y + (extents.Height / 2.0), extents.Height, extents.Height, GuiStyle.ElementBGRadius);
             if (hasConnection)
             {
                 ctx.Fill();

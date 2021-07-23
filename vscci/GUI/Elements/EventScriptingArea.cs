@@ -51,7 +51,9 @@ namespace vscci.GUI.Elements
         public void AddTests()
         {
             allNodes.Add(new BitsEventExecNode(api, nodeTransform, MakeBoundsAtPoint(0, 0)));
-            allNodes.Add(new PrintToChatLocalExecNode(api, nodeTransform, MakeBoundsAtPoint(300, 300)));
+            allNodes.Add(new PrintToChatLocalExecNode(api, nodeTransform, MakeBoundsAtPoint(300, 0)));
+            allNodes.Add(new AddPureNode<string>(api, nodeTransform, MakeBoundsAtPoint(150, 0)));
+            allNodes.Add(new AddPureNode<string>(api, nodeTransform, MakeBoundsAtPoint(150, 100)));
         }
 
         public ElementBounds MakeBoundsAtPoint(int x, int y)

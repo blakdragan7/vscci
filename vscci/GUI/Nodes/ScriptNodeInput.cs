@@ -3,6 +3,7 @@ namespace vscci.GUI.Nodes
     using Cairo;
     using System;
     using Vintagestory.API.Client;
+    using vscci.Data;
 
     public class ScriptNodeInput : ScriptNodePinBase
     {
@@ -17,9 +18,9 @@ namespace vscci.GUI.Nodes
             ctx.SetSourceRGBA(1, 1, 1, 1.0);
             extents = ctx.TextExtents(name);
 
-            textUtil.DrawTextLine(ctx, font, name, X + extents.Height, Y);
+            textUtil.DrawTextLine(ctx, font, name, X + extents.Height + Constants.NODE_SCIPRT_TEXT_PADDING, Y);
 
-            extents.Width += extents.Height;
+            extents.Width += extents.Height + Constants.NODE_SCIPRT_TEXT_PADDING;
 
             if (isDirty)
             {
@@ -27,7 +28,7 @@ namespace vscci.GUI.Nodes
                 {
                     owner.Bounds.ParentBounds.ChildBounds.Remove(pinSelectBounds);
                 }
-                pinSelectBounds = ElementBounds.Fixed(X, Y + extents.Height, extents.Height, extents.Height);
+                pinSelectBounds = ElementBounds.Fixed(X, Y + (extents.Height / 2.0), extents.Height, extents.Height);
                 owner.Bounds.ParentBounds.WithChild(pinSelectBounds);
                 pinSelectBounds.CalcWorldBounds();
                 pinConnectionPoint.X = pinSelectBounds.drawX + (pinSelectBounds.OuterWidth / 2.0);
@@ -40,7 +41,7 @@ namespace vscci.GUI.Nodes
         {
             ctx.SetSourceColor(PinColor);
             ctx.LineWidth = 2;
-            RoundRectangle(ctx, X, Y + extents.Height, extents.Height, extents.Height, GuiStyle.ElementBGRadius);
+            RoundRectangle(ctx, X, Y + (extents.Height / 2.0), extents.Height, extents.Height, GuiStyle.ElementBGRadius);
             if (hasConnection)
             {
                 ctx.Fill();
