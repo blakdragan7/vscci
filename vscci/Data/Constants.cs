@@ -12,6 +12,8 @@ namespace vscci.Data
         public const double NODE_SCIPRT_DRAW_PADDING        = 10.0;
         public const double NODE_SCIPRT_TEXT_PADDING        = 10.0;
         public const double NODE_SCIPRT_PIN_PADDING         = 2.0;
+
+        // GUI EVENT CONSTANTS
         public const string CCI_EVENT_SERVER_UPDATE         = "ccisu";
         public const string CCI_EVENT_LOGIN_UPDATE          = "ccilu";
         public const string CCI_EVENT_CONNECT_UPDATE        = "ccicu";
@@ -24,6 +26,7 @@ namespace vscci.Data
         public const string NETWORK_CHANNEL                = "cci_message_channel";
         public const string NETWORK_GUI_CHANNEL            = "cci_guiupdate_channel";
         public const string NETWORK_EVENT_CHANNEL          = "cci_event_channel";
+        public const string NETWORK_NODE_CHANNEL           = "cci_node_channel";
 
         // CCI Event Constants
         public const string EVENT_BITS_RECIEVED            = "ccieb";
