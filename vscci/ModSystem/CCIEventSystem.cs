@@ -39,49 +39,29 @@ namespace vscci.ModSystem
 
         private void OnTwitchRaidMessage(IServerPlayer player, RaidData @event)
         {
-            if (ConfigData.PlayerIsAllowed(player))
+            /*if (ConfigData.PlayerIsAllowed(player))
             {
-                sapi.BroadcastMessageToAllGroups($"{@event.raidChannel} is raiding with {@event.numberOfViewers} viewiers !", EnumChatType.Notification);
-            }
+            }*/
         }
 
         private void OnTwitchBitsMessage(IServerPlayer player, BitsData @event)
         {
-            if (ConfigData.PlayerIsAllowed(player))
-            {
-                sapi.BroadcastMessageToAllGroups($"{@event.from} gave {@event.amount} with message {@event.message}", EnumChatType.Notification);
-            }
+
         }
 
         private void OnTwitchFollowMessage(IServerPlayer player, FollowData @event)
         {
-            if (ConfigData.PlayerIsAllowed(player))
-            {
-                sapi.BroadcastMessageToAllGroups($"{@event.who} is now Following {@event.channel}!", EnumChatType.Notification);
-            }
+
         }
 
         private void OnTwitchNewSubMessage(IServerPlayer player, NewSubData @event)
         {
-            if (ConfigData.PlayerIsAllowed(player))
-            {
-                if (@event.isGift)
-                {
-                    sapi.BroadcastMessageToAllGroups($"{@event.from} Gifted Sub to {@event.to}!", EnumChatType.Notification);
-                }
-                else
-                {
-                    sapi.BroadcastMessageToAllGroups($"{@event.to} Subscribed with message {@event.message}", EnumChatType.Notification);
-                }
-            }
+
         }
 
         private void OnTwitchPointRedemptionMessage(IServerPlayer player, PointRedemptionData @event)
         {
-            if (ConfigData.PlayerIsAllowed(player))
-            {
-                sapi.BroadcastMessageToAllGroups($"{@event.who} redeemed {@event.redemptionName}", EnumChatType.Notification);
-            }
+
         }
 
         #region Client
