@@ -1,7 +1,7 @@
 using ProtoBuf;
 using Vintagestory.API.Server;
 
-namespace vscci.Data
+namespace VSCCI.Data
 {
     [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
     public class BitsData

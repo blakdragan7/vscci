@@ -1,9 +1,9 @@
-﻿namespace vscci.GUI.Nodes
+﻿namespace VSCCI.GUI.Nodes
 {
     using Cairo;
     using Vintagestory.API.Client;
     using Vintagestory.API.Server;
-    using vscci.Data;
+    using VSCCI.Data;
 
     class ServerSideExecutableNode : ExecutableScriptNode
     {

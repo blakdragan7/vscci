@@ -1,9 +1,9 @@
-namespace vscci.GUI.Nodes
+namespace VSCCI.GUI.Nodes
 {
     using Cairo;
     using System;
     using Vintagestory.API.Client;
-    using vscci.Data;
+    using VSCCI.Data;
 
     public class ScriptNodeInput : ScriptNodePinBase
     {

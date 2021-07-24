@@ -1,4 +1,4 @@
-namespace vscci.Data
+namespace VSCCI.Data
 {
     public class Constants
     {

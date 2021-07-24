@@ -1,11 +1,11 @@
-﻿namespace vscci.ModSystem
+﻿namespace VSCCI.ModSystem
 {
     using Vintagestory.API.Common;
     using Vintagestory.API.Server;
     using Vintagestory.API.Client;
     using Vintagestory.API.Datastructures;
 
-    using vscci.Data;
+    using VSCCI.Data;
     class CCINodeSystem : ModSystem
     {
         private ICoreServerAPI sapi;

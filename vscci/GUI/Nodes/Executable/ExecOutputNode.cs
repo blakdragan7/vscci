@@ -1,4 +1,4 @@
-﻿namespace vscci.GUI.Nodes
+﻿namespace VSCCI.GUI.Nodes
 {
     class ExecOutputNode : ScriptNodeOutput
     {

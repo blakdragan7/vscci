@@ -1,13 +1,13 @@
 
-namespace vscci.CCIIntegrations.Streamlabs
+namespace VSCCI.CCIIntegrations.Streamlabs
 {
     using Vintagestory.API.Client;
     using Quobject.Collections.Immutable;
     using Quobject.EngineIoClientDotNet.Client.Transports;
     using Quobject.SocketIoClientDotNet.Client;
     using Newtonsoft.Json.Linq;
-    using vscci.Data;
-    using vscci.CCINetworkTypes;
+    using VSCCI.Data;
+    using VSCCI.CCINetworkTypes;
 
     public class SteamLabsIntegration : CCIInterface
     {

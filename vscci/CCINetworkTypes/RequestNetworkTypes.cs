@@ -1,7 +1,7 @@
-namespace vscci.CCINetworkTypes
+namespace VSCCI.CCINetworkTypes
 {
     using ProtoBuf;
-    using vscci.CCIIntegrations;
+    using VSCCI.CCIIntegrations;
     using System.Collections.Generic;
 
     [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]

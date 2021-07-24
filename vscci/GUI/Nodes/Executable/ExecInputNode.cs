@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace vscci.GUI.Nodes
+namespace VSCCI.GUI.Nodes
 {
     class ExecInputNode : ScriptNodeInput
     { 

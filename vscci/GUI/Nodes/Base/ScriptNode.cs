@@ -1,9 +1,9 @@
-namespace vscci.GUI.Nodes
+namespace VSCCI.GUI.Nodes
 {
     using Cairo;
     using Vintagestory.API.Client;
     using System.Collections.Generic;
-    using vscci.Data;
+    using VSCCI.Data;
     using Vintagestory.API.Common;
 
     public class ScriptNode : GuiElement
@@ -15,7 +15,7 @@ namespace vscci.GUI.Nodes
         private readonly TextDrawUtil textUtil;
         private readonly CairoFont font;
 
-        private bool needsSize;
+        private bool isDirty;
         private bool isMoving;
         private ScriptNodePinBase activePin;
         private ScriptNodePinConnection activeConnection;
@@ -23,6 +23,8 @@ namespace vscci.GUI.Nodes
         private string title;
 
         private TextExtents titleExtents;
+
+        public bool IsDirty => isDirty;
 
         public ScriptNodePinConnection ActiveConnection => activeConnection;
 
@@ -41,7 +43,7 @@ namespace vscci.GUI.Nodes
             inputs = new List<ScriptNodeInput>();
             outputs = new List<ScriptNodeOutput>();
 
-            needsSize = true;
+            isDirty = true;
             titleExtents = new TextExtents();
         }
 
@@ -53,27 +55,47 @@ namespace vscci.GUI.Nodes
             nodeTransform.TransformPoint(ref x,ref y);
 
             // Draw Title Background
-            ctx.SetSourceRGBA(GuiStyle.DialogDefaultBgColor[0], GuiStyle.DialogDefaultBgColor[1], GuiStyle.DialogDefaultBgColor[2], GuiStyle.DialogDefaultBgColor[3]);
-            RoundRectangle(ctx, x, y, Bounds.InnerWidth, titleExtents.Height, 1);
-            ctx.Fill();
+            if (title.Length > 0)
+            {
+                ctx.SetSourceRGBA(GuiStyle.DialogDefaultBgColor[0], GuiStyle.DialogDefaultBgColor[1], GuiStyle.DialogDefaultBgColor[2], GuiStyle.DialogDefaultBgColor[3]);
+                RoundRectangle(ctx, x, y, Bounds.InnerWidth, titleExtents.Height, 1);
+                ctx.Fill();
 
-            EmbossRoundRectangleElement(ctx, x, y, Bounds.InnerWidth, titleExtents.Height);
-
+                EmbossRoundRectangleElement(ctx, x, y, Bounds.InnerWidth, titleExtents.Height);
+            }
             // Draw Pin Background
             ctx.SetSourceRGBA(GuiStyle.DialogDefaultBgColor[0], GuiStyle.DialogDefaultBgColor[1], GuiStyle.DialogDefaultBgColor[2], GuiStyle.DialogDefaultBgColor[3]);
             RoundRectangle(ctx, x, y, Bounds.InnerWidth, Bounds.InnerHeight, 1);
             ctx.Fill();
             
             EmbossRoundRectangleElement(ctx, x, y + titleExtents.Height, Bounds.InnerWidth, Bounds.InnerHeight - titleExtents.Height);
-            
+
+            foreach (var input in inputs)
+            {
+                input.RenderOther(ctx, surface);
+            }
+
+            foreach (var output in outputs)
+            {
+                output.RenderOther(ctx, surface);
+            }
+
             ctx.Save();
 
             ctx.SetSourceRGBA(1.0, 1.0, 1.0, 1.0);
             font.SetupContext(ctx);
-
-            titleExtents = ctx.TextExtents(title);
-            titleExtents.Height += 4;
-            textUtil.DrawTextLine(ctx, font, title, x + (Bounds.InnerWidth / 2.0) - (titleExtents.Width / 2.0), y);
+            if (title.Length > 0)
+            {
+                titleExtents = ctx.TextExtents(title);
+                titleExtents.Height += 4;
+                textUtil.DrawTextLine(ctx, font, title, x + (Bounds.InnerWidth / 2.0) - (titleExtents.Width / 2.0), y);
+            }
+            else
+            {
+                titleExtents = new TextExtents();
+                titleExtents.Width = 0;
+                titleExtents.Height = 0;
+            }
 
             var startDrawX = x + (Constants.NODE_SCIPRT_DRAW_PADDING / 2.0);
             var startDrawY = y + titleExtents.Height + (Constants.NODE_SCIPRT_DRAW_PADDING / 2.0);
@@ -120,14 +142,14 @@ namespace vscci.GUI.Nodes
 
             activeConnection?.Render(ctx, surface);
 
-            if (needsSize)
+            if (isDirty)
             {
                 Bounds = Bounds.WithFixedSize(bigestWidth + (Constants.NODE_SCIPRT_DRAW_PADDING / 2.0), bigestHeight + titleExtents.Height + (Constants.NODE_SCIPRT_DRAW_PADDING / 2.0));
                 Bounds.CalcWorldBounds();
-                needsSize = false;
+                isDirty = false;
             }
         }
-        public bool MouseDown(double x, double y, EnumMouseButton button)
+        public virtual bool MouseDown(double x, double y, EnumMouseButton button)
         {
             if(IsPositionInside((int)x, (int)y))
             {
@@ -183,7 +205,7 @@ namespace vscci.GUI.Nodes
             return false;
         }
 
-        public bool MouseUp(double x, double y)
+        public virtual bool MouseUp(double x, double y)
         {
             if(isMoving)
             {

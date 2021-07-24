@@ -1,4 +1,4 @@
-﻿namespace vscci.GUI.Nodes
+﻿namespace VSCCI.GUI.Nodes
 {
     using Cairo;
     using Vintagestory.API.Client;

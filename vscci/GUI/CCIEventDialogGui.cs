@@ -1,8 +1,8 @@
-namespace vscci.GUI
+namespace VSCCI.GUI
 {
     using Vintagestory.API.Client;
 
-    using vscci.GUI.Elements;
+    using VSCCI.GUI.Elements;
 
     public class CCIEventDialogGui : GuiDialog
     {

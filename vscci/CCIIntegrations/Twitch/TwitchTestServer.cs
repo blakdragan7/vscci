@@ -1,10 +1,10 @@
-namespace vscci.CCIIntegrations.Twitch
+namespace VSCCI.CCIIntegrations.Twitch
 {
     using System;
     using System.Collections.Generic;
 
     using System.Net;
-    using vscci.Data;
+    using VSCCI.Data;
     using TwitchLib.PubSub.Events;
     using TwitchLib.PubSub.Models.Responses.Messages;
     using Vintagestory.API.Common;

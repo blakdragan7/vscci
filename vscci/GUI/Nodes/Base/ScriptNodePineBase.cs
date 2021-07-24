@@ -1,9 +1,10 @@
-namespace vscci.GUI.Nodes
+namespace VSCCI.GUI.Nodes
 {
     using Cairo;
     using System;
     using System.Collections.Generic;
     using Vintagestory.API.Client;
+    using Vintagestory.API.Common;
 
     public class Exec // stub for exec type
     {
@@ -66,10 +67,20 @@ namespace vscci.GUI.Nodes
             this.connections = new List<ScriptNodePinConnection>();
             this.pinConnectionPoint = new PointD();
         }
-
+        /*
+         * Rendered before Pin but after "RenderOther
+         * All text rendering should be done here
+         */
         public abstract void RenderText(TextDrawUtil textUtil, CairoFont font, Context ctx, ImageSurface surface);
-
+        /*
+         *  Renders after RenderText, used to render the connection pin
+         */
         public abstract void RenderPin(Context ctx, ImageSurface surface);
+        /*
+         *  Renders Before text, used for rendering backgrounds and other misc things that should be
+         *  behind the text
+         */
+        public abstract void RenderOther(Context ctx, ImageSurface surface);
 
         public virtual void MarkDirty()
         {
@@ -160,5 +171,4 @@ namespace vscci.GUI.Nodes
 
             return null;
         }
-    }
 }

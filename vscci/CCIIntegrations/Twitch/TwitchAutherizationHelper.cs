@@ -1,10 +1,10 @@
-namespace vscci.CCIIntegrations.Twitch
+namespace VSCCI.CCIIntegrations.Twitch
 {
     using System.Collections.Generic;
     using TwitchLib.Api.Core.Enums;
     using TwitchLib.Api.Core.Common;
 
-    using vscci.Data;
+    using VSCCI.Data;
 
     using System;
     using System.Net;

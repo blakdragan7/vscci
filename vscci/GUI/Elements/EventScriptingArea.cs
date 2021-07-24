@@ -1,4 +1,4 @@
-namespace vscci.GUI.Elements
+namespace VSCCI.GUI.Elements
 {
     using Cairo;
     using System.Collections.Generic;
@@ -6,7 +6,7 @@ namespace vscci.GUI.Elements
     using Vintagestory.API.Client;
     using Vintagestory.API.Common;
 
-    using vscci.GUI.Nodes;
+    using VSCCI.GUI.Nodes;
 
     public class EventScriptingArea : GuiElement
     {
@@ -50,10 +50,10 @@ namespace vscci.GUI.Elements
 
         public void AddTests()
         {
-            allNodes.Add(new BitsEventExecNode(api, nodeTransform, MakeBoundsAtPoint(0, 0)));
-            allNodes.Add(new PrintToChatLocalExecNode(api, nodeTransform, MakeBoundsAtPoint(300, 0)));
-            allNodes.Add(new AddPureNode<string>(api, nodeTransform, MakeBoundsAtPoint(150, 0)));
-            allNodes.Add(new AddPureNode<string>(api, nodeTransform, MakeBoundsAtPoint(150, 100)));
+            allNodes.Add(new ConstantValueScriptNode(api, nodeTransform, MakeBoundsAtPoint(0, 0)));
+            //allNodes.Add(new BitsEventExecNode(api, nodeTransform, MakeBoundsAtPoint(0, 0)));
+            //allNodes.Add(new PrintToChatLocalExecNode(api, nodeTransform, MakeBoundsAtPoint(300, 0)));
+            //allNodes.Add(new AddPureNode<string>(api, nodeTransform, MakeBoundsAtPoint(150, 0)));
         }
 
         public ElementBounds MakeBoundsAtPoint(int x, int y)
@@ -180,6 +180,11 @@ namespace vscci.GUI.Elements
                 activeNode.MouseUp(transformedX, transformedY);
                 activeNode = null;
             }
+        }
+
+        public override void OnKeyPress(ICoreClientAPI api, KeyEvent args)
+        {
+            base.OnKeyPress(api, args);
         }
 
         private void DrawBackground(Context ctx)

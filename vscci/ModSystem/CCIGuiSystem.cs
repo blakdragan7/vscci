@@ -1,11 +1,11 @@
-namespace vscci.ModSystem
+namespace VSCCI.ModSystem
 {
     using Vintagestory.API.Client;
     using Vintagestory.API.Common;
 
-    using vscci.Data;
-    using vscci.GUI;
-    using vscci.CCINetworkTypes;
+    using VSCCI.Data;
+    using VSCCI.GUI;
+    using VSCCI.CCINetworkTypes;
     using Vintagestory.API.Datastructures;
 
     internal class CCIGuiSystem : ModSystem

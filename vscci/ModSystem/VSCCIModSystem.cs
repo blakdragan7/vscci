@@ -1,10 +1,10 @@
-namespace vscci.ModSystem
+namespace VSCCI.ModSystem
 {
-    using vscci.CCINetworkTypes;
-    using vscci.CCIIntegrations;
-    using vscci.CCIIntegrations.Twitch;
-    using vscci.CCIIntegrations.Streamlabs;
-    using vscci.Data;
+    using VSCCI.CCINetworkTypes;
+    using VSCCI.CCIIntegrations;
+    using VSCCI.CCIIntegrations.Twitch;
+    using VSCCI.CCIIntegrations.Streamlabs;
+    using VSCCI.Data;
 
     using Vintagestory.API.Common;
     using Vintagestory.API.Server;

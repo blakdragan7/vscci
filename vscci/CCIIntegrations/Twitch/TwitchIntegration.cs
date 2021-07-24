@@ -1,4 +1,4 @@
-namespace vscci.CCIIntegrations.Twitch
+namespace VSCCI.CCIIntegrations.Twitch
 {
     using System;
 #if !TWITCH_INTEGRATION_EVENT_TESTING
@@ -12,8 +12,8 @@ namespace vscci.CCIIntegrations.Twitch
     using Vintagestory.API.Common;
 
     using System.Threading.Tasks;
-    using vscci.CCINetworkTypes;
-    using vscci.Data;
+    using VSCCI.CCINetworkTypes;
+    using VSCCI.Data;
     using System.Collections.Generic;
 
     internal class TwitchIntegration : CCIInterface

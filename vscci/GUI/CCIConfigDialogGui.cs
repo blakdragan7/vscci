@@ -1,9 +1,9 @@
-namespace vscci.GUI
+namespace VSCCI.GUI
 {
     using Vintagestory.API.Client;
-    using vscci.Data;
-    using vscci.CCINetworkTypes;
-    using vscci.CCIIntegrations;
+    using VSCCI.Data;
+    using VSCCI.CCINetworkTypes;
+    using VSCCI.CCIIntegrations;
     using System.Collections.Generic;
 
     public class CCIConfigDialogGui : GuiDialog

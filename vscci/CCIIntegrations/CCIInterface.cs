@@ -1,4 +1,4 @@
-namespace vscci.CCIIntegrations
+namespace VSCCI.CCIIntegrations
 {
     using System;
 

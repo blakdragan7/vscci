@@ -1,10 +1,10 @@
-﻿namespace vscci.GUI.Nodes
+﻿namespace VSCCI.GUI.Nodes
 {
     using Cairo;
     using Vintagestory.API.Client;
     using Vintagestory.API.Common;
     using Vintagestory.API.Datastructures;
-    using vscci.Data;
+    using VSCCI.Data;
 
     class BitsEventExecNode : ExecutableScriptNode
     {
@@ -23,6 +23,11 @@
             outputs.Add(new ScriptNodeOutput(this, "message", 1, typeof(string)));
 
             api.Event.RegisterEventBusListener(OnEvent);
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
         }
 
         public override void Execute()
