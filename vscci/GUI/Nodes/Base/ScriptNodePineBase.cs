@@ -89,7 +89,7 @@ namespace VSCCI.GUI.Nodes
 
         public virtual bool Connect(ScriptNodePinConnection connection)
         {
-            if(CanCreateConnection == false)
+            if (CanCreateConnection == false)
             {
                 return false;
             }
@@ -132,7 +132,7 @@ namespace VSCCI.GUI.Nodes
         }
         public static Color ColorForValueType(Type type)
         {
-            if(type.Equals(typeof(Exec)))
+            if (type.Equals(typeof(Exec)))
             {
                 return new Color(1.0, 1.0, 1.0, 1.0);
             }
@@ -149,14 +149,14 @@ namespace VSCCI.GUI.Nodes
                 return new Color(0.8, 0.1, 0.1, 1.0);
             }
 
-            return new Color(0.8,0.8,0.8,1.0);
+            return new Color(0.8, 0.8, 0.8, 1.0);
         }
 
         public bool CanConnectTo(ScriptNodePinBase other, ScriptNodePinConnection forConnection)
         {
-            return this != other && pinValueType == other.pinValueType 
-                && (CanCreateConnection || connections.Contains(forConnection)) 
-                && (other.CanCreateConnection ||  other.connections.Contains(forConnection));
+            return this != other && pinValueType == other.pinValueType
+                && (CanCreateConnection || connections.Contains(forConnection))
+                && (other.CanCreateConnection || other.connections.Contains(forConnection));
         }
 
         public bool PointIsWithinSelectionBounds(double x, double y)
@@ -171,4 +171,6 @@ namespace VSCCI.GUI.Nodes
 
             return null;
         }
+
+    }
 }
