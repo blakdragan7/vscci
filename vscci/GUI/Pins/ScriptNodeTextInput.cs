@@ -23,7 +23,7 @@
         {
             var bounds = textInput.Bounds;
             ctx.SetSourceRGBA(0.1, 0.1, 0.1, 0.5);
-            RoundRectangle(ctx, X, Y, bounds.InnerWidth, bounds.InnerHeight, 1.0);
+            RoundRectangle(ctx, bounds.drawX, bounds.drawY, bounds.InnerWidth, bounds.InnerHeight, 1.0);
             ctx.Fill();
         }
 
@@ -57,7 +57,7 @@
             pinSelectBounds.CalcWorldBounds();
 
             //textInput.Font = font;
-            textInput.ComposeElements(ctx, null);
+              textInput.ComposeElements(ctx, null);
         }
 
         // do nothing because no pin is needed
@@ -83,10 +83,7 @@
 
         public override void OnKeyDown(ICoreClientAPI api, KeyEvent args)
         {
-            if (IsKeyAllowed(args.KeyChar))
-            {
-                textInput.OnKeyDown(api, args);
-            }
+            textInput.OnKeyDown(api, args);
         }
 
         public override void OnKeyPress(ICoreClientAPI api, KeyEvent args)
