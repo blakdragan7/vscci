@@ -2,9 +2,12 @@
 {
     using Cairo;
     using Vintagestory.API.Client;
-    public class ExecutableScriptNode : ScriptNode
+    public abstract class ExecutableScriptNode : ScriptNode
     {
         private bool isPure;
+
+        protected bool shouldAutoExecuteNext;
+        protected int nextExecutableIndex;
 
         // if IsPure is true then this node should be executed before output is accessed even without exec pins
         public bool IsPure => isPure;
@@ -19,6 +22,9 @@
                 inputs.Add(new ExecInputNode(this));
                 outputs.Add(new ExecOutputNode(this));
             }
+
+            shouldAutoExecuteNext = true;
+            nextExecutableIndex = OUTPUT_EXEC_INDEX;
         }
 
         public ExecutableScriptNode(string title, ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds, bool skipInputExcec, bool isPure) : base(title, api, nodeTransform, bounds)
@@ -32,6 +38,9 @@
                 }
                 outputs.Add(new ExecOutputNode(this));
             }
+
+            shouldAutoExecuteNext = true;
+            nextExecutableIndex = OUTPUT_EXEC_INDEX;
         }
 
         public ExecutableScriptNode(string title, string outputName, ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds, bool isPure = false) : base(title, api, nodeTransform, bounds)
@@ -42,6 +51,9 @@
                 inputs.Add(new ExecInputNode(this));
                 outputs.Add(new ExecOutputNode(this, outputName));
             }
+
+            shouldAutoExecuteNext = true;
+            nextExecutableIndex = OUTPUT_EXEC_INDEX;
         }
 
         public ExecutableScriptNode(string title, string outputName, string inputName, ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds, bool isPure = false) : base(title, api, nodeTransform, bounds)
@@ -52,18 +64,51 @@
                 inputs.Add(new ExecInputNode(this, inputName));
                 outputs.Add(new ExecOutputNode(this, outputName));
             }
+
+            shouldAutoExecuteNext = true;
+            nextExecutableIndex = OUTPUT_EXEC_INDEX;
         }
 
-        public virtual void Execute()
+        public virtual void PrepareExecute()
         {
-            if(isPure == false)ExecuteNextNode();
+            if (isPure == false)
+            {
+                if (inputs.Count > 0)
+                {
+                    var input = inputs[INPUT_EXEC_INDEX] as ExecInputNode;
+                    api.Event.EnqueueMainThreadTask(() => input?.SetPinRunning(true), "Exec Pin");
+                }
+            }
         }
+
+        public virtual void FinishExecute()
+        {
+            if (isPure == false)
+            {
+                if (inputs.Count > 0)
+                {
+                    var input = inputs[INPUT_EXEC_INDEX] as ExecInputNode;
+                    api.Event.EnqueueMainThreadTask(() => input?.SetPinRunning(false), "Exec Pin");
+                }
+            }
+        }
+
+        public void Execute()
+        {
+            if(isPure == false) PrepareExecute();
+            OnExecute();
+            if (isPure == false) FinishExecute();
+
+            ExecuteNodeAtIndex(nextExecutableIndex);
+        }
+
+        protected abstract void OnExecute();
 
         public void ExecuteNextNode()
         {
-            if(isPure)
+            if(isPure || shouldAutoExecuteNext == false)
             {
-                throw new System.Exception("Can not execute next node on pure nodes");
+                return;
             }
 
             var connection = outputs[OUTPUT_EXEC_INDEX].TopConnection();
@@ -76,10 +121,15 @@
 
         public void ExecuteNodeAtIndex(int index)
         {
+            if (isPure || shouldAutoExecuteNext == false)
+            {
+                return;
+            }
+
             var connection = outputs[index].TopConnection();
             if (connection != null && connection.IsConnected)
             {
-                var exec = connection.Output as ExecOutputNode;
+                var exec = connection.Input as ExecInputNode;
                 exec?.ExecOwner.Execute();
             }
         }

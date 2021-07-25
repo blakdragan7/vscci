@@ -10,7 +10,7 @@
             inputs.Add(new ScriptNodeInput(this, "message", typeof(string)));
         }
 
-        public override void Execute()
+        protected override void OnExecute()
         {
             string message = inputs[MESSAGE_INPUT_INDEX].GetInput();
 

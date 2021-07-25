@@ -18,7 +18,7 @@
             outputs.Add(new ExecOutputNode(this, "Done"));
         }
 
-        public override void Execute()
+        protected override void OnExecute()
         {
             int start = inputs[START_INPUT_INDEX].GetInput();
             int end = inputs[END_INPUT_INDEX].GetInput();
@@ -27,8 +27,10 @@
             {
                 outputs[LOOP_OUTPUT_INDEX].Value = i;
 
-                ExecuteNodeAtIndex(LOOP_END_INDEX);
+                ExecuteNextNode();
             }
+
+            nextExecutableIndex = LOOP_END_INDEX;
         }
     }
 }

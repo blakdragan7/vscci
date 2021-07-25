@@ -50,9 +50,10 @@ namespace VSCCI.GUI.Elements
 
         public void AddTests()
         {
-            allNodes.Add(new ConstantValueScriptNode(api, nodeTransform, MakeBoundsAtPoint(0, 0)));
-            //allNodes.Add(new BitsEventExecNode(api, nodeTransform, MakeBoundsAtPoint(0, 0)));
-            //allNodes.Add(new PrintToChatLocalExecNode(api, nodeTransform, MakeBoundsAtPoint(300, 0)));
+            //allNodes.Add(new ConstantValueScriptNode(api, nodeTransform, MakeBoundsAtPoint(0, 0)));
+            allNodes.Add(new BitsEventExecNode(api, nodeTransform, MakeBoundsAtPoint(0, 0)));
+            allNodes.Add(new PrintToChatLocalExecNode(api, nodeTransform, MakeBoundsAtPoint(300, 0)));
+            allNodes.Add(new DelayExecutableNode(api, nodeTransform, MakeBoundsAtPoint(300, 0)));
             //allNodes.Add(new AddPureNode<string>(api, nodeTransform, MakeBoundsAtPoint(150, 0)));
         }
 

@@ -62,7 +62,7 @@ namespace VSCCI.GUI.Nodes
             }
             else if (output != null && input != null)
             {
-                ctx.SetSourceColor(output.PinColor);
+                ctx.SetSourceColor(input.PinColor);
                 ctx.MoveTo(output.PinConnectionPoint);
                 ctx.LineTo(input.PinConnectionPoint);
             }

@@ -21,6 +21,13 @@
             IsKeyAllowed = (char c) => { return true; };
         }
 
+        public override void RenderOther(Context ctx, ImageSurface surface)
+        {
+            ctx.SetSourceRGBA(0.1, 0.1, 0.1, 0.5);
+            RoundRectangle(ctx, X, Y, bounds.InnerWidth, bounds.InnerHeight, 1.0);
+            ctx.Fill();
+        }
+
         public override void RenderText(TextDrawUtil textUtil, CairoFont font, Context ctx, ImageSurface surface)
         {
             ctx.SetSourceRGBA(1.0, 1.0, 1.0, 1.0);
@@ -29,7 +36,7 @@
             if(isDirty)
             {
                 extents = ctx.TextExtents(Text);
-                bounds = ElementBounds.Fixed(X, Y, extents.Width, extents.Height);
+                bounds = ElementBounds.Fixed(X + extents.XBearing, Y + extents.YBearing, extents.Width, extents.Height);
                 owner.Bounds.ParentBounds.WithChild(bounds);
                 bounds.CalcWorldBounds();
 
@@ -40,9 +47,7 @@
         // do nothing because no pin is needed
         public override void RenderPin(Context ctx, ImageSurface surface)
         {
-            ctx.SetSourceRGBA(0.9,0.9,0.9,1.0);
-            RoundRectangle(ctx, X, Y, bounds.InnerWidth, bounds.InnerHeight, 1.0);
-            ctx.Fill();
+            
         }
 
         public void ClearText()

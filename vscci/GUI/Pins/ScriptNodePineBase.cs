@@ -19,9 +19,9 @@ namespace VSCCI.GUI.Nodes
         protected bool hasConnection;
         protected ElementBounds pinSelectBounds;
         protected PointD pinConnectionPoint;
+        protected Color color;
 
         protected readonly string name;
-        protected readonly Color color;
         protected readonly Type pinValueType;
         protected readonly int maxNumberOfConnections;
 
@@ -80,7 +80,7 @@ namespace VSCCI.GUI.Nodes
          *  Renders Before text, used for rendering backgrounds and other misc things that should be
          *  behind the text
          */
-        public abstract void RenderOther(Context ctx, ImageSurface surface);
+        public virtual void RenderOther(Context ctx, ImageSurface surface) { }
 
         public virtual void MarkDirty()
         {
@@ -139,6 +139,10 @@ namespace VSCCI.GUI.Nodes
             else if (type.IsAssignableFrom(typeof(int)))
             {
                 return new Color(0.0, 1.0, 0.0, 1.0);
+            }
+            else if (type.IsAssignableFrom(typeof(float)))
+            {
+                return new Color(0.1, 0.9, 0.1, 1.0);
             }
             else if (type.IsAssignableFrom(typeof(string)))
             {

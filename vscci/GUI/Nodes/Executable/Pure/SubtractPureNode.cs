@@ -13,9 +13,11 @@
             inputs.Add(new ScriptNodeInput(this, "Second", typeof(T)));
 
             outputs.Add(new ScriptNodeOutput(this, "Result", 1, typeof(T)));
+
+            shouldAutoExecuteNext = false;
         }
 
-        public override void Execute()
+        protected override void OnExecute()
         {
             dynamic first = inputs[INPUT_ONE_INDEX].GetInput();
             dynamic second = inputs[INPUT_TWO_INDEX].GetInput();

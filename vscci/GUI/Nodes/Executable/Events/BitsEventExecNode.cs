@@ -30,14 +30,11 @@
             base.Dispose();
         }
 
-        public override void Execute()
+        protected override void OnExecute()
         {
             outputs[AMOUNT_OUTPUT_INDEX].Value = amount;
             outputs[FROM_OUTPUT_INDEX].Value = from;
             outputs[MESSAGE_OUTPUT_INDEX].Value = message;
-
-
-            base.Execute();
         }
 
         private void OnEvent(string eventName, ref EnumHandling handling, IAttribute data)

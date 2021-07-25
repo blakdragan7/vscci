@@ -12,23 +12,16 @@
             outputs.Add(new ExecOutputNode(this, "False"));
         }
 
-        public override void Execute()
+        protected override void OnExecute()
         {
             if (inputs[CONDITION_INPUT_INDEX].TopConnection() != null)
             {
                 bool condition = inputs[CONDITION_INPUT_INDEX].GetInput();
-                if(condition)
+                if(condition == false)
                 {
-                    ExecuteNextNode();
+                    shouldAutoExecuteNext = false;
+                    nextExecutableIndex = FALSE_OUTPUT_INDEX;
                 }
-                else
-                {
-                    ExecuteNodeAtIndex(FALSE_OUTPUT_INDEX);
-                }
-            }
-            else
-            {
-                ExecuteNextNode();
             }
         }
     }
