@@ -13,7 +13,7 @@
 
         public ScriptNodeTextInput(ScriptNode owner, ICoreClientAPI api,  System.Type pinType) : base(owner, "", pinType)
         {
-            textInput = new GuiElementTextInput(api, ElementBounds.Empty, OnTextChanged, CairoFont.TextInput());
+            textInput = new GuiElementTextInput(api, ElementBounds.Empty, OnTextChanged, CairoFont.WhiteSmallText().WithFontSize(20));
             // default to true
             IsKeyAllowed = (char c) => { return true; };
             allowsConnections = false;
@@ -32,10 +32,10 @@
             textInput.RenderInteractiveElements((float)deltaTime);
         }
 
-        public override void Compose(double x, double y, Context ctx, CairoFont font)
+        public override void Compose(double colx, double coly, double drawx, double drawy, Context ctx, CairoFont font)
         {
-            X = x;
-            Y = y;
+            X = drawx;
+            Y = drawy;
 
             owner.Bounds.ParentBounds.ChildBounds.Remove(textInput.Bounds);
             textInput.Bounds = ElementBounds.Fixed(X, Y, 100, 30);
@@ -46,9 +46,17 @@
             extents.Height = textInput.Bounds.OuterHeight;
 
             isDirty = false;
-            pinSelectBounds = textInput.Bounds;
 
-            textInput.Font = font;
+            if (pinSelectBounds != null)
+            {
+                owner.Bounds.ParentBounds.ChildBounds.Remove(pinSelectBounds);
+            }
+
+            pinSelectBounds = ElementBounds.Fixed(colx, coly, extents.Width, extents.Height);
+            owner.Bounds.ParentBounds.WithChild(pinSelectBounds);
+            pinSelectBounds.CalcWorldBounds();
+
+            //textInput.Font = font;
             textInput.ComposeElements(ctx, null);
         }
 

@@ -87,7 +87,7 @@ namespace VSCCI.GUI.Nodes
         /*
          *  Used to setup size and position
          */
-        public abstract void Compose(double x, double y, Context ctx, CairoFont font);
+        public abstract void Compose(double colx, double coly, double drawx, double drawy, Context ctx, CairoFont font);
 
         public virtual void MarkDirty()
         {

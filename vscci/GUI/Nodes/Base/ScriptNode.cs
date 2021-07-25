@@ -133,6 +133,9 @@ namespace VSCCI.GUI.Nodes
             var x = cachedRenderX;
             var y = cachedRenderY;
 
+            var colX = Bounds.drawX;
+            var colY = Bounds.drawY;
+
             ctx.Save();
             font.SetupContext(ctx);
 
@@ -148,6 +151,8 @@ namespace VSCCI.GUI.Nodes
                 titleExtents.Height = 0;
             }
 
+            var startColX = colX + (Constants.NODE_SCIPRT_DRAW_PADDING / 2.0);
+            var startColY = colY + titleExtents.Height + (Constants.NODE_SCIPRT_DRAW_PADDING / 2.0);
             var startDrawX = x + (Constants.NODE_SCIPRT_DRAW_PADDING / 2.0);
             var startDrawY = y + titleExtents.Height + (Constants.NODE_SCIPRT_DRAW_PADDING / 2.0);
             var bigestWidth = titleExtents.Width;
@@ -156,10 +161,14 @@ namespace VSCCI.GUI.Nodes
             x = startDrawX;
             y = startDrawY;
 
+            colX = startColX;
+            colY = startColY;
+
             foreach (var input in inputs)
             {
-                input.Compose(x, y, ctx, font);
+                input.Compose(colX, colY, x, y, ctx, font);
                 y += input.Extents.Height + Constants.NODE_SCIPRT_TEXT_PADDING * Scale;
+                colY += input.Extents.Height + Constants.NODE_SCIPRT_TEXT_PADDING * Scale;
                 bigestWidth = bigestWidth > input.Extents.Width ? bigestWidth : input.Extents.Width;
                 bigestHeight = bigestHeight > (y - startDrawY) ? bigestHeight : (y - startDrawY);
             }
@@ -167,10 +176,14 @@ namespace VSCCI.GUI.Nodes
             x += bigestWidth + Constants.NODE_SCIPRT_TEXT_PADDING * Scale;
             y = startDrawY;
 
+            colX += bigestWidth + Constants.NODE_SCIPRT_TEXT_PADDING * Scale;
+            colY = startColY;
+
             foreach (var output in outputs)
             {
-                output.Compose(x, y, ctx, font);
+                output.Compose(colX, colY, x, y, ctx, font);
                 y += output.Extents.Height + Constants.NODE_SCIPRT_TEXT_PADDING * Scale;
+                colY += output.Extents.Height + Constants.NODE_SCIPRT_TEXT_PADDING * Scale;
                 bigestWidth = bigestWidth > (x + output.Extents.Width) - startDrawX ? bigestWidth : (x + output.Extents.Width) - startDrawX;
                 bigestHeight = bigestHeight > (y - startDrawY) ? bigestHeight : (y - startDrawY);
             }
@@ -188,7 +201,7 @@ namespace VSCCI.GUI.Nodes
             isDirty = true;
         }
 
-        public virtual bool MouseDown(double x, double y, EnumMouseButton button)
+        public virtual bool MouseDown(double origx,double origy, double x, double y, EnumMouseButton button)
         {
             if(IsPositionInside((int)x, (int)y))
             {
@@ -243,8 +256,8 @@ namespace VSCCI.GUI.Nodes
                             activeConnection = output.CreateConnection();
                             if (activeConnection != null)
                             {
-                                activeConnection.DrawPoint.X = x - Bounds.ParentBounds.absX;
-                                activeConnection.DrawPoint.Y = y - Bounds.ParentBounds.absY;
+                                activeConnection.DrawPoint.X = origx - Bounds.ParentBounds.absX;
+                                activeConnection.DrawPoint.Y = origy - Bounds.ParentBounds.absY;
                             }
                         }
 
@@ -259,7 +272,7 @@ namespace VSCCI.GUI.Nodes
             return false;
         }
 
-        public virtual bool MouseUp(double x, double y, EnumMouseButton button)
+        public virtual bool MouseUp(double origx, double origy, double x, double y, EnumMouseButton button)
         {
             if (IsPositionInside((int)x, (int)y))
             {
@@ -294,7 +307,7 @@ namespace VSCCI.GUI.Nodes
             return false;
         }
 
-        public void MouseMove(double x, double y, double deltaX, double deltaY)
+        public void MouseMove(double origx, double origy, double x, double y, double deltaX, double deltaY)
         {
             if (isMoving)
             {

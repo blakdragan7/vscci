@@ -10,9 +10,6 @@
 
         public ConstantValueScriptNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("", api, nodeTransform, bounds)
         {
-            ElementBounds b = ElementBounds.Fixed(0, 0);
-            bounds.ParentBounds.WithChild(b);
-
             input = new ScriptNodeTextInput(this, api, typeof(string));
             output = new ScriptNodeOutput(this, "out", 1, typeof(string));
 

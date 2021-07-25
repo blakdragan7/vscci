@@ -53,10 +53,10 @@ namespace VSCCI.GUI.Elements
         public void AddTests()
         {
             allNodes.Add(new ConstantValueScriptNode(api, nodeTransform, MakeBoundsAtPoint(0, 0)));
-            allNodes.Add(new BitsEventExecNode(api, nodeTransform, MakeBoundsAtPoint(200, 0)));
-            allNodes.Add(new PrintToChatLocalExecNode(api, nodeTransform, MakeBoundsAtPoint(400, 0)));
-            allNodes.Add(new DelayExecutableNode(api, nodeTransform, MakeBoundsAtPoint(0, 200)));
-            allNodes.Add(new AddPureNode<string>(api, nodeTransform, MakeBoundsAtPoint(200, 200)));
+            //allNodes.Add(new BitsEventExecNode(api, nodeTransform, MakeBoundsAtPoint(200, 0)));
+            //allNodes.Add(new PrintToChatLocalExecNode(api, nodeTransform, MakeBoundsAtPoint(400, 0)));
+            //allNodes.Add(new DelayExecutableNode(api, nodeTransform, MakeBoundsAtPoint(0, 200)));
+            //allNodes.Add(new AddPureNode<string>(api, nodeTransform, MakeBoundsAtPoint(200, 200)));
         }
 
         public ElementBounds MakeBoundsAtPoint(int x, int y)
@@ -110,7 +110,7 @@ namespace VSCCI.GUI.Elements
 
             foreach (var node in allNodes)
             {
-                if (node.MouseDown(transformedX, transformedY, args.Button))
+                if (node.MouseDown(args.X, args.Y, transformedX, transformedY, args.Button))
                 {
                     didMoveNode = false;
                     selectedNode = node;
@@ -155,7 +155,13 @@ namespace VSCCI.GUI.Elements
                 {
                     didMoveNode = true;
                 }
-                selectedNode.MouseMove(args.X, args.Y, args.X - lastMouseX, args.Y - lastMouseY);
+
+                double transformedX = args.X;
+                double transformedY = args.Y;
+
+                inverseNodeTransform.TransformPoint(ref transformedX, ref transformedY);
+
+                selectedNode.MouseMove(args.X, args.Y, transformedX, transformedY, args.X - lastMouseX, args.Y - lastMouseY);
             }
 
             lastMouseX = args.X;
@@ -190,7 +196,7 @@ namespace VSCCI.GUI.Elements
                     }
                 }
 
-                selectedNode = selectedNode.MouseUp(transformedX, transformedY, args.Button) ? selectedNode : null;
+                selectedNode = selectedNode.MouseUp(args.X, args.Y, transformedX, transformedY, args.Button) ? selectedNode : null;
             }
         }
 

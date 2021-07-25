@@ -46,10 +46,10 @@ namespace VSCCI.GUI.Nodes
 
             return null;
         }
-        public override void Compose(double x, double y, Context ctx, CairoFont font)
+        public override void Compose(double colx, double coly, double drawx, double drawy, Context ctx, CairoFont font)
         {
-            X = x;
-            Y = y;
+            X = drawx;
+            Y = drawy;
 
             extents = ctx.TextExtents(name);
             extents.Width += extents.Height + Constants.NODE_SCIPRT_TEXT_PADDING;
@@ -59,11 +59,11 @@ namespace VSCCI.GUI.Nodes
                 owner.Bounds.ParentBounds.ChildBounds.Remove(pinSelectBounds);
             }
 
-            pinSelectBounds = ElementBounds.Fixed(X, Y + (extents.Height / 2.0), extents.Height, extents.Height);
+            pinSelectBounds = ElementBounds.Fixed(colx, coly + (extents.Height / 2.0), extents.Height, extents.Height);
             owner.Bounds.ParentBounds.WithChild(pinSelectBounds);
             pinSelectBounds.CalcWorldBounds();
-            pinConnectionPoint.X = pinSelectBounds.drawX + (pinSelectBounds.OuterWidth / 2.0);
-            pinConnectionPoint.Y = pinSelectBounds.drawY + (pinSelectBounds.OuterHeight / 2.0);
+            pinConnectionPoint.X = X + (pinSelectBounds.OuterWidth / 2.0);
+            pinConnectionPoint.Y = Y + (pinSelectBounds.OuterHeight / 2.0);
             isDirty = false;
         }
 
