@@ -5,6 +5,7 @@ namespace VSCCI.GUI.Nodes
     using System.Collections.Generic;
     using VSCCI.Data;
     using Vintagestory.API.Common;
+    using System;
 
     public class ScriptNode : GuiElement
     {
@@ -62,6 +63,14 @@ namespace VSCCI.GUI.Nodes
 
             var x = cachedRenderX;
             var y = cachedRenderY;
+
+            // Draw selected highlight
+            if(hasFocus && isMoving == false && activeConnection == null && activePin == null)
+            {
+                ctx.SetSourceRGBA(1.0, 1.0, 1.0, 1.0);
+                RoundRectangle(ctx, x, y, Bounds.OuterWidth, Bounds.OuterHeight, 1);
+                ctx.Fill();
+            }
 
             // Draw Title Background
             if (title.Length > 0)
@@ -205,7 +214,10 @@ namespace VSCCI.GUI.Nodes
         {
             if(IsPositionInside((int)x, (int)y))
             {
-                OnFocusGained();
+                if (button == EnumMouseButton.Left || button == EnumMouseButton.Right)
+                {
+                    OnFocusGained();
+                }
 
                 foreach (var input in inputs)
                 {
@@ -224,8 +236,8 @@ namespace VSCCI.GUI.Nodes
                             activeConnection = input.CreateConnection();
                             if (activeConnection != null)
                             {
-                                activeConnection.DrawPoint.X = x - Bounds.ParentBounds.absX;
-                                activeConnection.DrawPoint.Y = y - Bounds.ParentBounds.absY;
+                                activeConnection.DrawPoint.X = origx - Bounds.ParentBounds.absX;
+                                activeConnection.DrawPoint.Y = origy - Bounds.ParentBounds.absY;
                             }
                             else
                             {
@@ -265,7 +277,6 @@ namespace VSCCI.GUI.Nodes
                     }
                 }
 
-                isMoving = true;
                 return true;
             }
 
@@ -279,6 +290,7 @@ namespace VSCCI.GUI.Nodes
                 if (isMoving)
                 {
                     isMoving = false;
+                    OnFocusLost();
                 }
 
                 else if (activePin != null)
@@ -309,11 +321,12 @@ namespace VSCCI.GUI.Nodes
 
         public void MouseMove(double origx, double origy, double x, double y, double deltaX, double deltaY)
         {
-            if (isMoving)
+            if (hasFocus && activeConnection == null && api.Input.MouseButton.Left && (Math.Abs(deltaX) > 0 || Math.Abs(deltaY) > 0))
             {
                 Bounds = Bounds.WithFixedOffset(deltaX, deltaY);
                 Bounds.CalcWorldBounds();
 
+                isMoving = true;
                 isDirty = true;
             }
             else if (activeConnection != null)

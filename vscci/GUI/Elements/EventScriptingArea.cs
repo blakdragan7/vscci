@@ -52,9 +52,10 @@ namespace VSCCI.GUI.Elements
 
         public void AddTests()
         {
-            allNodes.Add(new ConstantValueScriptNode(api, nodeTransform, MakeBoundsAtPoint(0, 0)));
-            //allNodes.Add(new BitsEventExecNode(api, nodeTransform, MakeBoundsAtPoint(200, 0)));
-            //allNodes.Add(new PrintToChatLocalExecNode(api, nodeTransform, MakeBoundsAtPoint(400, 0)));
+            allNodes.Add(new ConstantStringScriptNode(api, nodeTransform, MakeBoundsAtPoint(0, 0)));
+            allNodes.Add(new ConstantIntScriptNode(api, nodeTransform, MakeBoundsAtPoint(0, 200)));
+            allNodes.Add(new BitsEventExecNode(api, nodeTransform, MakeBoundsAtPoint(200, 0)));
+            allNodes.Add(new PrintToChatLocalExecNode(api, nodeTransform, MakeBoundsAtPoint(400, 0)));
             //allNodes.Add(new DelayExecutableNode(api, nodeTransform, MakeBoundsAtPoint(0, 200)));
             //allNodes.Add(new AddPureNode<string>(api, nodeTransform, MakeBoundsAtPoint(200, 200)));
         }
@@ -112,6 +113,11 @@ namespace VSCCI.GUI.Elements
             {
                 if (node.MouseDown(args.X, args.Y, transformedX, transformedY, args.Button))
                 {
+                    if(selectedNode != null && selectedNode != node)
+                    {
+                        selectedNode.OnFocusLost();
+                    }
+
                     didMoveNode = false;
                     selectedNode = node;
                     lastMouseX = args.X;
