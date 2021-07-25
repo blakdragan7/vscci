@@ -30,7 +30,7 @@
             outputs[MESSAGE_OUTPUT_INDEX].Value = message;
         }
 
-        protected override void OnEvent(string eventName, ref EnumHandling handling, IAttribute data)
+        public override void OnEvent(string eventName, IAttribute data)
         {
             if(eventName == Constants.EVENT_BITS_RECIEVED)
             {

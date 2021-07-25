@@ -26,7 +26,7 @@
             outputs[VIEWER_OUTPUT_INDEX].Value = viewerCount;
         }
 
-        protected override void OnEvent(string eventName, ref EnumHandling handling, IAttribute data)
+        public override void OnEvent(string eventName, IAttribute data)
         {
             if(eventName == Constants.EVENT_RAID)
             {

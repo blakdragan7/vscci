@@ -5,13 +5,22 @@
     using Vintagestory.API.Common;
     using Vintagestory.API.Datastructures;
 
+    using VSCCI.ModSystem;
+
     public abstract class EventBasedExecutableScriptNode : ExecutableScriptNode
     {
         public EventBasedExecutableScriptNode(string title, ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base(title, api, nodeTransform, bounds, true, false)
         {
-            api.Event.RegisterEventBusListener(OnEvent);
+            CCINodeSystem.NodeSystem.RegisterNode(this);
         }
 
-        protected abstract void OnEvent(string eventName, ref EnumHandling handling, IAttribute data);
+        public override void Dispose()
+        {
+            base.Dispose();
+
+            CCINodeSystem.NodeSystem.UnregisterNode(this);
+        }
+
+        public abstract void OnEvent(string eventName, IAttribute data);
     }
 }
