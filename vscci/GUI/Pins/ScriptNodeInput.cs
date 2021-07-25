@@ -16,25 +16,8 @@ namespace VSCCI.GUI.Nodes
         public override void RenderText(TextDrawUtil textUtil, CairoFont font, Context ctx, ImageSurface surface)
         {
             ctx.SetSourceRGBA(1, 1, 1, 1.0);
-            extents = ctx.TextExtents(name);
 
             textUtil.DrawTextLine(ctx, font, name, X + extents.Height + Constants.NODE_SCIPRT_TEXT_PADDING, Y);
-
-            extents.Width += extents.Height + Constants.NODE_SCIPRT_TEXT_PADDING;
-
-            if (isDirty)
-            {
-                if(pinSelectBounds != null)
-                {
-                    owner.Bounds.ParentBounds.ChildBounds.Remove(pinSelectBounds);
-                }
-                pinSelectBounds = ElementBounds.Fixed(X, Y + (extents.Height / 2.0), extents.Height, extents.Height);
-                owner.Bounds.ParentBounds.WithChild(pinSelectBounds);
-                pinSelectBounds.CalcWorldBounds();
-                pinConnectionPoint.X = pinSelectBounds.drawX + (pinSelectBounds.OuterWidth / 2.0);
-                pinConnectionPoint.Y = pinSelectBounds.drawY + (pinSelectBounds.OuterHeight / 2.0);
-                isDirty = false;
-            }
         }
 
         public override void RenderPin(Context ctx, ImageSurface surface)
@@ -50,6 +33,27 @@ namespace VSCCI.GUI.Nodes
             {
                 ctx.Stroke();
             }
+        }
+
+        public override void Compose(double x, double y, Context ctx, CairoFont font)
+        {
+            X = x;
+            Y = y;
+
+            extents = ctx.TextExtents(name);
+            extents.Width += extents.Height + Constants.NODE_SCIPRT_TEXT_PADDING;
+
+            if (pinSelectBounds != null)
+            {
+                owner.Bounds.ParentBounds.ChildBounds.Remove(pinSelectBounds);
+            }
+
+            pinSelectBounds = ElementBounds.Fixed(X, Y + (extents.Height / 2.0), extents.Height, extents.Height);
+            owner.Bounds.ParentBounds.WithChild(pinSelectBounds);
+            pinSelectBounds.CalcWorldBounds();
+            pinConnectionPoint.X = pinSelectBounds.drawX + (pinSelectBounds.OuterWidth / 2.0);
+            pinConnectionPoint.Y = pinSelectBounds.drawY + (pinSelectBounds.OuterHeight / 2.0);
+            isDirty = false;
         }
 
         public dynamic GetInput()

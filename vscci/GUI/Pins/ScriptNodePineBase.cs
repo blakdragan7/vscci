@@ -81,6 +81,10 @@ namespace VSCCI.GUI.Nodes
          *  behind the text
          */
         public virtual void RenderOther(Context ctx, ImageSurface surface) { }
+        /*
+         *  Used to setup size and position
+         */
+        public abstract void Compose(double x, double y, Context ctx, CairoFont font);
 
         public virtual void MarkDirty()
         {

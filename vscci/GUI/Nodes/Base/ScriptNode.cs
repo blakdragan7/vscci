@@ -15,6 +15,9 @@ namespace VSCCI.GUI.Nodes
         private readonly TextDrawUtil textUtil;
         private readonly CairoFont font;
 
+        private double cachedRenderX;
+        private double cachedRenderY;
+
         private bool isDirty;
         private bool isMoving;
         private ScriptNodePinBase activePin;
@@ -45,14 +48,20 @@ namespace VSCCI.GUI.Nodes
 
             isDirty = true;
             titleExtents = new TextExtents();
+
+            cachedRenderX = 0;
+            cachedRenderY = 0;
         }
 
         public virtual void OnRender(Context ctx, ImageSurface surface, float deltaTime)
         {
-            var x = Bounds.drawX;
-            var y = Bounds.drawY;
+            if (isDirty)
+            {
+                OnCompose(ctx, font);
+            }
 
-            nodeTransform.TransformPoint(ref x,ref y);
+            var x = cachedRenderX;
+            var y = cachedRenderY;
 
             // Draw Title Background
             if (title.Length > 0)
@@ -86,9 +95,51 @@ namespace VSCCI.GUI.Nodes
             font.SetupContext(ctx);
             if (title.Length > 0)
             {
+                textUtil.DrawTextLine(ctx, font, title, x + (Bounds.InnerWidth / 2.0) - (titleExtents.Width / 2.0), y);
+            }
+
+            foreach (var input in inputs)
+            {
+                input.RenderText(textUtil, font, ctx, surface);
+            }
+
+            foreach (var output in outputs)
+            {
+                output.RenderText(textUtil, font, ctx, surface);
+            }
+
+            ctx.Restore();
+
+            foreach (var input in inputs)
+            {
+                input.RenderPin(ctx, surface);
+            }
+
+            foreach (var output in outputs)
+            {
+                output.RenderPin(ctx, surface);
+            }
+
+            activeConnection?.Render(ctx, surface);
+        }
+
+        protected virtual void OnCompose(Context ctx, CairoFont font)
+        {
+            cachedRenderX = Bounds.drawX;
+            cachedRenderY = Bounds.drawY;
+
+            nodeTransform.TransformPoint(ref cachedRenderX, ref cachedRenderY);
+
+            var x = cachedRenderX;
+            var y = cachedRenderY;
+
+            ctx.Save();
+            font.SetupContext(ctx);
+
+            if (title.Length > 0)
+            {
                 titleExtents = ctx.TextExtents(title);
                 titleExtents.Height += 4;
-                textUtil.DrawTextLine(ctx, font, title, x + (Bounds.InnerWidth / 2.0) - (titleExtents.Width / 2.0), y);
             }
             else
             {
@@ -107,12 +158,10 @@ namespace VSCCI.GUI.Nodes
 
             foreach (var input in inputs)
             {
-                input.X = x;
-                input.Y = y;
-                input.RenderText(textUtil, font, ctx, surface);
+                input.Compose(x, y, ctx, font);
                 y += input.Extents.Height + Constants.NODE_SCIPRT_TEXT_PADDING * Scale;
                 bigestWidth = bigestWidth > input.Extents.Width ? bigestWidth : input.Extents.Width;
-                bigestHeight = bigestHeight > ( y  - startDrawY ) ? bigestHeight : (y - startDrawY);
+                bigestHeight = bigestHeight > (y - startDrawY) ? bigestHeight : (y - startDrawY);
             }
 
             x += bigestWidth + Constants.NODE_SCIPRT_TEXT_PADDING * Scale;
@@ -120,9 +169,7 @@ namespace VSCCI.GUI.Nodes
 
             foreach (var output in outputs)
             {
-                output.X = x;
-                output.Y = y;
-                output.RenderText(textUtil, font, ctx, surface);
+                output.Compose(x, y, ctx, font);
                 y += output.Extents.Height + Constants.NODE_SCIPRT_TEXT_PADDING * Scale;
                 bigestWidth = bigestWidth > (x + output.Extents.Width) - startDrawX ? bigestWidth : (x + output.Extents.Width) - startDrawX;
                 bigestHeight = bigestHeight > (y - startDrawY) ? bigestHeight : (y - startDrawY);
@@ -130,25 +177,12 @@ namespace VSCCI.GUI.Nodes
 
             ctx.Restore();
 
-            foreach (var input in inputs)
-            {
-                input.RenderPin(ctx, surface);
-            }
+            Bounds = Bounds.WithFixedSize(bigestWidth + (Constants.NODE_SCIPRT_DRAW_PADDING / 2.0), bigestHeight + titleExtents.Height + (Constants.NODE_SCIPRT_DRAW_PADDING / 2.0));
+            Bounds.CalcWorldBounds();
 
-            foreach (var output in outputs)
-            {
-                output.RenderPin(ctx, surface);
-            }
-
-            activeConnection?.Render(ctx, surface);
-
-            if (isDirty)
-            {
-                Bounds = Bounds.WithFixedSize(bigestWidth + (Constants.NODE_SCIPRT_DRAW_PADDING / 2.0), bigestHeight + titleExtents.Height + (Constants.NODE_SCIPRT_DRAW_PADDING / 2.0));
-                Bounds.CalcWorldBounds();
-                isDirty = false;
-            }
+            isDirty = false;
         }
+
         public virtual bool MouseDown(double x, double y, EnumMouseButton button)
         {
             if(IsPositionInside((int)x, (int)y))
@@ -210,19 +244,8 @@ namespace VSCCI.GUI.Nodes
             if(isMoving)
             {
                 isMoving = false;
-
-                foreach (var input in inputs)
-                {
-                    input.MarkDirty();
-                }
-
-                foreach(var output in outputs)
-                {
-                    output.MarkDirty();
-                }
             }
-
-            if(activePin != null && activeConnection != null)
+            else if(activePin != null && activeConnection != null)
             {
                 activePin = null;
                 if (activeConnection.IsConnected == false)
@@ -235,13 +258,29 @@ namespace VSCCI.GUI.Nodes
             return true;
         }
 
+        public void MouseMove(double deltaX, double deltaY)
+        {
+            if (isMoving)
+            {
+                Bounds = Bounds.WithFixedOffset(deltaX, deltaY);
+                Bounds.CalcWorldBounds();
+
+                isDirty = true;
+            }
+            else if (activePin != null && activeConnection != null)
+            {
+                activeConnection.DrawPoint.X += deltaX;
+                activeConnection.DrawPoint.Y += deltaY;
+            }
+        }
+
         public bool ConnectionWillConnecttPoint(ScriptNodePinConnection connection, double x, double y)
         {
-            if(connection.NeedsInput)
+            if (connection.NeedsInput)
             {
                 foreach (var input in inputs)
                 {
-                    if(input.PointIsWithinSelectionBounds(x, y) && connection.Connect(input))
+                    if (input.PointIsWithinSelectionBounds(x, y) && connection.Connect(input))
                     {
                         return true;
                     }
@@ -260,20 +299,6 @@ namespace VSCCI.GUI.Nodes
             }
 
             return false;
-        }
-
-        public void MouseMove(double deltaX, double deltaY)
-        {
-            if (isMoving)
-            {
-                Bounds = Bounds.WithFixedOffset(deltaX, deltaY);
-                Bounds.CalcWorldBounds();
-            }
-            else if (activePin != null && activeConnection != null)
-            {
-                activeConnection.DrawPoint.X += deltaX;
-                activeConnection.DrawPoint.Y += deltaY;
-            }
         }
     }
 }
