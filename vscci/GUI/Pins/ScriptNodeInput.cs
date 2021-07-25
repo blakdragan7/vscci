@@ -13,14 +13,14 @@ namespace VSCCI.GUI.Nodes
         {
 
         }
-        public override void RenderText(TextDrawUtil textUtil, CairoFont font, Context ctx, ImageSurface surface)
+        public override void RenderText(TextDrawUtil textUtil, CairoFont font, Context ctx, ImageSurface surface, double deltaTime)
         {
             ctx.SetSourceRGBA(1, 1, 1, 1.0);
 
             textUtil.DrawTextLine(ctx, font, name, X + extents.Height + Constants.NODE_SCIPRT_TEXT_PADDING, Y);
         }
 
-        public override void RenderPin(Context ctx, ImageSurface surface)
+        public override void RenderPin(Context ctx, ImageSurface surface, double deltaTime)
         {
             ctx.SetSourceColor(PinColor);
             ctx.LineWidth = 2;
@@ -34,7 +34,18 @@ namespace VSCCI.GUI.Nodes
                 ctx.Stroke();
             }
         }
+        public override ScriptNodePinConnection CreateConnection()
+        {
+            if (CanCreateConnection)
+            {
+                return new ScriptNodePinConnection(this);
+            }
 
+            if (connections.Count > 0)
+                return TopConnection();
+
+            return null;
+        }
         public override void Compose(double x, double y, Context ctx, CairoFont font)
         {
             X = x;

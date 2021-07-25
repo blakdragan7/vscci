@@ -12,12 +12,13 @@ namespace VSCCI.GUI.Elements
     {
         private readonly List<ScriptNode> allNodes;
         private int texId;
-        private ScriptNode activeNode;
+        private ScriptNode selectedNode;
 
         private int lastMouseX;
         private int lastMouseY;
 
         private bool isPanningView;
+        private bool didMoveNode;
 
         private readonly Matrix nodeTransform;
         private Matrix inverseNodeTransform;
@@ -26,8 +27,9 @@ namespace VSCCI.GUI.Elements
         {
             bounds.IsDrawingSurface = true;
             isPanningView = false;
+            didMoveNode = false;
 
-            activeNode = null;
+            selectedNode = null;
             allNodes = new List<ScriptNode>();
 
             nodeTransform = new Matrix();
@@ -110,7 +112,8 @@ namespace VSCCI.GUI.Elements
             {
                 if (node.MouseDown(transformedX, transformedY, args.Button))
                 {
-                    activeNode = node;
+                    didMoveNode = false;
+                    selectedNode = node;
                     lastMouseX = args.X;
                     lastMouseY = args.Y;
                     return;
@@ -140,10 +143,19 @@ namespace VSCCI.GUI.Elements
             if (isPanningView)
             {
                 nodeTransform.Translate(args.X - lastMouseX, args.Y - lastMouseY);
+
+                foreach(var node in allNodes)
+                {
+                    node.MarkDirty();
+                }
             }
-            else if (activeNode != null)
+            else if (selectedNode != null)
             {
-                activeNode.MouseMove(args.X - lastMouseX, args.Y - lastMouseY);
+                if(selectedNode.ActiveConnection == null)
+                {
+                    didMoveNode = true;
+                }
+                selectedNode.MouseMove(args.X, args.Y, args.X - lastMouseX, args.Y - lastMouseY);
             }
 
             lastMouseX = args.X;
@@ -160,32 +172,48 @@ namespace VSCCI.GUI.Elements
                 inverseNodeTransform = (Matrix)nodeTransform.Clone();
                 inverseNodeTransform.Invert();
             }
-            else if (activeNode != null)
+            else if (selectedNode != null)
             {
                 double transformedX = args.X;
                 double transformedY = args.Y;
 
                 inverseNodeTransform.TransformPoint(ref transformedX, ref transformedY);
 
-                if (activeNode.ActiveConnection != null)
+                if (selectedNode.ActiveConnection != null)
                 {
                     foreach (var node in allNodes)
                     {
-                        if (node.ConnectionWillConnecttPoint(activeNode.ActiveConnection, transformedX, transformedY))
+                        if (node.ConnectionWillConnecttPoint(selectedNode.ActiveConnection, transformedX, transformedY))
                         {
                             break;
                         }
                     }
                 }
 
-                activeNode.MouseUp(transformedX, transformedY);
-                activeNode = null;
+                selectedNode = selectedNode.MouseUp(transformedX, transformedY, args.Button) ? selectedNode : null;
+            }
+        }
+
+        public override void OnKeyDown(ICoreClientAPI api, KeyEvent args)
+        {
+            base.OnKeyDown(api, args);
+
+            if(selectedNode != null)
+            {
+                selectedNode.OnKeyDown(api, args);
+                args.Handled = true;
             }
         }
 
         public override void OnKeyPress(ICoreClientAPI api, KeyEvent args)
         {
             base.OnKeyPress(api, args);
+
+            if (selectedNode != null)
+            {
+                selectedNode.OnKeyPress(api, args);
+                args.Handled = true;
+            }
         }
 
         private void DrawBackground(Context ctx)

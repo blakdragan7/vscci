@@ -21,6 +21,8 @@ namespace VSCCI.GUI.Nodes
         protected PointD pinConnectionPoint;
         protected Color color;
 
+        protected bool allowsConnections;
+
         protected readonly string name;
         protected readonly Type pinValueType;
         protected readonly int maxNumberOfConnections;
@@ -49,7 +51,7 @@ namespace VSCCI.GUI.Nodes
         /*
          * @CanCreateConnection returns true if this pin is capable of creating another connection
          */
-        public bool CanCreateConnection => connections.Count < maxNumberOfConnections;
+        public bool CanCreateConnection => connections.Count < maxNumberOfConnections && allowsConnections;
         /*
          * @Connections is simply a list of all connections to this pin.
          */
@@ -66,21 +68,22 @@ namespace VSCCI.GUI.Nodes
             this.owner = owner;
             this.connections = new List<ScriptNodePinConnection>();
             this.pinConnectionPoint = new PointD();
+            this.allowsConnections = true;
         }
         /*
          * Rendered before Pin but after "RenderOther
          * All text rendering should be done here
          */
-        public abstract void RenderText(TextDrawUtil textUtil, CairoFont font, Context ctx, ImageSurface surface);
+        public abstract void RenderText(TextDrawUtil textUtil, CairoFont font, Context ctx, ImageSurface surface, double deltaTime);
         /*
          *  Renders after RenderText, used to render the connection pin
          */
-        public abstract void RenderPin(Context ctx, ImageSurface surface);
+        public abstract void RenderPin(Context ctx, ImageSurface surface, double deltaTime);
         /*
          *  Renders Before text, used for rendering backgrounds and other misc things that should be
          *  behind the text
          */
-        public virtual void RenderOther(Context ctx, ImageSurface surface) { }
+        public virtual void RenderOther(Context ctx, ImageSurface surface, double deltaTime) { }
         /*
          *  Used to setup size and position
          */
@@ -90,6 +93,8 @@ namespace VSCCI.GUI.Nodes
         {
             this.isDirty = true;
         }
+
+        public abstract ScriptNodePinConnection CreateConnection();
 
         public virtual bool Connect(ScriptNodePinConnection connection)
         {
@@ -180,5 +185,16 @@ namespace VSCCI.GUI.Nodes
             return null;
         }
 
+        public virtual void OnMouseDown(ICoreClientAPI api, double x, double y, EnumMouseButton button)
+        {}
+
+        public virtual void OnMouseMove(ICoreClientAPI api, double x, double y, double deltaX, double deltaY)
+        {}
+        public virtual void OnMouseUp(ICoreClientAPI api, double x, double y, EnumMouseButton button)
+        {}
+        public virtual void OnKeyPress(ICoreClientAPI api, KeyEvent args)
+        {}
+        public virtual void OnKeyDown(ICoreClientAPI api, KeyEvent args)
+        { }
     }
 }

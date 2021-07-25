@@ -11,14 +11,14 @@ namespace VSCCI.GUI.Nodes
         protected readonly List<ScriptNodeInput> inputs;
         protected readonly List<ScriptNodeOutput> outputs;
 
-        private readonly Matrix nodeTransform;
+        protected readonly Matrix nodeTransform;
+        protected double cachedRenderX;
+        protected double cachedRenderY;
+        protected bool isDirty;
+
         private readonly TextDrawUtil textUtil;
         private readonly CairoFont font;
 
-        private double cachedRenderX;
-        private double cachedRenderY;
-
-        private bool isDirty;
         private bool isMoving;
         private ScriptNodePinBase activePin;
         private ScriptNodePinConnection activeConnection;
@@ -81,12 +81,12 @@ namespace VSCCI.GUI.Nodes
 
             foreach (var input in inputs)
             {
-                input.RenderOther(ctx, surface);
+                input.RenderOther(ctx, surface, deltaTime);
             }
 
             foreach (var output in outputs)
             {
-                output.RenderOther(ctx, surface);
+                output.RenderOther(ctx, surface, deltaTime);
             }
 
             ctx.Save();
@@ -100,24 +100,24 @@ namespace VSCCI.GUI.Nodes
 
             foreach (var input in inputs)
             {
-                input.RenderText(textUtil, font, ctx, surface);
+                input.RenderText(textUtil, font, ctx, surface, deltaTime);
             }
 
             foreach (var output in outputs)
             {
-                output.RenderText(textUtil, font, ctx, surface);
+                output.RenderText(textUtil, font, ctx, surface, deltaTime);
             }
 
             ctx.Restore();
 
             foreach (var input in inputs)
             {
-                input.RenderPin(ctx, surface);
+                input.RenderPin(ctx, surface, deltaTime);
             }
 
             foreach (var output in outputs)
             {
-                output.RenderPin(ctx, surface);
+                output.RenderPin(ctx, surface, deltaTime);
             }
 
             activeConnection?.Render(ctx, surface);
@@ -183,10 +183,17 @@ namespace VSCCI.GUI.Nodes
             isDirty = false;
         }
 
+        public void MarkDirty()
+        {
+            isDirty = true;
+        }
+
         public virtual bool MouseDown(double x, double y, EnumMouseButton button)
         {
             if(IsPositionInside((int)x, (int)y))
             {
+                OnFocusGained();
+
                 foreach (var input in inputs)
                 {
                     if(input.PointIsWithinSelectionBounds(x, y))
@@ -201,12 +208,20 @@ namespace VSCCI.GUI.Nodes
                         }
                         else if (button == EnumMouseButton.Left)
                         {
-                            activePin = input;
-                            activeConnection = input.CanCreateConnection ? new ScriptNodePinConnection(input) : input.Connections[0];
-                            activeConnection.DrawPoint.X = x - Bounds.ParentBounds.absX;
-                            activeConnection.DrawPoint.Y = y - Bounds.ParentBounds.absY;
-                            return true;
+                            activeConnection = input.CreateConnection();
+                            if (activeConnection != null)
+                            {
+                                activeConnection.DrawPoint.X = x - Bounds.ParentBounds.absX;
+                                activeConnection.DrawPoint.Y = y - Bounds.ParentBounds.absY;
+                            }
+                            else
+                            {
+                                activePin = input;
+                                activePin.OnMouseDown(api, x, y, button);
+                            }
                         }
+
+                        return true;
                     }
                 }
 
@@ -225,40 +240,61 @@ namespace VSCCI.GUI.Nodes
                         else if (button == EnumMouseButton.Left)
                         {
                             activePin = output;
-                            activeConnection = output.CanCreateConnection ? new ScriptNodePinConnection(output) : output.Connections[0];
-                            activeConnection.DrawPoint.X = x - Bounds.ParentBounds.absX;
-                            activeConnection.DrawPoint.Y = y - Bounds.ParentBounds.absY;
-                            return true;
+                            activeConnection = output.CreateConnection();
+                            if (activeConnection != null)
+                            {
+                                activeConnection.DrawPoint.X = x - Bounds.ParentBounds.absX;
+                                activeConnection.DrawPoint.Y = y - Bounds.ParentBounds.absY;
+                            }
                         }
+
+                        return true;
                     }
                 }
 
                 isMoving = true;
                 return true;
             }
+
             return false;
         }
 
-        public virtual bool MouseUp(double x, double y)
+        public virtual bool MouseUp(double x, double y, EnumMouseButton button)
         {
-            if(isMoving)
+            if (IsPositionInside((int)x, (int)y))
             {
-                isMoving = false;
+                if (isMoving)
+                {
+                    isMoving = false;
+                }
+
+                else if (activePin != null)
+                {
+                    activePin.OnMouseUp(api, x, y, button);
+                }
+
+                return true;
             }
-            else if(activePin != null && activeConnection != null)
+
+            if (activeConnection != null)
             {
-                activePin = null;
                 if (activeConnection.IsConnected == false)
                 {
                     activeConnection.DisconnectAll();
                 }
                 activeConnection = null;
             }
+            else if (activePin != null)
+            {
+                activePin.OnMouseUp(api, x, y, button);
+            }
 
-            return true;
+            OnFocusLost();
+
+            return false;
         }
 
-        public void MouseMove(double deltaX, double deltaY)
+        public void MouseMove(double x, double y, double deltaX, double deltaY)
         {
             if (isMoving)
             {
@@ -267,11 +303,42 @@ namespace VSCCI.GUI.Nodes
 
                 isDirty = true;
             }
-            else if (activePin != null && activeConnection != null)
+            else if (activeConnection != null)
             {
                 activeConnection.DrawPoint.X += deltaX;
                 activeConnection.DrawPoint.Y += deltaY;
             }
+            else if (activePin != null)
+            {
+                activePin.OnMouseMove(api, x, y, deltaX, deltaY);
+            }
+        }
+
+        public override void OnKeyDown(ICoreClientAPI api, KeyEvent args)
+        {
+            base.OnKeyDown(api, args);
+
+            if(activePin != null)
+            {
+                activePin.OnKeyDown(api, args);
+            }
+        }
+
+        public override void OnKeyPress(ICoreClientAPI api, KeyEvent args)
+        {
+            base.OnKeyPress(api, args);
+
+            if (activePin != null)
+            {
+                activePin.OnKeyPress(api, args);
+            }
+        }
+
+        public override void OnFocusLost()
+        {
+            base.OnFocusLost();
+
+            activePin = null;
         }
 
         public bool ConnectionWillConnecttPoint(ScriptNodePinConnection connection, double x, double y)
