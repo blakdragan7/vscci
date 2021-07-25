@@ -6,7 +6,7 @@
     using Vintagestory.API.Datastructures;
     using VSCCI.Data;
 
-    class BitsEventExecNode : ExecutableScriptNode
+    class BitsEventExecNode : EventBasedExecutableScriptNode
     {
         public static int AMOUNT_OUTPUT_INDEX = 1;
         public static int FROM_OUTPUT_INDEX = 2;
@@ -16,18 +16,11 @@
         private string message;
         private string from;
 
-        public BitsEventExecNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("Bit Event", api, nodeTransform, bounds, true, false)
+        public BitsEventExecNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("Bit Event", api, nodeTransform, bounds)
         {
             outputs.Add(new ScriptNodeOutput(this, "amount", 1, typeof(int)));
             outputs.Add(new ScriptNodeOutput(this, "from", 1, typeof(string)));
             outputs.Add(new ScriptNodeOutput(this, "message", 1, typeof(string)));
-
-            api.Event.RegisterEventBusListener(OnEvent);
-        }
-
-        public override void Dispose()
-        {
-            base.Dispose();
         }
 
         protected override void OnExecute()
@@ -37,7 +30,7 @@
             outputs[MESSAGE_OUTPUT_INDEX].Value = message;
         }
 
-        private void OnEvent(string eventName, ref EnumHandling handling, IAttribute data)
+        protected override void OnEvent(string eventName, ref EnumHandling handling, IAttribute data)
         {
             if(eventName == Constants.EVENT_BITS_RECIEVED)
             {
