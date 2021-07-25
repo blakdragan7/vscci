@@ -11,7 +11,7 @@ namespace VSCCI.GUI.Nodes
 
     }
 
-    public abstract class ScriptNodePinBase
+    public abstract class ScriptNodePinBase : IDisposable
     {
         protected bool isDirty;
 
@@ -125,6 +125,18 @@ namespace VSCCI.GUI.Nodes
             }
 
             return false;
+        }
+
+        public virtual void Dispose()
+        {
+            ScriptNodePinConnection[] copy = new ScriptNodePinConnection[connections.Count];
+            connections.CopyTo(copy);
+            foreach (var connection in copy)
+            {
+                connection.DisconnectAll();
+            }
+
+            connections.Clear();
         }
 
         public static void RoundRectangle(Context ctx, double x, double y, double width, double height, double radius)

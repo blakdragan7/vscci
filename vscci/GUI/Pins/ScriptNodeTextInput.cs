@@ -117,6 +117,12 @@
             }
         }
 
+        public override void Dispose()
+        {
+            base.Dispose();
+
+            textInput.Dispose(); 
+        }
         private void OnTextChanged(string text)
         {
             TextChanged?.Invoke(text);

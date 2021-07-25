@@ -212,8 +212,17 @@ namespace VSCCI.GUI.Elements
 
             if(selectedNode != null)
             {
-                selectedNode.OnKeyDown(api, args);
-                args.Handled = true;
+                if (args.KeyCode == (int)GlKeys.Delete)
+                {
+                    allNodes.Remove(selectedNode);
+                    selectedNode.Dispose();
+                    selectedNode = null;
+                }
+                else
+                {
+                    selectedNode.OnKeyDown(api, args);
+                    args.Handled = true;
+                }
             }
         }
 

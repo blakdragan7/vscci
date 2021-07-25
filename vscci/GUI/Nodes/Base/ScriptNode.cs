@@ -367,6 +367,24 @@ namespace VSCCI.GUI.Nodes
             activePin = null;
         }
 
+        public override void Dispose()
+        {
+            base.Dispose();
+
+            foreach (var input in inputs)
+            {
+                input.Dispose();
+            }
+
+            foreach (var output in outputs)
+            {
+                output.Dispose();
+            }
+
+            inputs.Clear();
+            outputs.Clear();
+        }
+
         public bool ConnectionWillConnecttPoint(ScriptNodePinConnection connection, double x, double y)
         {
             if (connection.NeedsInput)
