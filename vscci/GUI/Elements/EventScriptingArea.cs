@@ -2,7 +2,7 @@ namespace VSCCI.GUI.Elements
 {
     using Cairo;
     using System.Collections.Generic;
-
+    using System.Linq;
     using Vintagestory.API.Client;
     using Vintagestory.API.Common;
 
@@ -23,6 +23,7 @@ namespace VSCCI.GUI.Elements
         private readonly Matrix nodeTransform;
         private Matrix inverseNodeTransform;
 
+        private MouseEvent selectListActiveDownEvent;
         private bool selectListActive; 
         private readonly CascadingListElement nodeSelectList;
 
@@ -43,8 +44,9 @@ namespace VSCCI.GUI.Elements
             bounds.WithChild(b);
 
             nodeSelectList = new CascadingListElement(api, b);
+            nodeSelectList.OnItemSelected += NewNodeSelected;
 
-            AddTests();
+            PopulateNodeSelectionList();
         }
 
         public void Deserialize(string json)
@@ -67,20 +69,13 @@ namespace VSCCI.GUI.Elements
             allNodes.Add(new PrintToChatLocalExecNode(api, nodeTransform, MakeBoundsAtPoint(400, 0)));
             //allNodes.Add(new DelayExecutableNode(api, nodeTransform, MakeBoundsAtPoint(0, 200)));
             //allNodes.Add(new AddPureNode<string>(api, nodeTransform, MakeBoundsAtPoint(200, 200)));
-
-            nodeSelectList.AddListItem("Events", "Bit Event", "BitsEventExecNode");
-            nodeSelectList.AddListItem("Pure", "Host Event", "HostEventExecNode");
-            nodeSelectList.AddListItem("With Space", "Bit Event", "BitsEventExecNode");
-            nodeSelectList.AddListItem("Another", "Donation Event", "DonationEventExecNode");
-            nodeSelectList.AddListItem("Last", "Raid Event", "RaidEventExecNode");
-            nodeSelectList.AddListItem("Not Seen", "Raid Event", "RaidEventExecNode");
-            nodeSelectList.AddListItem("Def Not Seen", "Raid Event", "RaidEventExecNode");
         }
 
         public ElementBounds MakeBoundsAtPoint(int x, int y)
         {
             var b = ElementBounds.Fixed(x, y);
             Bounds.WithChild(b);
+            b.CalcWorldBounds();
 
             return b;
         }
@@ -133,10 +128,7 @@ namespace VSCCI.GUI.Elements
 
             if (selectListActive)
             {
-                if (nodeSelectList.IsPositionInside(args.X, args.Y))
-                {
-                    nodeSelectList.OnMouseDownOnElement(api, args);
-                }
+                nodeSelectList.OnMouseDownOnElement(api, args);
             }
 
             foreach (var node in allNodes)
@@ -171,6 +163,7 @@ namespace VSCCI.GUI.Elements
                     {
                         nodeSelectList.SetPosition(args.X - (nodeSelectList.Bounds.OuterWidth / 4.0), args.Y - (nodeSelectList.Bounds.OuterHeight / 4.0));
                         selectListActive = true;
+                        selectListActiveDownEvent = args;
                     }
                     break;
             }
@@ -224,6 +217,7 @@ namespace VSCCI.GUI.Elements
 
                 if (nodeSelectList.IsPositionInside(args.X, args.Y) == false)
                 {
+                    nodeSelectList.ResetSelections();
                     selectListActive = false;
                 }
             }
@@ -285,6 +279,61 @@ namespace VSCCI.GUI.Elements
                 selectedNode.OnKeyPress(api, args);
                 args.Handled = true;
             }
+        }
+
+        private void NewNodeSelected(object sender, CascadingListItem item)
+        {
+            if (item != null)
+            {
+                double spawnX = selectListActiveDownEvent.X - Bounds.absX;
+                double spawnY = selectListActiveDownEvent.Y - Bounds.absY;
+
+                inverseNodeTransform.TransformPoint(ref spawnX, ref spawnY);
+
+                var bounds = MakeBoundsAtPoint((int)spawnX, (int)spawnY);
+                var type = item.Value as System.Type;
+                if (type != null && type.IsSubclassOf(typeof(ScriptNode)))
+                {
+                    api.Event.EnqueueMainThreadTask(() =>
+                    {
+                        ScriptNode newNode = (ScriptNode)System.Activator.CreateInstance(type, api, nodeTransform, bounds);
+
+                        allNodes.Add(newNode);
+                    }, "Spawn Node");
+                }
+            }
+        }
+
+        private void PopulateNodeSelectionList()
+        {
+            nodeSelectList.AddListItem("Event", "Bit Event", typeof(BitsEventExecNode));
+            nodeSelectList.AddListItem("Event", "Donation Event", typeof(DonationEventExecNode));
+            nodeSelectList.AddListItem("Event", "Follow Event", typeof(FollowEventExecNode));
+            nodeSelectList.AddListItem("Event", "Host Event", typeof(HostEventExecNode));
+            nodeSelectList.AddListItem("Event", "Point Redemption", typeof(PointRedemptionEventExecNode));
+            nodeSelectList.AddListItem("Event", "Raid Event", typeof(RaidEventExecNode));
+            nodeSelectList.AddListItem("Event", "Sub Event", typeof(SubEventExecNode));
+            nodeSelectList.AddListItem("Event", "Super Chat", typeof(SuperChatEventExecNode));
+
+            nodeSelectList.AddListItem("Basic", "Add Int", typeof(AddPureNode<int>));
+            nodeSelectList.AddListItem("Basic", "Add Float", typeof(AddPureNode<float>));
+            nodeSelectList.AddListItem("Basic", "Add Double", typeof(AddPureNode<double>));
+            nodeSelectList.AddListItem("Basic", "Append String", typeof(AddPureNode<string>));
+
+            nodeSelectList.AddListItem("Basic", "Subtract Int", typeof(SubtractPureNode<int>));
+            nodeSelectList.AddListItem("Basic", "Subtract Float", typeof(SubtractPureNode<float>));
+            nodeSelectList.AddListItem("Basic", "Subtract Double", typeof(SubtractPureNode<double>));
+
+            nodeSelectList.AddListItem("Flow", "For Loop", typeof(ForLoopExecNode));
+            nodeSelectList.AddListItem("Flow", "If Then", typeof(IfThenExecNode));
+            nodeSelectList.AddListItem("Flow", "Delay", typeof(DelayExecutableNode));
+
+            nodeSelectList.AddListItem("Util", "Show Chat Local", typeof(PrintToChatLocalExecNode));
+        }
+
+        private static IEnumerable<System.Type> GetSubclasses<A>()
+        {
+            return typeof(A).Assembly.GetTypes().Where(type => type.IsSubclassOf(typeof(A)));
         }
 
         private void DrawBackground(Context ctx)

@@ -9,30 +9,47 @@
     {
         public string Catagory;
         public string Name;
-        public string Value;
+        public dynamic Value;
+    }
+
+    internal class ListItemSelection
+    {
+        public double highlightDrawX;
+        public double highlightDrawY;
+
+        public int index;
+
+        public CascadingListItem selectedItem;
     }
 
     internal class CategorySelection
     {
-        public double drawX;
-        public double drawY;
+        public double highlightDrawX;
+        public double highlightDrawY;
 
+        public int index;
+
+        public ElementBounds Bounds;
         public List<CascadingListItem> selectedItems;
     }
 
     public class CascadingListElement : GuiElement
     {
-        private int texId;
         private readonly CairoFont font;
         private readonly int maxVisibleItemsPerList;
         private readonly TextDrawUtil util;
+
         private Dictionary<string, List<CascadingListItem>> items;
-        private CascadingListItem selectedItem;
+        private ListItemSelection itemSelection;
         private CategorySelection categorySelection;
+
+        private double yAdvance;
 
         protected int selectedIndex;
 
-        public CascadingListItem SelectedItem => selectedItem;
+        public event EventHandler<CascadingListItem> OnItemSelected;
+
+        public CascadingListItem SelectedItem => itemSelection?.selectedItem;
 
         public CascadingListElement(ICoreClientAPI api, ElementBounds bounds, int maxVisibleItemsPerList = 5, CairoFont font = null) : base(api, bounds)
         {
@@ -49,7 +66,8 @@
             }
             util = new TextDrawUtil();
             categorySelection = null;
-            selectedItem = null;
+            itemSelection = null;
+            yAdvance = Bounds.InnerHeight / maxVisibleItemsPerList;
         }
 
         public override void ComposeElements(Context ctxStatic, ImageSurface surface)
@@ -60,6 +78,17 @@
         public override void RenderInteractiveElements(float deltaTime)
         {
             base.RenderInteractiveElements(deltaTime);
+        }
+
+        public void ResetSelections()
+        {
+            if(categorySelection != null)
+            {
+                Bounds.ParentBounds.ChildBounds.Remove(categorySelection.Bounds);
+                categorySelection = null;
+            }
+
+            itemSelection = null;
         }
 
         public void OnRender(Context ctx, ImageSurface surface, float deltaTime)
@@ -93,7 +122,7 @@
             }
         }
 
-        public void AddListItem(string Category, string Name, string Value)
+        public void AddListItem(string Category, string Name, dynamic Value)
         {
             AddListItem(new CascadingListItem() { Catagory = Category, Name = Name, Value = Value } );
         }
@@ -123,28 +152,86 @@
 
             if (IsPositionInside(args.X, args.Y))
             {
-                var yAdvance = Bounds.InnerHeight / maxVisibleItemsPerList;
+                itemSelection = null;
 
                 int index = (int)Math.Floor((args.Y - Bounds.absY) / yAdvance);
-                var drawY = Bounds.drawY + (index * yAdvance);
 
-                string[] keys = new string[items.Keys.Count];
-                items.Keys.CopyTo(keys, 0);
-                List<CascadingListItem> list = null;
-
-                if (items.TryGetValue(keys[index], out list))
+                if (items.Keys.Count > index)
                 {
-                    categorySelection = new CategorySelection()
+                    if (categorySelection != null && categorySelection.index == index)
                     {
-                        drawX = Bounds.drawX,
-                        drawY = drawY,
-                        selectedItems = list
-                    };
+                        return;
+                    }
+
+                    var drawY = Bounds.drawY + (index * yAdvance);
+
+                    string[] keys = new string[items.Keys.Count];
+                    items.Keys.CopyTo(keys, 0);
+                    List<CascadingListItem> list = null;
+
+                    var bounds = ElementBounds.Fixed(Bounds.fixedX + Bounds.fixedWidth, Bounds.fixedY + (index * yAdvance) - (yAdvance / 2.0), Bounds.fixedWidth, Bounds.fixedHeight);
+                    Bounds.ParentBounds.WithChild(bounds);
+                    bounds.CalcWorldBounds();
+
+                    if (items.TryGetValue(keys[index], out list))
+                    {
+                        categorySelection = new CategorySelection()
+                        {
+                            highlightDrawX = Bounds.drawX,
+                            highlightDrawY = drawY,
+                            index = index,
+                            Bounds = bounds,
+                            selectedItems = list
+                        };
+                    }
+                }
+                else if (categorySelection != null)
+                {
+                    Bounds.ParentBounds.ChildBounds.Remove(categorySelection.Bounds);
+                    categorySelection = null;
                 }
             }
-            else
+            else if(categorySelection != null && categorySelection.Bounds.PointInside(args.X, args.Y))
             {
+                int index = (int)Math.Floor((args.Y - categorySelection.Bounds.absY) / yAdvance);
+
+                if(itemSelection != null && itemSelection.index == index)
+                {
+                    return;
+                }
+
+                var drawY = categorySelection.Bounds.drawY + (index * yAdvance);
+
+                if (categorySelection.selectedItems.Count > index)
+                {
+                    itemSelection = new ListItemSelection()
+                    {
+                        highlightDrawX = categorySelection.Bounds.drawX,
+                        highlightDrawY = drawY,
+                        index = index,
+                        selectedItem = categorySelection.selectedItems[index]
+                    };
+                }
+                else
+                {
+                    itemSelection = null;
+                }
+            }
+            else if(categorySelection != null)
+            {
+                Bounds.ParentBounds.ChildBounds.Remove(categorySelection.Bounds);
                 categorySelection = null;
+                itemSelection = null;
+            }
+        }
+
+        public override void OnMouseDownOnElement(ICoreClientAPI api, MouseEvent args)
+        {
+            base.OnMouseDownOnElement(api, args);
+
+            if(itemSelection != null)
+            {
+                OnItemSelected?.Invoke(this, itemSelection.selectedItem);
             }
         }
 
@@ -159,8 +246,6 @@
 
         private void RenderCategories(Context ctx, Surface surface)
         {
-            var yAdvance = Bounds.InnerHeight / maxVisibleItemsPerList;
-
             var x = Bounds.drawX + Bounds.InnerWidth / 2.0;
             var y = Bounds.drawY + (yAdvance / 2.0);
 
@@ -195,7 +280,7 @@
                 }
             }
 
-            triangleSize = Math.Min(triangleSize, yAdvance - 4);
+            triangleSize = Math.Min(triangleSize, yAdvance / 3.0);
 
             x = (Bounds.drawX + Bounds.InnerWidth)  - (triangleSize + 1);
             triangleSize -= 1;
@@ -220,27 +305,61 @@
         {
             if (categorySelection != null)
             {
-                var x = categorySelection.drawX;
-                var y = categorySelection.drawY;
+                var x = categorySelection.highlightDrawX;
+                var y = categorySelection.highlightDrawY;
 
-                var yAdvance = Bounds.InnerHeight / maxVisibleItemsPerList;
+                // draw selection highlight
 
                 ctx.SetSourceRGBA(1.0, 1.0, 1.0, 0.4);
                 RoundRectangle(ctx, x, y, Bounds.InnerWidth, yAdvance, 1);
                 ctx.Fill();
 
-                x = Bounds.drawX + Bounds.OuterWidth;
+                x = categorySelection.Bounds.drawX;
+                y = categorySelection.Bounds.drawY;
 
-                /*foreach (var item in categorySelection.selectedItems)
+                // render selected list background
+
+                ctx.SetSourceRGBA(GuiStyle.DialogDefaultBgColor[0], GuiStyle.DialogDefaultBgColor[1], GuiStyle.DialogDefaultBgColor[2], GuiStyle.DialogDefaultBgColor[3]);
+                ElementRoundRectangle(ctx, categorySelection.Bounds, true);
+                ctx.Fill();
+
+                EmbossRoundRectangleElement(ctx, categorySelection.Bounds);
+
+                var currentRendered = 0;
+
+                foreach (var item in categorySelection.selectedItems)
                 {
-                    RenderListItem(ctx, surface, x, y, Bounds.InnerWidth, yAdvance, item);
-                }*/
+                    RenderListItem(ctx, surface, x, y, Bounds.InnerWidth, yAdvance, item, ref currentRendered);
+                    y += yAdvance;
+
+                    if (currentRendered >= maxVisibleItemsPerList)
+                    {
+                        break;
+                    }
+                }
+
+                if(itemSelection != null)
+                {
+                    ctx.SetSourceRGBA(1.0, 1.0, 1.0, 0.4);
+                    RoundRectangle(ctx, itemSelection.highlightDrawX, itemSelection.highlightDrawY, categorySelection.Bounds.InnerWidth, yAdvance, 1);
+                    ctx.Fill();
+                }
             }
         }
 
-        private void RenderListItem(Context ctx, Surface surface, double x, double y, double width, double height, CascadingListItem item)
+        private void RenderListItem(Context ctx, Surface surface, double x, double y, double width, double height, CascadingListItem item, ref int currentRendered)
         {
+            ctx.SetSourceRGBA(GuiStyle.DialogStrongBgColor[0], GuiStyle.DialogStrongBgColor[1], GuiStyle.DialogStrongBgColor[2], GuiStyle.DialogStrongBgColor[3]);
+            RoundRectangle(ctx, x + 2, y + 2, categorySelection.Bounds.InnerWidth - 4, yAdvance - 4, 1);
+            ctx.Fill();
 
+            ctx.Save();
+            font.SetupContext(ctx);
+            var extents = ctx.TextExtents(item.Name);
+            util.DrawTextLine(ctx, font, item.Name, x + (categorySelection.Bounds.InnerWidth / 2.0) - (extents.Width / 2.0), y + (yAdvance / 2.0) - (extents.Height / 2.2));
+            ctx.Restore();
+
+            currentRendered = currentRendered + 1; ;
         }
 
         private void RenderTriangle(Context ctx, Surface surface, double x, double y, double width, double height)
