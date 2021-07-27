@@ -68,13 +68,13 @@ namespace VSCCI.GUI.Elements
             //allNodes.Add(new DelayExecutableNode(api, nodeTransform, MakeBoundsAtPoint(0, 200)));
             //allNodes.Add(new AddPureNode<string>(api, nodeTransform, MakeBoundsAtPoint(200, 200)));
 
-            nodeSelectList.AddListItem("Events", "BitsEventExecNode");
-            nodeSelectList.AddListItem("Pure", "HostEventExecNode");
-            nodeSelectList.AddListItem("With Space", "BitsEventExecNode");
-            nodeSelectList.AddListItem("Another", "DonationEventExecNode");
-            nodeSelectList.AddListItem("Last", "RaidEventExecNode");
-            nodeSelectList.AddListItem("Not Seen", "RaidEventExecNode");
-            nodeSelectList.AddListItem("Def Not Seen", "RaidEventExecNode");
+            nodeSelectList.AddListItem("Events", "Bit Event", "BitsEventExecNode");
+            nodeSelectList.AddListItem("Pure", "Host Event", "HostEventExecNode");
+            nodeSelectList.AddListItem("With Space", "Bit Event", "BitsEventExecNode");
+            nodeSelectList.AddListItem("Another", "Donation Event", "DonationEventExecNode");
+            nodeSelectList.AddListItem("Last", "Raid Event", "RaidEventExecNode");
+            nodeSelectList.AddListItem("Not Seen", "Raid Event", "RaidEventExecNode");
+            nodeSelectList.AddListItem("Def Not Seen", "Raid Event", "RaidEventExecNode");
         }
 
         public ElementBounds MakeBoundsAtPoint(int x, int y)

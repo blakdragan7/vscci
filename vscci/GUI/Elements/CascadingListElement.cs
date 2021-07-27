@@ -5,11 +5,19 @@
     using System.Collections.Generic;
     using System;
 
-    public struct CascadingListItem
+    public class CascadingListItem
     {
         public string Catagory;
         public string Name;
         public string Value;
+    }
+
+    internal class CategorySelection
+    {
+        public double drawX;
+        public double drawY;
+
+        public List<CascadingListItem> selectedItems;
     }
 
     public class CascadingListElement : GuiElement
@@ -20,6 +28,7 @@
         private readonly TextDrawUtil util;
         private Dictionary<string, List<CascadingListItem>> items;
         private CascadingListItem selectedItem;
+        private CategorySelection categorySelection;
 
         protected int selectedIndex;
 
@@ -39,6 +48,8 @@
                 this.font = font;
             }
             util = new TextDrawUtil();
+            categorySelection = null;
+            selectedItem = null;
         }
 
         public override void ComposeElements(Context ctxStatic, ImageSurface surface)
@@ -55,7 +66,7 @@
         {
             RenderBackground(ctx, surface);
             RenderCategories(ctx, surface);
-            RenderSubListForSelectedCategory(ctx, surface);
+            RenderCategorySelection(ctx, surface);
         }
 
         public void AddListItems(List<CascadingListItem> newItems)
@@ -82,9 +93,9 @@
             }
         }
 
-        public void AddListItem(string Category, string Name)
+        public void AddListItem(string Category, string Name, string Value)
         {
-            AddListItem(new CascadingListItem() { Catagory = Category, Name = Name } );
+            AddListItem(new CascadingListItem() { Catagory = Category, Name = Name, Value = Value } );
         }
 
         public void RemoveListItem(CascadingListItem item)
@@ -104,6 +115,37 @@
         {
             Bounds.WithFixedPosition(x - Bounds.ParentBounds.absX, y - Bounds.ParentBounds.absY);
             Bounds.CalcWorldBounds();
+        }
+
+        public override void OnMouseMove(ICoreClientAPI api, MouseEvent args)
+        {
+            base.OnMouseMove(api, args);
+
+            if (IsPositionInside(args.X, args.Y))
+            {
+                var yAdvance = Bounds.InnerHeight / maxVisibleItemsPerList;
+
+                int index = (int)Math.Floor((args.Y - Bounds.absY) / yAdvance);
+                var drawY = Bounds.drawY + (index * yAdvance);
+
+                string[] keys = new string[items.Keys.Count];
+                items.Keys.CopyTo(keys, 0);
+                List<CascadingListItem> list = null;
+
+                if (items.TryGetValue(keys[index], out list))
+                {
+                    categorySelection = new CategorySelection()
+                    {
+                        drawX = Bounds.drawX,
+                        drawY = drawY,
+                        selectedItems = list
+                    };
+                }
+            }
+            else
+            {
+                categorySelection = null;
+            }
         }
 
         private void RenderBackground(Context ctx, Surface surface)
@@ -176,16 +218,27 @@
 
         private void RenderCategorySelection(Context ctx, Surface surface)
         {
+            if (categorySelection != null)
+            {
+                var x = categorySelection.drawX;
+                var y = categorySelection.drawY;
 
+                var yAdvance = Bounds.InnerHeight / maxVisibleItemsPerList;
+
+                ctx.SetSourceRGBA(1.0, 1.0, 1.0, 0.4);
+                RoundRectangle(ctx, x, y, Bounds.InnerWidth, yAdvance, 1);
+                ctx.Fill();
+
+                x = Bounds.drawX + Bounds.OuterWidth;
+
+                /*foreach (var item in categorySelection.selectedItems)
+                {
+                    RenderListItem(ctx, surface, x, y, Bounds.InnerWidth, yAdvance, item);
+                }*/
+            }
         }
 
-        private void RenderSubListForSelectedCategory(Context ctx, Surface surface)
-        {
-
-            RenderListItem(ctx, surface);
-        }
-
-        private void RenderListItem(Context ctx, Surface surface)
+        private void RenderListItem(Context ctx, Surface surface, double x, double y, double width, double height, CascadingListItem item)
         {
 
         }
