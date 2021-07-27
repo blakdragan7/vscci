@@ -4,10 +4,11 @@ namespace VSCCI.GUI.Nodes
     using Vintagestory.API.Client;
     using System.Collections.Generic;
     using VSCCI.Data;
+    using VSCCI.GUI.Elements;
     using Vintagestory.API.Common;
     using System;
 
-    public class ScriptNode : GuiElement
+    public abstract class ScriptNode : GuiElement
     {
         protected readonly List<ScriptNodeInput> inputs;
         protected readonly List<ScriptNodeOutput> outputs;
@@ -65,7 +66,7 @@ namespace VSCCI.GUI.Nodes
             var y = cachedRenderY;
 
             // Draw selected highlight
-            if(hasFocus && isMoving == false && activeConnection == null && activePin == null)
+            if (hasFocus && isMoving == false && activeConnection == null && activePin == null)
             {
                 ctx.SetSourceRGBA(1.0, 1.0, 1.0, 1.0);
                 RoundRectangle(ctx, x, y, Bounds.OuterWidth, Bounds.OuterHeight, 1);
@@ -85,7 +86,7 @@ namespace VSCCI.GUI.Nodes
             ctx.SetSourceRGBA(GuiStyle.DialogDefaultBgColor[0], GuiStyle.DialogDefaultBgColor[1], GuiStyle.DialogDefaultBgColor[2], GuiStyle.DialogDefaultBgColor[3]);
             RoundRectangle(ctx, x, y, Bounds.InnerWidth, Bounds.InnerHeight, 1);
             ctx.Fill();
-            
+
             EmbossRoundRectangleElement(ctx, x, y + titleExtents.Height, Bounds.InnerWidth, Bounds.InnerHeight - titleExtents.Height);
 
             foreach (var input in inputs)
@@ -210,9 +211,9 @@ namespace VSCCI.GUI.Nodes
             isDirty = true;
         }
 
-        public virtual bool MouseDown(double origx,double origy, double x, double y, EnumMouseButton button)
+        public virtual bool MouseDown(double origx, double origy, double x, double y, EnumMouseButton button)
         {
-            if(IsPositionInside((int)x, (int)y))
+            if (IsPositionInside((int)x, (int)y))
             {
                 if (button == EnumMouseButton.Left || button == EnumMouseButton.Right)
                 {
@@ -221,12 +222,12 @@ namespace VSCCI.GUI.Nodes
 
                 foreach (var input in inputs)
                 {
-                    if(input.PointIsWithinSelectionBounds(x, y))
+                    if (input.PointIsWithinSelectionBounds(x, y))
                     {
                         if (button == EnumMouseButton.Middle)
                         {
                             var connection = input.TopConnection();
-                            if (connection  != null)
+                            if (connection != null)
                             {
                                 connection.DisconnectAll();
                             }
@@ -344,7 +345,7 @@ namespace VSCCI.GUI.Nodes
         {
             base.OnKeyDown(api, args);
 
-            if(activePin != null)
+            if (activePin != null)
             {
                 activePin.OnKeyDown(api, args);
             }

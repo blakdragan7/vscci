@@ -2,7 +2,7 @@
 {
     using Cairo;
     using Vintagestory.API.Client;
-    class SubtractPureNode<T> : ExecutableScriptNode
+    public class SubtractPureNode<T> : ExecutableScriptNode
     {
         public static int INPUT_ONE_INDEX = 0;
         public static int INPUT_TWO_INDEX = 1;

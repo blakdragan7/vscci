@@ -23,17 +23,26 @@ namespace VSCCI.GUI.Elements
         private readonly Matrix nodeTransform;
         private Matrix inverseNodeTransform;
 
+        private bool selectListActive; 
+        private readonly CascadingListElement nodeSelectList;
+
         public EventScriptingArea(ICoreClientAPI api, ElementBounds bounds) : base(api, bounds)
         {
             bounds.IsDrawingSurface = true;
             isPanningView = false;
             didMoveNode = false;
+            selectListActive = false;
 
             selectedNode = null;
             allNodes = new List<ScriptNode>();
 
             nodeTransform = new Matrix();
             inverseNodeTransform = new Matrix();
+
+            var b = ElementBounds.Fixed(0, 0, 100, 150);
+            bounds.WithChild(b);
+
+            nodeSelectList = new CascadingListElement(api, b);
 
             AddTests();
         }
@@ -58,6 +67,14 @@ namespace VSCCI.GUI.Elements
             allNodes.Add(new PrintToChatLocalExecNode(api, nodeTransform, MakeBoundsAtPoint(400, 0)));
             //allNodes.Add(new DelayExecutableNode(api, nodeTransform, MakeBoundsAtPoint(0, 200)));
             //allNodes.Add(new AddPureNode<string>(api, nodeTransform, MakeBoundsAtPoint(200, 200)));
+
+            nodeSelectList.AddListItem("Events", "BitsEventExecNode");
+            nodeSelectList.AddListItem("Pure", "HostEventExecNode");
+            nodeSelectList.AddListItem("With Space", "BitsEventExecNode");
+            nodeSelectList.AddListItem("Another", "DonationEventExecNode");
+            nodeSelectList.AddListItem("Last", "RaidEventExecNode");
+            nodeSelectList.AddListItem("Not Seen", "RaidEventExecNode");
+            nodeSelectList.AddListItem("Def Not Seen", "RaidEventExecNode");
         }
 
         public ElementBounds MakeBoundsAtPoint(int x, int y)
@@ -78,6 +95,11 @@ namespace VSCCI.GUI.Elements
             foreach(var node in allNodes)
             {
                 node.OnRender(ctx, surface, deltaTime);
+            }
+
+            if (selectListActive)
+            {
+                nodeSelectList.OnRender(ctx, surface, deltaTime);
             }
 
             generateTexture(surface, ref texId);
@@ -109,6 +131,14 @@ namespace VSCCI.GUI.Elements
 
             inverseNodeTransform.TransformPoint(ref transformedX, ref transformedY);
 
+            if (selectListActive)
+            {
+                if (nodeSelectList.IsPositionInside(args.X, args.Y))
+                {
+                    nodeSelectList.OnMouseDownOnElement(api, args);
+                }
+            }
+
             foreach (var node in allNodes)
             {
                 if (node.MouseDown(args.X, args.Y, transformedX, transformedY, args.Button))
@@ -137,6 +167,11 @@ namespace VSCCI.GUI.Elements
 
                 case EnumMouseButton.Right:
                     // open context window
+                    if(selectedNode == null)
+                    {
+                        nodeSelectList.SetPosition(args.X - (nodeSelectList.Bounds.OuterWidth / 4.0), args.Y - (nodeSelectList.Bounds.OuterHeight / 4.0));
+                        selectListActive = true;
+                    }
                     break;
             }
 
@@ -145,6 +180,11 @@ namespace VSCCI.GUI.Elements
         public override void OnMouseMove(ICoreClientAPI api, MouseEvent args)
         {
             base.OnMouseMove(api, args);
+
+            if(selectListActive)
+            {
+                nodeSelectList.OnMouseMove(api, args);
+            }
 
             if (isPanningView)
             {
@@ -177,6 +217,16 @@ namespace VSCCI.GUI.Elements
         public override void OnMouseUpOnElement(ICoreClientAPI api, MouseEvent args)
         {
             base.OnMouseUpOnElement(api, args);
+
+            if (selectListActive)
+            {
+                nodeSelectList.OnMouseUpOnElement(api, args);
+
+                if (nodeSelectList.IsPositionInside(args.X, args.Y) == false)
+                {
+                    selectListActive = false;
+                }
+            }
 
             if (isPanningView)
             {
