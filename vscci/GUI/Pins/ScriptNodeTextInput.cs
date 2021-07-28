@@ -12,29 +12,77 @@
         public Func<char, bool> IsKeyAllowed;
         public event Action<string> TextChanged;
 
+        ICoreClientAPI api;
+
+        bool textInputNeedsCompose;
+        bool textWasClicked;
+
         public ScriptNodeTextInput(ScriptNode owner, ICoreClientAPI api,  System.Type pinType) : base(owner, "", pinType)
         {
             textInput = new GuiElementTextInput(api, ElementBounds.Empty, OnTextChanged, CairoFont.WhiteSmallText().WithFontSize(20));
             // default to true
             IsKeyAllowed = (char c) => { return true; };
-            allowsConnections = false;
+            this.api = api;
+            textInputNeedsCompose = false;
+            textWasClicked = false;
         }
 
         public override void RenderOther(Context ctx, ImageSurface surface, double deltaTime)
         {
-            var bounds = textInput.Bounds;
-            ctx.SetSourceRGBA(0.1, 0.1, 0.1, 0.5);
-            RoundRectangle(ctx, bounds.drawX, bounds.drawY, bounds.InnerWidth, bounds.InnerHeight, 1.0);
-            ctx.Fill();
+            if (hasConnection == false)
+            {
+                var bounds = textInput.Bounds;
+                ctx.SetSourceRGBA(0.1, 0.1, 0.1, 0.5);
+                RoundRectangle(ctx, bounds.drawX, bounds.drawY, bounds.InnerWidth, bounds.InnerHeight, 1.0);
+                ctx.Fill();
+            }
         }
 
         public override void RenderText(TextDrawUtil textUtil, CairoFont font, Context ctx, ImageSurface surface, double deltaTime)
         {
+            if(textInputNeedsCompose)
+            {
+                textInput.ComposeElements(ctx, surface);
+                textInputNeedsCompose = false;
+            }
         }
 
         public override void RenderInteractive(double deltaTime)
         {
-            textInput.RenderInteractiveElements((float)deltaTime);
+            if (hasConnection == false && textInputNeedsCompose == false)
+            {
+                textInput.Enabled = true;
+                textInput.RenderInteractiveElements((float)deltaTime);
+            }
+            else
+            {
+                textInput.Enabled = false;
+            }
+        }
+
+        public override void RenderPin(Context ctx, ImageSurface surface, double deltaTime)
+        {
+            if(hasConnection)
+            {
+                ctx.SetSourceColor(PinColor);
+                ctx.LineWidth = 2;
+                RoundRectangle(ctx, textInput.Bounds.drawX, textInput.Bounds.drawY, textInput.Bounds.InnerHeight, textInput.Bounds.InnerHeight, GuiStyle.ElementBGRadius);
+                ctx.Fill();
+            }
+        }
+
+        public override void OnPinConneced(ScriptNodePinConnection connection)
+        {
+            base.OnPinConneced(connection);
+
+            textInputNeedsCompose = true;
+        }
+
+        public override void OnPinDisconnected(ScriptNodePinConnection connection)
+        {
+            base.OnPinDisconnected(connection);
+
+            textInput.Dispose();
         }
 
         public override void Compose(double colx, double coly, double drawx, double drawy, Context ctx, CairoFont font)
@@ -61,14 +109,17 @@
             owner.Bounds.ParentBounds.WithChild(pinSelectBounds);
             pinSelectBounds.CalcWorldBounds();
 
+            pinConnectionPoint.X = textInput.Bounds.drawX + (textInput.Bounds.InnerHeight / 2.0);
+            pinConnectionPoint.Y = textInput.Bounds.drawY + (textInput.Bounds.InnerHeight / 2.0);
+
             //textInput.Font = font;
-              textInput.ComposeElements(ctx, null);
+            textInput.ComposeElements(ctx, null);
         }
 
-        // do nothing because no pin is needed
-        public override void RenderPin(Context ctx, ImageSurface surface, double deltaTime)
+        public override ScriptNodePinConnection CreateConnection()
         {
-            
+            // we never create a connection from clicking on this but we can drop a connection onto it to connect
+            return null;
         }
 
         public override void FromBytes(BinaryReader reader)

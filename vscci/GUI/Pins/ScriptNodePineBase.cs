@@ -99,6 +99,9 @@ namespace VSCCI.GUI.Nodes
          */
         public abstract void Compose(double colx, double coly, double drawx, double drawy, Context ctx, CairoFont font);
 
+        public virtual void OnPinConneced(ScriptNodePinConnection connection) { }
+        public virtual void OnPinDisconnected(ScriptNodePinConnection connection) { }
+
         public virtual void MarkDirty()
         {
             this.isDirty = true;
@@ -126,6 +129,7 @@ namespace VSCCI.GUI.Nodes
             connections.Add(connection);
 
             hasConnection = true;
+            OnPinConneced(connection);
 
             return true;
         }
@@ -135,6 +139,7 @@ namespace VSCCI.GUI.Nodes
             if (hasConnection && connections.Contains(connection))
             {
                 connections.Remove(connection);
+                OnPinDisconnected(connection);
 
                 if (connections.Count <= 0)
                 {
@@ -215,7 +220,7 @@ namespace VSCCI.GUI.Nodes
                 && (other.CanCreateConnection || other.connections.Contains(forConnection));
         }
 
-        public bool PointIsWithinSelectionBounds(double x, double y)
+        public virtual bool PointIsWithinSelectionBounds(double x, double y)
         {
             return pinSelectBounds.PointInside(x, y);
         }
