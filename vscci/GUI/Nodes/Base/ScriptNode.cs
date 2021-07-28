@@ -192,25 +192,27 @@ namespace VSCCI.GUI.Nodes
         {
             foreach (var pin in inputs)
             {
-                pin.Guid = Guid.Parse(reader.ReadString());
+                pin.FromBytes(reader);
             }
 
             foreach (var pin in outputs)
             {
-                pin.Guid = Guid.Parse(reader.ReadString());
+                pin.FromBytes(reader);
             }
+
+            isDirty = true;
         }
 
         public void WrtiePinsToBytes(BinaryWriter writer)
         {
             foreach(var pin in inputs)
             {
-                writer.Write(pin.Guid.ToString());
+                pin.ToBytes(writer);
             }
 
             foreach (var pin in outputs)
             {
-                writer.Write(pin.Guid.ToString());
+                pin.ToBytes(writer);
             }
         }
 

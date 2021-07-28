@@ -3,6 +3,7 @@ namespace VSCCI.GUI.Nodes
     using Cairo;
     using System;
     using System.Collections.Generic;
+    using System.IO;
     using Vintagestory.API.Client;
     using Vintagestory.API.Common;
 
@@ -101,6 +102,16 @@ namespace VSCCI.GUI.Nodes
         public virtual void MarkDirty()
         {
             this.isDirty = true;
+        }
+
+        public virtual void ToBytes(BinaryWriter writer) 
+        {
+            writer.Write(Guid.ToString());
+        }
+
+        public virtual void FromBytes(BinaryReader reader) 
+        {
+            Guid = Guid.Parse(reader.ReadString());
         }
 
         public abstract ScriptNodePinConnection CreateConnection();

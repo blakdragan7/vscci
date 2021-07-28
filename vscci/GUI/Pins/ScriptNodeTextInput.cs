@@ -1,6 +1,7 @@
 ﻿namespace VSCCI.GUI.Nodes
 {
     using Cairo;
+    using System.IO;
     using Vintagestory.API.Client;
     using Vintagestory.API.Common;
 
@@ -68,6 +69,21 @@
         public override void RenderPin(Context ctx, ImageSurface surface, double deltaTime)
         {
             
+        }
+
+        public override void FromBytes(BinaryReader reader)
+        {
+            base.FromBytes(reader);
+
+            textInput.SetValue(reader.ReadString());
+            textInput.SetCaretPos(0);
+        }
+
+        public override void ToBytes(BinaryWriter writer)
+        {
+            base.ToBytes(writer);
+
+            writer.Write(textInput.GetText());
         }
 
         public void ClearText()
