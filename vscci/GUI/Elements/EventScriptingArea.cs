@@ -2,13 +2,14 @@ namespace VSCCI.GUI.Elements
 {
     using Cairo;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
     using Vintagestory.API.Client;
     using Vintagestory.API.Common;
 
     using VSCCI.GUI.Nodes;
 
-    public class EventScriptingArea : GuiElement
+    public class EventScriptingArea : GuiElement, IByteSerializable
     {
         private readonly List<ScriptNode> allNodes;
         private int texId;
@@ -47,18 +48,6 @@ namespace VSCCI.GUI.Elements
             nodeSelectList.OnItemSelected += NewNodeSelected;
 
             PopulateNodeSelectionList();
-        }
-
-        public void Deserialize(string json)
-        {
-            allNodes.Clear();
-
-            // parse json and load nodes
-        }
-
-        public string Seriealize()
-        {
-            return "";
         }
 
         public void AddTests()
@@ -115,6 +104,66 @@ namespace VSCCI.GUI.Elements
             base.ComposeElements(ctxStatic, surface);
 
             DrawBackground(ctxStatic);
+        }
+
+        public void ToBytes(BinaryWriter writer)
+        {
+            writer.Write(nodeTransform.X0);
+            writer.Write(nodeTransform.Xx);
+            writer.Write(nodeTransform.Xy);
+
+            writer.Write(nodeTransform.Y0);
+            writer.Write(nodeTransform.Yx);
+            writer.Write(nodeTransform.Yy);
+
+            writer.Write(allNodes.Count);
+
+            foreach (var node in allNodes)
+            {
+                var typeName = node.GetType().AssemblyQualifiedName;
+
+                double x = node.Bounds.fixedX;
+                double y = node.Bounds.fixedY;
+
+                writer.Write(typeName);
+                writer.Write(x);
+                writer.Write(y);
+            }
+        }
+
+        public void FromBytes(BinaryReader reader, IWorldAccessor resolver)
+        {
+            var X0 = reader.ReadDouble();
+            var Xx = reader.ReadDouble();
+            var Xy = reader.ReadDouble();
+             
+            var Y0 = reader.ReadDouble();
+            var Yx = reader.ReadDouble();
+            var Yy = reader.ReadDouble();
+
+            nodeTransform.Init(Xx, Yx, Xy, Yy, X0, Y0);
+
+            var numNode = reader.ReadInt32();
+
+            for(var i=0;i<numNode;i++)
+            {
+                var typeName = reader.ReadString();
+
+                var x = reader.ReadDouble();
+                var y = reader.ReadDouble();
+
+                var type = System.Type.GetType(typeName);
+                if(type != null && type.IsSubclassOf(typeof(ScriptNode)))
+                {
+                    ScriptNode node = (ScriptNode)System.Activator.CreateInstance(type, api, nodeTransform, MakeBoundsAtPoint((int)x, (int)y));
+
+                    allNodes.Add(node);
+                }
+                else
+                {
+                    api.Logger.Error("Error reading Node Type from Byte Stream {0}", typeName);
+                }
+            }
         }
 
         public override void OnMouseDownOnElement(ICoreClientAPI api, MouseEvent args)

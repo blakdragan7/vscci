@@ -184,7 +184,10 @@ namespace VSCCI.GUI
         {
             if (base.TryOpen())
             {
-                OnOwnPlayerDataReceived();
+                if (SingleComposer == null)
+                {
+                    OnOwnPlayerDataReceived();
+                }
                 return true;
             }
             return false;
@@ -194,7 +197,6 @@ namespace VSCCI.GUI
         {
             if (base.TryClose())
             {
-                Dispose();
                 return true;
             }
             return false;

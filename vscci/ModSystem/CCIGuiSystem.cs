@@ -14,7 +14,6 @@ namespace VSCCI.ModSystem
         private CCIEventDialogGui eventGui;
         private ICoreClientAPI api;
 
-
         public override void Start(ICoreAPI api)
         {
             base.Start(api);
