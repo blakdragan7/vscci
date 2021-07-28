@@ -13,6 +13,8 @@ namespace VSCCI.GUI
         public override string ToggleKeyCombinationCode => "ccievent";
         public override string DebugName => "ccieventgui";
 
+        public override bool ShouldReceiveKeyboardEvents() => true;
+
         //public override float ZSize => 3000;
 
 
@@ -82,9 +84,9 @@ namespace VSCCI.GUI
             }
         }
 
-        public override void OnKeyPress(KeyEvent args)
+        public override void OnKeyDown(KeyEvent args)
         {
-            base.OnKeyPress(args);
+            base.OnKeyDown(args);
 
             if (args.CtrlPressed && args.KeyCode == (int)GlKeys.S)
             {
