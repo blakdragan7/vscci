@@ -7,6 +7,7 @@ namespace VSCCI.GUI.Nodes
     using VSCCI.GUI.Elements;
     using Vintagestory.API.Common;
     using System;
+    using System.IO;
 
     public abstract class ScriptNode : GuiElement
     {
@@ -31,6 +32,8 @@ namespace VSCCI.GUI.Nodes
 
         public bool IsDirty => isDirty;
 
+        public Guid Guid;
+
         public ScriptNodePinConnection ActiveConnection => activeConnection;
 
         public ScriptNode(string _title, ICoreClientAPI api, Matrix _nodeTransform, ElementBounds bounds) : base(api, bounds)
@@ -53,6 +56,8 @@ namespace VSCCI.GUI.Nodes
 
             cachedRenderX = 0;
             cachedRenderY = 0;
+
+            Guid = Guid.NewGuid();
         }
 
         public virtual void OnRender(Context ctx, ImageSurface surface, float deltaTime)
@@ -131,6 +136,67 @@ namespace VSCCI.GUI.Nodes
             }
 
             activeConnection?.Render(ctx, surface);
+        }
+
+        public void AddConnectionsToList(List<ScriptNodePinConnection> connections)
+        {
+            foreach (var pin in inputs)
+            {
+                pin.AddConnectionsToList(connections);
+            }
+
+            foreach (var pin in outputs)
+            {
+                pin.AddConnectionsToList(connections);
+            }
+        }
+
+        public ScriptNodeInput InputForGuid(Guid guid)
+        {
+            foreach(var input in inputs)
+            {
+                if (input.Guid == guid)
+                    return input;
+            }
+
+            return null;
+        }
+
+        public ScriptNodeOutput OutputForGuid(Guid guid)
+        {
+            foreach (var output in outputs)
+            {
+                if (output.Guid == guid)
+                    return output;
+            }
+
+            return null;
+        }
+
+        public void ReadPinsFromBytes(BinaryReader reader)
+        {
+            foreach (var pin in inputs)
+            {
+                pin.Guid = Guid.Parse(reader.ReadString());
+            }
+
+            foreach (var pin in outputs)
+            {
+                pin.Guid = Guid.Parse(reader.ReadString());
+            }
+        }
+
+        public void WrtiePinsToBytes(BinaryWriter writer)
+        {
+            foreach(var pin in inputs)
+            {
+                writer.Write(pin.Guid.ToString());
+            }
+
+            foreach (var pin in outputs)
+            {
+                writer.Write(pin.Guid.ToString());
+            }
         }
 
         protected virtual void OnCompose(Context ctx, CairoFont font)

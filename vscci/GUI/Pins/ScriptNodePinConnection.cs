@@ -1,6 +1,10 @@
 namespace VSCCI.GUI.Nodes
 {
     using Cairo;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+
     public class ScriptNodePinConnection
     {
         private ScriptNodeOutput output;
@@ -43,6 +47,55 @@ namespace VSCCI.GUI.Nodes
             return null;
         }
 
+        public static ScriptNodePinConnection CreateConnectionFromBytes(BinaryReader reader, List<ScriptNode> allNodes)
+        {
+            Guid inputGuid;
+            Guid outputGuid;
+
+            ScriptNodeInput input = null;
+            ScriptNodeOutput output = null;
+
+            if(reader.ReadBoolean())
+            {
+                inputGuid = System.Guid.Parse(reader.ReadString());
+            }
+            else
+            {
+                return null;
+            }
+
+            if(reader.ReadBoolean())
+            {
+                outputGuid = System.Guid.Parse(reader.ReadString());
+            }
+            else
+            {
+                return null;
+            }
+
+            foreach(var node in allNodes)
+            {
+                if(input == null)
+                {
+                    input = node.InputForGuid(inputGuid);
+                }
+
+                if(output == null)
+                {
+                    output = node.OutputForGuid(outputGuid);
+                }
+
+                if (input != null && output != null) break;
+            }
+
+            if(input != null && output != null)
+            {
+                return CreateConnectionBetween(output, input);
+            }
+
+            return null;
+        }
+
         public void Render(Context ctx, ImageSurface surface)
         {
             ctx.Save();
@@ -70,6 +123,29 @@ namespace VSCCI.GUI.Nodes
             ctx.Stroke();
 
             ctx.Restore();
+        }
+
+        public void WriteToBytes(BinaryWriter writer)
+        {
+            if(input != null)
+            {
+                writer.Write(true);
+                writer.Write(input.Guid.ToString());
+            }
+            else
+            {
+                writer.Write(false);
+            }
+
+            if(output != null)
+            {
+                writer.Write(true);
+                writer.Write(output.Guid.ToString());
+            }
+            else
+            {
+                writer.Write(false);
+            }
         }
 
         public bool Connect(ScriptNodeInput input)

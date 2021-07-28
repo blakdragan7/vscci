@@ -18,6 +18,7 @@ namespace VSCCI.GUI
 
         public CCIEventDialogGui(ICoreClientAPI capi) : base(capi)
         {
+            OnOwnPlayerDataReceived();
         }
 
         public override void OnOwnPlayerDataReceived()
@@ -78,6 +79,16 @@ namespace VSCCI.GUI
             catch (Exception exc)
             {
                 capi.Logger.Error("Error Loading Save File {0}", exc.Message);
+            }
+        }
+
+        public override void OnKeyPress(KeyEvent args)
+        {
+            base.OnKeyPress(args);
+
+            if (args.CtrlPressed && args.KeyCode == (int)GlKeys.S)
+            {
+                SaveToFile();
             }
         }
 

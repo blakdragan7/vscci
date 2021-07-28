@@ -50,16 +50,6 @@ namespace VSCCI.GUI.Elements
             PopulateNodeSelectionList();
         }
 
-        public void AddTests()
-        {
-            allNodes.Add(new ConstantStringScriptNode(api, nodeTransform, MakeBoundsAtPoint(0, 0)));
-            allNodes.Add(new ConstantIntScriptNode(api, nodeTransform, MakeBoundsAtPoint(0, 200)));
-            allNodes.Add(new BitsEventExecNode(api, nodeTransform, MakeBoundsAtPoint(200, 0)));
-            allNodes.Add(new PrintToChatLocalExecNode(api, nodeTransform, MakeBoundsAtPoint(400, 0)));
-            //allNodes.Add(new DelayExecutableNode(api, nodeTransform, MakeBoundsAtPoint(0, 200)));
-            //allNodes.Add(new AddPureNode<string>(api, nodeTransform, MakeBoundsAtPoint(200, 200)));
-        }
-
         public ElementBounds MakeBoundsAtPoint(int x, int y)
         {
             var b = ElementBounds.Fixed(x, y);
@@ -118,6 +108,8 @@ namespace VSCCI.GUI.Elements
 
             writer.Write(allNodes.Count);
 
+            var connections = new List<ScriptNodePinConnection>();
+
             foreach (var node in allNodes)
             {
                 var typeName = node.GetType().AssemblyQualifiedName;
@@ -126,8 +118,20 @@ namespace VSCCI.GUI.Elements
                 double y = node.Bounds.fixedY;
 
                 writer.Write(typeName);
+                writer.Write(node.Guid.ToString());
                 writer.Write(x);
                 writer.Write(y);
+
+                node.WrtiePinsToBytes(writer);
+
+                node.AddConnectionsToList(connections);
+            }
+
+            writer.Write(connections.Count);
+
+            foreach(var connection in connections)
+            {
+                connection.WriteToBytes(writer);
             }
         }
 
@@ -148,6 +152,7 @@ namespace VSCCI.GUI.Elements
             for(var i=0;i<numNode;i++)
             {
                 var typeName = reader.ReadString();
+                var guidString = reader.ReadString();
 
                 var x = reader.ReadDouble();
                 var y = reader.ReadDouble();
@@ -156,6 +161,8 @@ namespace VSCCI.GUI.Elements
                 if(type != null && type.IsSubclassOf(typeof(ScriptNode)))
                 {
                     ScriptNode node = (ScriptNode)System.Activator.CreateInstance(type, api, nodeTransform, MakeBoundsAtPoint((int)x, (int)y));
+                    node.Guid = System.Guid.Parse(guidString);
+                    node.ReadPinsFromBytes(reader);
 
                     allNodes.Add(node);
                 }
@@ -163,6 +170,12 @@ namespace VSCCI.GUI.Elements
                 {
                     api.Logger.Error("Error reading Node Type from Byte Stream {0}", typeName);
                 }
+            }
+
+            var numConnections = reader.ReadInt32();
+            for (var i = 0; i < numConnections; i++)
+            {
+                ScriptNodePinConnection.CreateConnectionFromBytes(reader, allNodes);
             }
         }
 

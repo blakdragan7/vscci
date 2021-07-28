@@ -57,6 +57,8 @@ namespace VSCCI.GUI.Nodes
          */
         public List<ScriptNodePinConnection> Connections => connections;
 
+        public Guid Guid;
+
         public ScriptNodePinBase(ScriptNode owner, string name, int maxNumberOfConnections, Type pinValueType)
         {
             this.name = name;
@@ -69,6 +71,8 @@ namespace VSCCI.GUI.Nodes
             this.connections = new List<ScriptNodePinConnection>();
             this.pinConnectionPoint = new PointD();
             this.allowsConnections = true;
+
+            this.Guid = Guid.NewGuid();
         }
         /*
          * Rendered before Pin but after "RenderOther
@@ -125,6 +129,17 @@ namespace VSCCI.GUI.Nodes
             }
 
             return false;
+        }
+
+        public void AddConnectionsToList(List<ScriptNodePinConnection> connections)
+        {
+            foreach(var connection in this.connections)
+            {
+                if(connections.Contains(connection) == false)
+                {
+                    connections.Add(connection);
+                }
+            }
         }
 
         public virtual void Dispose()

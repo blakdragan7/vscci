@@ -21,11 +21,14 @@
 
         public static CCINodeSystem NodeSystem => instance;
 
-        public override void Start(ICoreAPI api)
+        public CCINodeSystem() : base()
         {
             instance = this;
             eventNodes = new List<EventBasedExecutableScriptNode>();
+        }
 
+        public override void Start(ICoreAPI api)
+        {
             base.Start(api);
             api.Network.RegisterChannel(Constants.NETWORK_NODE_CHANNEL);
             api.Event.RegisterEventBusListener(OnEvent);
@@ -47,30 +50,54 @@
 
         public void RegisterNode(EventBasedExecutableScriptNode node)
         {
-           capi.Event.EnqueueMainThreadTask(() =>
-           {
-               eventNodes.Add(node);
-           }, "Node System List Add");
+            if (capi != null)
+            {
+                capi.Event.EnqueueMainThreadTask(() =>
+                {
+                    eventNodes.Add(node);
+                }, "Node System List Add");
+            }
+            else
+            {
+                eventNodes.Add(node);
+            }
         }
 
         public void UnregisterNode(EventBasedExecutableScriptNode node)
         {
-            capi.Event.EnqueueMainThreadTask(() =>
+            if (capi != null)
+            {
+                capi.Event.EnqueueMainThreadTask(() =>
+                {
+                    eventNodes.Remove(node);
+                }, "Node System List Remove");
+            }
+            else
             {
                 eventNodes.Remove(node);
-            }, "Node System List Remove");
+            }
         }
 
         private void OnEvent(string eventName, ref EnumHandling handling, IAttribute data)
         {
-            // TODO: make a better way for this to be thread safe
-            capi.Event.EnqueueMainThreadTask(() =>
+            if (capi != null)
+            {
+                // TODO: make a better way for this to be thread safe
+                capi.Event.EnqueueMainThreadTask(() =>
+                {
+                    foreach (var node in eventNodes)
+                    {
+                        node.OnEvent(eventName, data);
+                    }
+                }, "Node System On Event");
+            }
+            else
             {
                 foreach (var node in eventNodes)
                 {
                     node.OnEvent(eventName, data);
                 }
-            }, "Node System On Event");
+            }
         }
     }
 }
