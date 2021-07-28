@@ -138,6 +138,21 @@ namespace VSCCI.GUI.Nodes
             activeConnection?.Render(ctx, surface);
         }
 
+        public override void RenderInteractiveElements(float deltaTime)
+        {
+            base.RenderInteractiveElements(deltaTime);
+
+            foreach (var input in inputs)
+            {
+                input.RenderInteractive(deltaTime);
+            }
+
+            foreach (var output in outputs)
+            {
+                output.RenderInteractive(deltaTime);
+            }
+        }
+
         public void AddConnectionsToList(List<ScriptNodePinConnection> connections)
         {
             foreach (var pin in inputs)

@@ -89,6 +89,11 @@ namespace VSCCI.GUI.Nodes
          */
         public virtual void RenderOther(Context ctx, ImageSurface surface, double deltaTime) { }
         /*
+         *  Used to render any interactive element that apart of the default api
+         */
+        public virtual void RenderInteractive(double deltaTime) { }
+        
+        /*
          *  Used to setup size and position
          */
         public abstract void Compose(double colx, double coly, double drawx, double drawy, Context ctx, CairoFont font);

@@ -29,6 +29,10 @@
 
         public override void RenderText(TextDrawUtil textUtil, CairoFont font, Context ctx, ImageSurface surface, double deltaTime)
         {
+        }
+
+        public override void RenderInteractive(double deltaTime)
+        {
             textInput.RenderInteractiveElements((float)deltaTime);
         }
 

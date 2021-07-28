@@ -66,7 +66,7 @@ namespace VSCCI.GUI.Elements
             var surface = new ImageSurface(Format.Argb32, Bounds.OuterWidthInt, Bounds.OuterHeightInt);
             var ctx = new Context(surface);
 
-            foreach(var node in allNodes)
+            foreach (var node in allNodes)
             {
                 node.OnRender(ctx, surface, deltaTime);
             }
@@ -82,6 +82,11 @@ namespace VSCCI.GUI.Elements
             surface.Dispose();
 
             api.Render.Render2DTexture(texId, Bounds);
+
+            foreach (var node in allNodes)
+            {
+                node.RenderInteractiveElements(deltaTime);
+            }
         }
 
         public void AddNode(ScriptNode node)
@@ -146,6 +151,8 @@ namespace VSCCI.GUI.Elements
             var Yy = reader.ReadDouble();
 
             nodeTransform.Init(Xx, Yx, Xy, Yy, X0, Y0);
+            inverseNodeTransform = (Matrix)nodeTransform.Clone();
+            inverseNodeTransform.Invert();
 
             var numNode = reader.ReadInt32();
 
