@@ -15,7 +15,6 @@
         ICoreClientAPI api;
 
         bool textInputNeedsCompose;
-        bool textWasClicked;
 
         public ScriptNodeTextInput(ScriptNode owner, ICoreClientAPI api,  System.Type pinType) : base(owner, "", pinType)
         {
@@ -24,7 +23,6 @@
             IsKeyAllowed = (char c) => { return true; };
             this.api = api;
             textInputNeedsCompose = false;
-            textWasClicked = false;
         }
 
         public override void RenderOther(Context ctx, ImageSurface surface, double deltaTime)
