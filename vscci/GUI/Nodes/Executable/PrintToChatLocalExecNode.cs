@@ -5,7 +5,7 @@
     class PrintToChatLocalExecNode : ExecutableScriptNode
     {
         public static int MESSAGE_INPUT_INDEX = 1;
-        public PrintToChatLocalExecNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("Print To Chat", api, nodeTransform, bounds)
+        public PrintToChatLocalExecNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("Print To Local Chat", api, nodeTransform, bounds)
         {
             inputs.Add(new ScriptNodeInput(this, "message", typeof(string)));
         }
