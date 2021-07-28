@@ -37,14 +37,12 @@
         public override void StartServerSide(ICoreServerAPI api)
         {
             base.StartServerSide(api);
-
             sapi = api;
         }
 
         public override void StartClientSide(ICoreClientAPI api)
         {
             base.StartClientSide(api);
-
             capi = api;
         }
 

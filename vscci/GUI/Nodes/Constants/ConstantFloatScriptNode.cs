@@ -5,7 +5,7 @@
     using System.Collections.Generic;
     using System;
 
-    class ConstantIntScriptNode : ConstantTextInputScriptNode<int>
+    class ConstantFloatScriptNode : ConstantTextInputScriptNode<float>
     {
         private static List<char> numbers = new List<char>()
         {
@@ -19,8 +19,9 @@
             '7',
             '8',
             '9',
+            '.'
         };
-        public ConstantIntScriptNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base(api, nodeTransform, bounds)
+        public ConstantFloatScriptNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base(api, nodeTransform, bounds)
         {
         }
 
@@ -29,15 +30,15 @@
             return numbers.Contains(key);
         }
 
-        protected override int ParseValue(string text)
+        protected override float ParseValue(string text)
         {
             try
             {
-                return int.Parse(text);
+                return float.Parse(text);
             }
             catch(Exception exc)
             {
-                api.Logger.Error("Error trying to parse value on Constant Int {0}", exc.Message);
+                api.Logger.Error("Error trying to parse value on Constant Float {0}", exc.Message);
             }
 
             return 0;
