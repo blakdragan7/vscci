@@ -9,6 +9,7 @@
     using VSCCI.GUI.Nodes;
     using System.Collections.Generic;
     using System.Threading;
+    using System;
 
     class CCINodeSystem : ModSystem
     {
@@ -30,7 +31,8 @@
         public override void Start(ICoreAPI api)
         {
             base.Start(api);
-            api.Network.RegisterChannel(Constants.NETWORK_NODE_CHANNEL);
+            api.Network.RegisterChannel(Constants.NETWORK_NODE_CHANNEL)
+                .RegisterMessageType<ServerNodeExecutionData>();
             api.Event.RegisterEventBusListener(OnEvent);
         }
 
@@ -38,6 +40,17 @@
         {
             base.StartServerSide(api);
             sapi = api;
+            api.Network.GetChannel(Constants.NETWORK_NODE_CHANNEL)
+                .SetMessageHandler<ServerNodeExecutionData>(ExecuteNodeServerSide);
+        }
+
+        private void ExecuteNodeServerSide(IServerPlayer player, ServerNodeExecutionData data)
+        {
+            if (ConfigData.PlayerIsAllowed(player))
+            {
+                ServerSideExecutable executable = (ServerSideExecutable)Activator.CreateInstance(Type.GetType(data.AssemblyQualifiedName));
+                executable.RunServerSide(player, sapi, data.Data);
+            }
         }
 
         public override void StartClientSide(ICoreClientAPI api)

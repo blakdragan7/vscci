@@ -120,6 +120,16 @@
             return null;
         }
 
+        public override dynamic GetInput()
+        {
+            if(hasConnection)
+            {
+                return base.GetInput();
+            }
+
+            return textInput.GetText();
+        }
+
         public override void FromBytes(BinaryReader reader)
         {
             base.FromBytes(reader);

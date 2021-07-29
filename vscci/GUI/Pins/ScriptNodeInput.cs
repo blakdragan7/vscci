@@ -67,7 +67,7 @@ namespace VSCCI.GUI.Nodes
             isDirty = false;
         }
 
-        public dynamic GetInput()
+        public virtual dynamic GetInput()
         {
             if(connections.Count > 0)
             {

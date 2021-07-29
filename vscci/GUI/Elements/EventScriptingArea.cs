@@ -398,6 +398,7 @@ namespace VSCCI.GUI.Elements
             nodeSelectList.AddListItem("Flow", "Delay", typeof(DelayExecutableNode));
 
             nodeSelectList.AddListItem("Actions", "Show Chat Local", typeof(PrintToChatLocalExecNode));
+            nodeSelectList.AddListItem("Actions", "Run Server Command", typeof(ServerSideCommandExecutionNode));
 
             nodeSelectList.AddListItem("Constants", "Constant Int", typeof(ConstantIntScriptNode));
             nodeSelectList.AddListItem("Constants", "Constant String", typeof(ConstantStringScriptNode));
