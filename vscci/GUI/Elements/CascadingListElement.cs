@@ -171,8 +171,6 @@
 
                 if (index < 0) index = 0;
 
-                api.ShowChatMessage($"index {index}");
-
                 if (items.Keys.Count > index)
                 {
                     if (categorySelection != null && categorySelection.index == index)
