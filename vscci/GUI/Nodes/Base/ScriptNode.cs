@@ -248,7 +248,7 @@ namespace VSCCI.GUI.Nodes
             var startColY = colY + titleExtents.Height + (Constants.NODE_SCIPRT_DRAW_PADDING / 2.0);
             var startDrawX = x + (Constants.NODE_SCIPRT_DRAW_PADDING / 2.0);
             var startDrawY = y + titleExtents.Height + (Constants.NODE_SCIPRT_DRAW_PADDING / 2.0);
-            var bigestWidth = titleExtents.Width;
+            var bigestWidth = 0.0d;
             var bigestHeight = 0.0d;
 
             x = startDrawX;
@@ -281,10 +281,28 @@ namespace VSCCI.GUI.Nodes
                 bigestHeight = bigestHeight > (y - startDrawY) ? bigestHeight : (y - startDrawY);
             }
 
-            ctx.Restore();
+            bigestWidth = Math.Max(titleExtents.Width, bigestWidth);
 
             Bounds = Bounds.WithFixedSize(bigestWidth + (Constants.NODE_SCIPRT_DRAW_PADDING / 2.0), bigestHeight + titleExtents.Height + (Constants.NODE_SCIPRT_DRAW_PADDING / 2.0));
             Bounds.CalcWorldBounds();
+
+            // re-compose to right align outputs.
+            // this could probably be done more efficiently. 
+            
+            var farX = cachedRenderX + Bounds.InnerWidth;
+            var farColX = Bounds.drawX + Bounds.InnerWidth;
+
+            y = startDrawY;
+            colY = startColY;
+
+            foreach (var output in outputs)
+            {
+                output.Compose(farColX - output.Extents.Width - 4, colY, farX - output.Extents.Width - 4, y, ctx, font);
+                y += output.Extents.Height + Constants.NODE_SCIPRT_TEXT_PADDING * Scale;
+                colY += output.Extents.Height + Constants.NODE_SCIPRT_TEXT_PADDING * Scale;
+            }
+
+            ctx.Restore();
 
             isDirty = false;
         }
