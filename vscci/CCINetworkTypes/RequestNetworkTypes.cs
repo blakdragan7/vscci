@@ -50,6 +50,7 @@ namespace VSCCI.CCINetworkTypes
     public class CCIServerEventStatusUpdate
     {
         public string status;
+        public bool isAllowed;
     }
 
     [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]

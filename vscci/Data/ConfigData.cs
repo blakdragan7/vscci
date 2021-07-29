@@ -12,9 +12,18 @@ namespace VSCCI.Data
         public List<string> Whitelist { get; } = new List<string>();
     }
 
+    public class ClientConfigData
+    {
+        public bool playerIsAllowedServerEvents;
+    }
+
     public class ConfigData
     {
-        private static ServerConfigData serverData;
+        // only available server side
+        private static ServerConfigData serverData = null;
+
+        // accessable server side but pointless
+        public static ClientConfigData clientData = new ClientConfigData();
 
         public static bool LoadConfig(ICoreServerAPI api)
         {

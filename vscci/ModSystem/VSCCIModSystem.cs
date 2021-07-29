@@ -64,8 +64,14 @@ namespace VSCCI.ModSystem
 
         private void OnPlayerLogin(IServerPlayer player)
         {
-            var status = ConfigData.PlayerIsAllowed(player) ? "All-Allowed" : "None-Allowed";
-            sapi.Network.GetChannel(Constants.NETWORK_GUI_CHANNEL).SendPacket(new CCIServerEventStatusUpdate() {status=status}, player);
+            var isAllowed = ConfigData.PlayerIsAllowed(player);
+            var status = isAllowed ? "All-Allowed" : "Client-Only";
+
+            sapi.Network.GetChannel(Constants.NETWORK_GUI_CHANNEL).SendPacket(new CCIServerEventStatusUpdate() 
+            {
+                status = status, 
+                isAllowed = isAllowed 
+            }, player);
         }
 
         private void OnPlayerLogout(IServerPlayer player)

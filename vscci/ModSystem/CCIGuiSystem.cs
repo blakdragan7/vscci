@@ -41,6 +41,7 @@ namespace VSCCI.ModSystem
         private void OnServerUpdateMessage(CCIServerEventStatusUpdate update)
         {
             configGui.UpdateGuiServerStatusText(update.status);
+            ConfigData.clientData.playerIsAllowedServerEvents = update.isAllowed;
         }
 
         private void OnEvent(string eventName, ref EnumHandling handling, IAttribute data)

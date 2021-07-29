@@ -25,5 +25,30 @@
                 Data = data
             });
         }
+
+        public override void OnRender(Context ctx, ImageSurface surface, float deltaTime)
+        {
+            base.OnRender(ctx, surface, deltaTime);
+
+            // visually render that this node won't do anything because we don't have permission
+            if(ConfigData.clientData.playerIsAllowedServerEvents == false)
+            {
+                var drawX = cachedRenderX;
+                var drawY = cachedRenderY;
+
+                ctx.Save();
+                ctx.SetSourceRGBA(1.0, 0.0, 0.0, 1.0);
+
+                ctx.MoveTo(drawX, drawY);
+                ctx.LineTo(drawX + Bounds.OuterWidth, drawY + Bounds.OuterHeight);
+                ctx.Stroke();
+
+                ctx.MoveTo(drawX + Bounds.OuterWidth, drawY);
+                ctx.LineTo(drawX, drawY + Bounds.OuterHeight);
+                ctx.Stroke();
+
+                ctx.Restore();
+            }
+        }
     }
 }
