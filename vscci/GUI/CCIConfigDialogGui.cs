@@ -135,10 +135,19 @@ namespace VSCCI.GUI
             userName = username;
             id = userid;
 
+            if (userid != "None" && userid.Length > 4)
+            {
+                var stub = userid.Substring(userid.Length - 5, 4);
+                id = userid.Remove(0, userid.Length - 4).Insert(0, new string('*', userid.Length - 4));
+            }
+
             if (SingleComposer != null)
             {
-                SingleComposer.GetDynamicText(TWITCH_USER_KEY).SetNewTextAsync(username);
-                SingleComposer.GetDynamicText(TWITCH_ID_KEY).SetNewTextAsync(userid);
+                capi.Event.EnqueueMainThreadTask(() =>
+                {
+                    SingleComposer.GetDynamicText(TWITCH_USER_KEY).SetNewTextAsync(userName);
+                    SingleComposer.GetDynamicText(TWITCH_ID_KEY).SetNewTextAsync(id);
+                }, "VSCCI Update Login Text");
             }
         }
 
