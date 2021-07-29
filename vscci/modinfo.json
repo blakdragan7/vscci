@@ -4,10 +4,11 @@
   "name": "vscci",
   "author": "blakdragan7",
   "description": "Content Creator Integration For Vintage Story !",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "dependency": {
     "game": ""
   },
   "side": "Universal",
-  "RequiredOnServer": true 
+  "RequiredOnServer": true,
+  "RequiredOnClient": false
 }
