@@ -5,6 +5,11 @@
     using Vintagestory.API.Server;
     using VSCCI.Data;
 
+    public abstract class ServerSideExecutable
+    {
+
+    }
+
     public abstract class ServerSideExecutableNode : ExecutableScriptNode
     {
         public ServerSideExecutableNode(string title, ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds, bool isPure = false) : base(title, api, nodeTransform, bounds, isPure)

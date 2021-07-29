@@ -5,7 +5,7 @@
     using Vintagestory.API.Client;
     public class ToStringPureNode<A> : ExecutableScriptNode
     {
-        public ToStringPureNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base($"{typeof(A).Name} => String", api, nodeTransform, bounds, true)
+        public ToStringPureNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("To String", api, nodeTransform, bounds, true)
         {
             inputs.Add(new ScriptNodeInput(this, typeof(A).Name, typeof(A)));
             outputs.Add(new ScriptNodeOutput(this, "String", 1, typeof(string)));
