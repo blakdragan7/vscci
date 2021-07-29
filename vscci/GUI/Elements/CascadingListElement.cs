@@ -44,8 +44,14 @@
         private CategorySelection categorySelection;
 
         private double yAdvance;
+        private double yScrollOffset;
+        private double ySubScrollOffset;
+
+        private int offsetScrollIndex;
+        private int offsetSubScrollIndex;
 
         protected int selectedIndex;
+
 
         public event EventHandler<CascadingListItem> OnItemSelected;
 
@@ -68,6 +74,10 @@
             categorySelection = null;
             itemSelection = null;
             yAdvance = Bounds.InnerHeight / maxVisibleItemsPerList;
+            yScrollOffset = 0;
+            ySubScrollOffset = 0;
+            offsetScrollIndex = 0;
+            offsetSubScrollIndex = 0;
         }
 
         public override void ComposeElements(Context ctxStatic, ImageSurface surface)
@@ -82,7 +92,10 @@
 
         public void ResetSelections()
         {
-            if(categorySelection != null)
+            yScrollOffset = 0;
+            ySubScrollOffset = 0;
+
+            if (categorySelection != null)
             {
                 Bounds.ParentBounds.ChildBounds.Remove(categorySelection.Bounds);
                 categorySelection = null;
@@ -154,7 +167,11 @@
             {
                 itemSelection = null;
 
-                int index = (int)Math.Floor((args.Y - Bounds.absY) / yAdvance);
+                int index = (int)Math.Floor(((args.Y - Bounds.absY) - yScrollOffset) / yAdvance);
+
+                if (index < 0) index = 0;
+
+                api.ShowChatMessage($"index {index}");
 
                 if (items.Keys.Count > index)
                 {
@@ -163,13 +180,16 @@
                         return;
                     }
 
+                    ySubScrollOffset = 0;
+                    offsetSubScrollIndex = 0;
+
                     var drawY = Bounds.drawY + (index * yAdvance);
 
                     string[] keys = new string[items.Keys.Count];
                     items.Keys.CopyTo(keys, 0);
                     List<CascadingListItem> list = null;
 
-                    var bounds = ElementBounds.Fixed(Bounds.fixedX + Bounds.fixedWidth, Bounds.fixedY + (index * yAdvance) - (yAdvance / 2.0), Bounds.fixedWidth, Bounds.fixedHeight);
+                    var bounds = ElementBounds.Fixed(Bounds.fixedX + Bounds.fixedWidth, Bounds.fixedY + ((index - offsetScrollIndex) * yAdvance) - (yAdvance / 2.0), Bounds.fixedWidth, Bounds.fixedHeight);
                     Bounds.ParentBounds.WithChild(bounds);
                     bounds.CalcWorldBounds();
 
@@ -193,7 +213,9 @@
             }
             else if(categorySelection != null && categorySelection.Bounds.PointInside(args.X, args.Y))
             {
-                int index = (int)Math.Floor((args.Y - categorySelection.Bounds.absY) / yAdvance);
+                int index = (int)Math.Floor((args.Y - categorySelection.Bounds.absY - ySubScrollOffset) / yAdvance);
+
+                if (index < 0) index = 0;
 
                 if(itemSelection != null && itemSelection.index == index)
                 {
@@ -225,6 +247,39 @@
             }
         }
 
+        public override void OnMouseWheel(ICoreClientAPI api, MouseWheelEventArgs args)
+        {
+            base.OnMouseWheel(api, args);
+
+            if(categorySelection != null && itemSelection != null && maxVisibleItemsPerList < categorySelection.selectedItems.Count)
+            {
+                var indexDiff = (categorySelection.selectedItems.Count - maxVisibleItemsPerList);
+
+                ySubScrollOffset += args.delta * 2;
+                ySubScrollOffset = Math.Min(ySubScrollOffset, 0);
+                ySubScrollOffset = Math.Max(ySubScrollOffset, -(indexDiff * yAdvance));
+
+                offsetSubScrollIndex = (int)Math.Floor(Math.Abs(ySubScrollOffset) / yAdvance);
+            }
+            else if(itemSelection == null && categorySelection != null && maxVisibleItemsPerList < items.Count)
+            {
+                var indexDiff = (items.Count - maxVisibleItemsPerList);
+
+                ySubScrollOffset = 0;
+
+                yScrollOffset += args.delta * 2;
+                yScrollOffset = Math.Min(yScrollOffset, 0);
+                yScrollOffset = Math.Max(yScrollOffset, -(indexDiff * yAdvance));
+
+                offsetScrollIndex = (int)Math.Floor(Math.Abs(yScrollOffset) / yAdvance);
+            }
+            else if (itemSelection == null && categorySelection == null)
+            {
+                yScrollOffset = 0;
+                ySubScrollOffset = 0;
+            }
+        }
+
         public override void OnMouseDownOnElement(ICoreClientAPI api, MouseEvent args)
         {
             base.OnMouseDownOnElement(api, args);
@@ -247,15 +302,27 @@
         private void RenderCategories(Context ctx, Surface surface)
         {
             var x = Bounds.drawX + Bounds.InnerWidth / 2.0;
-            var y = Bounds.drawY + (yAdvance / 2.0);
+            var y = Bounds.drawY + (yAdvance / 2.0) + yScrollOffset;
 
-            var cellDrawY = Bounds.drawY;
+            var cellDrawY = Bounds.drawY + yScrollOffset;
 
             var currentRendered = 0;
 
             var triangleSize = double.MaxValue;
-            foreach(var category in items.Keys)
+
+            var lclIndex = offsetScrollIndex;
+
+            foreach (var category in items.Keys)
             {
+                if (lclIndex > 0)
+                {
+                    lclIndex--;
+                    cellDrawY += yAdvance;
+                    y += yAdvance;
+
+                    continue;
+                }
+
                 ctx.SetSourceRGBA(GuiStyle.DialogStrongBgColor[0], GuiStyle.DialogStrongBgColor[1], GuiStyle.DialogStrongBgColor[2], GuiStyle.DialogStrongBgColor[3]);
                 RoundRectangle(ctx, Bounds.drawX + 2, cellDrawY + 2, Bounds.InnerWidth - 4, yAdvance - 4, 1);
                 ctx.Fill();
@@ -306,7 +373,7 @@
             if (categorySelection != null)
             {
                 var x = categorySelection.highlightDrawX;
-                var y = categorySelection.highlightDrawY;
+                var y = categorySelection.highlightDrawY + yScrollOffset;
 
                 // draw selection highlight
 
@@ -315,7 +382,7 @@
                 ctx.Fill();
 
                 x = categorySelection.Bounds.drawX;
-                y = categorySelection.Bounds.drawY;
+                y = categorySelection.Bounds.drawY + ySubScrollOffset;
 
                 // render selected list background
 
@@ -326,10 +393,18 @@
                 EmbossRoundRectangleElement(ctx, categorySelection.Bounds);
 
                 var currentRendered = 0;
+                var ccl = offsetSubScrollIndex;
 
                 foreach (var item in categorySelection.selectedItems)
                 {
-                    RenderListItem(ctx, surface, x, y, Bounds.InnerWidth, yAdvance, item, ref currentRendered);
+                    if(ccl > 0)
+                    {
+                        ccl--;
+                        y += yAdvance;
+                        continue;
+                    }
+
+                    RenderListItem(ctx, surface, x, y, item, ref currentRendered);
                     y += yAdvance;
 
                     if (currentRendered >= maxVisibleItemsPerList)
@@ -341,13 +416,13 @@
                 if(itemSelection != null)
                 {
                     ctx.SetSourceRGBA(1.0, 1.0, 1.0, 0.4);
-                    RoundRectangle(ctx, itemSelection.highlightDrawX, itemSelection.highlightDrawY, categorySelection.Bounds.InnerWidth, yAdvance, 1);
+                    RoundRectangle(ctx, itemSelection.highlightDrawX, itemSelection.highlightDrawY + ySubScrollOffset, categorySelection.Bounds.InnerWidth, yAdvance, 1);
                     ctx.Fill();
                 }
             }
         }
 
-        private void RenderListItem(Context ctx, Surface surface, double x, double y, double width, double height, CascadingListItem item, ref int currentRendered)
+        private void RenderListItem(Context ctx, Surface surface, double x, double y, CascadingListItem item, ref int currentRendered)
         {
             ctx.SetSourceRGBA(GuiStyle.DialogStrongBgColor[0], GuiStyle.DialogStrongBgColor[1], GuiStyle.DialogStrongBgColor[2], GuiStyle.DialogStrongBgColor[3]);
             RoundRectangle(ctx, x + 2, y + 2, categorySelection.Bounds.InnerWidth - 4, yAdvance - 4, 1);
@@ -359,7 +434,7 @@
             util.DrawTextLine(ctx, font, item.Name, x + (categorySelection.Bounds.InnerWidth / 2.0) - (extents.Width / 2.0), y + (yAdvance / 2.0) - (extents.Height / 2.2));
             ctx.Restore();
 
-            currentRendered = currentRendered + 1; ;
+            currentRendered = currentRendered + 1;
         }
 
         private void RenderTriangle(Context ctx, Surface surface, double x, double y, double width, double height)

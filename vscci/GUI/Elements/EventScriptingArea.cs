@@ -44,7 +44,7 @@ namespace VSCCI.GUI.Elements
             var b = ElementBounds.Fixed(0, 0, 100, 150);
             bounds.WithChild(b);
 
-            nodeSelectList = new CascadingListElement(api, b, 6);
+            nodeSelectList = new CascadingListElement(api, b);
             nodeSelectList.OnItemSelected += NewNodeSelected;
 
             PopulateNodeSelectionList();
@@ -186,6 +186,15 @@ namespace VSCCI.GUI.Elements
             }
         }
 
+        public override void OnMouseWheel(ICoreClientAPI api, MouseWheelEventArgs args)
+        {
+            base.OnMouseWheel(api, args);
+
+            if(selectListActive)
+            {
+                nodeSelectList.OnMouseWheel(api, args);
+            }
+        }
         public override void OnMouseDownOnElement(ICoreClientAPI api, MouseEvent args)
         {
             base.OnMouseDownOnElement(api, args);
@@ -399,6 +408,22 @@ namespace VSCCI.GUI.Elements
 
             nodeSelectList.AddListItem("Actions", "Show Chat Local", typeof(PrintToChatLocalExecNode));
             nodeSelectList.AddListItem("Actions", "Run Server Command", typeof(ServerSideCommandExecutionNode));
+
+            nodeSelectList.AddListItem("Comparisons", ">= (float)", typeof(GreaterOrEqualPureNode<float>));
+            nodeSelectList.AddListItem("Comparisons", ">= (double)", typeof(GreaterOrEqualPureNode<double>));
+            nodeSelectList.AddListItem("Comparisons", ">= (int)", typeof(GreaterOrEqualPureNode<int>));
+
+            nodeSelectList.AddListItem("Comparisons", "<= (float)", typeof(LessOrEqualPureNode<float>));
+            nodeSelectList.AddListItem("Comparisons", "<= (double)", typeof(LessOrEqualPureNode<double>));
+            nodeSelectList.AddListItem("Comparisons", "<= (int)", typeof(LessOrEqualPureNode<int>));
+
+            nodeSelectList.AddListItem("Comparisons", "> (float)", typeof(GreaterThenPureNode<float>));
+            nodeSelectList.AddListItem("Comparisons", "> (double)", typeof(GreaterThenPureNode<double>));
+            nodeSelectList.AddListItem("Comparisons", "> (int)", typeof(GreaterThenPureNode<int>));
+
+            nodeSelectList.AddListItem("Comparisons", "< (float)", typeof(LessThenPureNode<float>));
+            nodeSelectList.AddListItem("Comparisons", "< (double)", typeof(LessThenPureNode<double>));
+            nodeSelectList.AddListItem("Comparisons", "< (int)", typeof(LessThenPureNode<int>));
 
             nodeSelectList.AddListItem("Constants", "Constant Int", typeof(ConstantIntScriptNode));
             nodeSelectList.AddListItem("Constants", "Constant String", typeof(ConstantStringScriptNode));
