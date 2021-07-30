@@ -398,6 +398,14 @@ namespace VSCCI.GUI.Elements
             nodeSelectList.AddListItem("Basic", "Add Double", typeof(AddPureNode<double>));
             nodeSelectList.AddListItem("Basic", "Append String", typeof(AddPureNode<string>));
 
+            nodeSelectList.AddListItem("Basic", "Multiply Int", typeof(MultiplyPureNode<int>));
+            nodeSelectList.AddListItem("Basic", "Multiply Float", typeof(MultiplyPureNode<float>));
+            nodeSelectList.AddListItem("Basic", "Multiply Double", typeof(MultiplyPureNode<double>));
+
+            nodeSelectList.AddListItem("Basic", "Devide Int", typeof(DevidePureNode<int>));
+            nodeSelectList.AddListItem("Basic", "Devide Float", typeof(DevidePureNode<float>));
+            nodeSelectList.AddListItem("Basic", "Devide Double", typeof(DevidePureNode<double>));
+
             nodeSelectList.AddListItem("Basic", "Subtract Int", typeof(SubtractPureNode<int>));
             nodeSelectList.AddListItem("Basic", "Subtract Float", typeof(SubtractPureNode<float>));
             nodeSelectList.AddListItem("Basic", "Subtract Double", typeof(SubtractPureNode<double>));
@@ -434,11 +442,6 @@ namespace VSCCI.GUI.Elements
             nodeSelectList.AddListItem("Conversions", "Float To String", typeof(ToStringPureNode<float>));
             nodeSelectList.AddListItem("Conversions", "Double To String", typeof(ToStringPureNode<double>));
             nodeSelectList.AddListItem("Conversions", "Bool To String", typeof(ToStringPureNode<bool>));
-        }
-
-        private static IEnumerable<System.Type> GetSubclasses<A>()
-        {
-            return typeof(A).Assembly.GetTypes().Where(type => type.IsSubclassOf(typeof(A)));
         }
 
         private void DrawBackground(Context ctx)
