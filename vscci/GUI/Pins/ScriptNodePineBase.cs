@@ -201,6 +201,10 @@ namespace VSCCI.GUI.Nodes
             {
                 return new Color(0.1, 0.9, 0.1, 1.0);
             }
+            else if (type.IsAssignableFrom(typeof(double)))
+            {
+                return new Color(0.0, 0.7, 0.7, 1.0);
+            }
             else if (type.IsAssignableFrom(typeof(string)))
             {
                 return new Color(0.4980392156862745, 0, 1.0, 1.0);
