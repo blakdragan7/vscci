@@ -95,6 +95,9 @@
             yScrollOffset = 0;
             ySubScrollOffset = 0;
 
+            offsetScrollIndex = 0;
+            offsetSubScrollIndex = 0;
+
             if (categorySelection != null)
             {
                 Bounds.ParentBounds.ChildBounds.Remove(categorySelection.Bounds);
