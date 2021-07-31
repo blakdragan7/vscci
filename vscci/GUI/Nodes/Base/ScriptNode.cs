@@ -70,14 +70,6 @@ namespace VSCCI.GUI.Nodes
             var x = cachedRenderX;
             var y = cachedRenderY;
 
-            // Draw selected highlight
-            if (hasFocus && isMoving == false && activeConnection == null && activePin == null)
-            {
-                ctx.SetSourceRGBA(1.0, 1.0, 1.0, 1.0);
-                RoundRectangle(ctx, x, y, Bounds.OuterWidth, Bounds.OuterHeight, 1);
-                ctx.Fill();
-            }
-
             // Draw Title Background
             if (title.Length > 0)
             {
@@ -133,6 +125,14 @@ namespace VSCCI.GUI.Nodes
             foreach (var output in outputs)
             {
                 output.RenderPin(ctx, surface, deltaTime);
+            }
+
+            // Draw selected highlight
+            if (hasFocus && isMoving == false)
+            {
+                ctx.SetSourceRGBA(1.0, 1.0, 1.0, 0.3);
+                RoundRectangle(ctx, x, y, Bounds.OuterWidth, Bounds.OuterHeight, 1);
+                ctx.Fill();
             }
 
             activeConnection?.Render(ctx, surface);
@@ -381,6 +381,11 @@ namespace VSCCI.GUI.Nodes
 
                 return true;
             }
+            else
+            {
+
+            }
+
 
             return false;
         }
