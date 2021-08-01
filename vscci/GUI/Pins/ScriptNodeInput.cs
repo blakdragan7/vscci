@@ -46,6 +46,17 @@ namespace VSCCI.GUI.Nodes
 
             return null;
         }
+
+        public override bool Connect(ScriptNodePinConnection connection)
+        {
+            if (pinValueType == typeof(DynamicType))
+            {
+                color = connection.Output.PinColor;
+            }
+
+            return base.Connect(connection);
+        }
+
         public override void Compose(double colx, double coly, double drawx, double drawy, Context ctx, CairoFont font)
         {
             X = drawx;

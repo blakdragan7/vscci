@@ -5,6 +5,13 @@
     using Vintagestory.API.Common;
     using Vintagestory.API.Datastructures;
     using VSCCI.Data;
+    using VSCCI.GUI.Nodes.Attributes;
+
+    [NodeData("Events", "Super Chat Event")]
+    [OutputPin(typeof(Exec), 0)]
+    [InputPin(typeof(string), 1)]
+    [InputPin(typeof(string), 2)]
+    [InputPin(typeof(float), 3)]
 
     class SuperChatEventExecNode : EventBasedExecutableScriptNode
     {
@@ -18,9 +25,9 @@
 
         public SuperChatEventExecNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("Super Chat Event", api, nodeTransform, bounds)
         {
-            outputs.Add(new ScriptNodeOutput(this, "From", 1, typeof(string)));
-            outputs.Add(new ScriptNodeOutput(this, "Message", 1, typeof(string)));
-            outputs.Add(new ScriptNodeOutput(this, "Amount", 1, typeof(float)));
+            outputs.Add(new ScriptNodeOutput(this, "From", typeof(string)));
+            outputs.Add(new ScriptNodeOutput(this, "Message", typeof(string)));
+            outputs.Add(new ScriptNodeOutput(this, "Amount", typeof(float)));
         }
 
         protected override void OnExecute()

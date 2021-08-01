@@ -5,7 +5,14 @@
     using Vintagestory.API.Common;
     using Vintagestory.API.Datastructures;
     using VSCCI.Data;
+    using VSCCI.GUI.Nodes.Attributes;
 
+    [NodeData("Events", "Sub Event")]
+    [OutputPin(typeof(Exec), 0)]
+    [InputPin(typeof(string), 1)]
+    [InputPin(typeof(string), 2)]
+    [InputPin(typeof(string), 3)]
+    [InputPin(typeof(bool), 4)]
     class SubEventExecNode : EventBasedExecutableScriptNode
     {
         public static int FROM_OUTPUT_INDEX = 1;
@@ -20,10 +27,10 @@
 
         public SubEventExecNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("Sub Event", api, nodeTransform, bounds)
         {
-            outputs.Add(new ScriptNodeOutput(this, "From", 1, typeof(string)));
-            outputs.Add(new ScriptNodeOutput(this, "To", 1, typeof(string)));
-            outputs.Add(new ScriptNodeOutput(this, "Message", 1, typeof(string)));
-            outputs.Add(new ScriptNodeOutput(this, "IsGift", 1, typeof(bool)));
+            outputs.Add(new ScriptNodeOutput(this, "From", typeof(string)));
+            outputs.Add(new ScriptNodeOutput(this, "To", typeof(string)));
+            outputs.Add(new ScriptNodeOutput(this, "Message", typeof(string)));
+            outputs.Add(new ScriptNodeOutput(this, "IsGift", typeof(bool)));
         }
 
         protected override void OnExecute()

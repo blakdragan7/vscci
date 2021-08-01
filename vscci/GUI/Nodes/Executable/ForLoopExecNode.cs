@@ -2,6 +2,15 @@
 {
     using Cairo;
     using Vintagestory.API.Client;
+    using VSCCI.GUI.Nodes.Attributes;
+
+    [NodeData("Flow", "For Loop")]
+    [InputPin(typeof(Exec), 0)]
+    [InputPin(typeof(int), 1)]
+    [InputPin(typeof(int), 2)]
+    [OutputPin(typeof(Exec), 0)]
+    [OutputPin(typeof(int), 1)]
+    [OutputPin(typeof(Exec), 2)]
     public class ForLoopExecNode : ExecutableScriptNode
     {
         public static int START_INPUT_INDEX = 1;
@@ -14,7 +23,7 @@
             inputs.Add(new ScriptNodeInput(this, "Start Index", typeof(int)));
             inputs.Add(new ScriptNodeInput(this, "End Index", typeof(int)));
 
-            outputs.Add(new ScriptNodeOutput(this, "Index", 1, typeof(int)));
+            outputs.Add(new ScriptNodeOutput(this, "Index", typeof(int)));
             outputs.Add(new ExecOutputNode(this, "Done"));
         }
 

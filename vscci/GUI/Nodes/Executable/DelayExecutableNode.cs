@@ -2,7 +2,12 @@
 {
     using Cairo;
     using Vintagestory.API.Client;
+    using VSCCI.GUI.Nodes.Attributes;
 
+    [NodeData("Flow", "Delay")]
+    [InputPin(typeof(Exec), 0)]
+    [InputPin(typeof(int), 1)]
+    [OutputPin(typeof(Exec), 0)]
     class DelayExecutableNode : ExecutableScriptNode
     {
         public static int MILISECONDS_INPUT_INDEX = 1;

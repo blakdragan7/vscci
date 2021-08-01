@@ -3,12 +3,17 @@
     using Cairo;
     using System;
     using Vintagestory.API.Client;
+    using VSCCI.GUI.Nodes.Attributes;
+
+    [NodeData("Conversions", "String To Double")]
+    [InputPin(typeof(string), 0)]
+    [OutputPin(typeof(double), 0)]
     public class StringToDoublePureNode : ExecutableScriptNode
     {
         public StringToDoublePureNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("String => Double", api, nodeTransform, bounds, true)
         {
             inputs.Add(new ScriptNodeInput(this, "String", typeof(string)));
-            outputs.Add(new ScriptNodeOutput(this, "Int", 1, typeof(double)));
+            outputs.Add(new ScriptNodeOutput(this, "Int", typeof(double)));
         }
 
         protected override void OnExecute()

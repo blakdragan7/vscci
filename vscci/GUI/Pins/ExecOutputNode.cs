@@ -4,7 +4,7 @@
     class ExecOutputNode : ScriptNodeOutput
     {
         public ExecutableScriptNode ExecOwner => this.owner as ExecutableScriptNode;
-        public ExecOutputNode(ExecutableScriptNode owner, string name = "exec") : base(owner, name, 1, typeof(Exec))
+        public ExecOutputNode(ExecutableScriptNode owner, string name = "exec") : base(owner, name, typeof(Exec), 1)
         {
 
         }

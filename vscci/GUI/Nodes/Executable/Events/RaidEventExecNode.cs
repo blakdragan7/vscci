@@ -5,7 +5,12 @@
     using Vintagestory.API.Common;
     using Vintagestory.API.Datastructures;
     using VSCCI.Data;
+    using VSCCI.GUI.Nodes.Attributes;
 
+    [NodeData("Events", "Raid Event")]
+    [OutputPin(typeof(Exec), 0)]
+    [InputPin(typeof(string), 1)]
+    [InputPin(typeof(int), 2)]
     class RaidEventExecNode : EventBasedExecutableScriptNode
     {
         public static int CHANNEL_OUTPUT_INDEX = 1;
@@ -16,8 +21,8 @@
 
         public RaidEventExecNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("Raid Event", api, nodeTransform, bounds)
         {
-            outputs.Add(new ScriptNodeOutput(this, "Channel", 1, typeof(string)));
-            outputs.Add(new ScriptNodeOutput(this, "Viewer Count", 1, typeof(int)));
+            outputs.Add(new ScriptNodeOutput(this, "Channel", typeof(string)));
+            outputs.Add(new ScriptNodeOutput(this, "Viewer Count", typeof(int)));
         }
 
         protected override void OnExecute()

@@ -5,7 +5,13 @@
     using Vintagestory.API.Common;
     using Vintagestory.API.Datastructures;
     using VSCCI.Data;
+    using VSCCI.GUI.Nodes.Attributes;
 
+    [NodeData("Events", "Donation Event")]
+    [OutputPin(typeof(Exec), 0)]
+    [InputPin(typeof(string), 1)]
+    [InputPin(typeof(int), 2)]
+    [InputPin(typeof(string), 3)]
     class DonationEventExecNode : EventBasedExecutableScriptNode
     {
         public static int WHO_OUTPUT_INDEX = 1;
@@ -18,9 +24,9 @@
 
         public DonationEventExecNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("Donation Event", api, nodeTransform, bounds)
         {
-            outputs.Add(new ScriptNodeOutput(this, "Who", 1, typeof(string)));
-            outputs.Add(new ScriptNodeOutput(this, "Amount", 1, typeof(int)));
-            outputs.Add(new ScriptNodeOutput(this, "Message", 1, typeof(string)));
+            outputs.Add(new ScriptNodeOutput(this, "Who", typeof(string)));
+            outputs.Add(new ScriptNodeOutput(this, "Amount", typeof(int)));
+            outputs.Add(new ScriptNodeOutput(this, "Message", typeof(string)));
         }
 
         protected override void OnExecute()

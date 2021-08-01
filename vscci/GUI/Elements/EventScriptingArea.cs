@@ -439,10 +439,7 @@ namespace VSCCI.GUI.Elements
             nodeSelectList.AddListItem("Constants", "Constant Float", typeof(ConstantFloatScriptNode));
             nodeSelectList.AddListItem("Constants", "Constant Double", typeof(ConstantDoubleScriptNode));
 
-            nodeSelectList.AddListItem("Conversions", "Int To String", typeof(ToStringPureNode<int>));
-            nodeSelectList.AddListItem("Conversions", "Float To String", typeof(ToStringPureNode<float>));
-            nodeSelectList.AddListItem("Conversions", "Double To String", typeof(ToStringPureNode<double>));
-            nodeSelectList.AddListItem("Conversions", "Bool To String", typeof(ToStringPureNode<bool>));
+            nodeSelectList.AddListItem("Conversions", "To String", typeof(ToStringPureNode));
         }
 
         private void DrawBackground(Context ctx)

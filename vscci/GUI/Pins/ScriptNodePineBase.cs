@@ -12,6 +12,11 @@ namespace VSCCI.GUI.Nodes
 
     }
 
+    public class DynamicType // stuv for any connection type allowed
+    {
+
+    }
+
     public abstract class ScriptNodePinBase : IDisposable
     {
         protected bool isDirty;
@@ -52,7 +57,7 @@ namespace VSCCI.GUI.Nodes
         /*
          * @CanCreateConnection returns true if this pin is capable of creating another connection
          */
-        public bool CanCreateConnection => connections.Count < maxNumberOfConnections && allowsConnections;
+        public bool CanCreateConnection => (connections.Count < maxNumberOfConnections || maxNumberOfConnections == -1) && allowsConnections;
         /*
          * @Connections is simply a list of all connections to this pin.
          */
@@ -93,7 +98,7 @@ namespace VSCCI.GUI.Nodes
          *  Used to render any interactive element that apart of the default api
          */
         public virtual void RenderInteractive(double deltaTime) { }
-        
+
         /*
          *  Used to setup size and position
          */
@@ -107,12 +112,12 @@ namespace VSCCI.GUI.Nodes
             this.isDirty = true;
         }
 
-        public virtual void ToBytes(BinaryWriter writer) 
+        public virtual void ToBytes(BinaryWriter writer)
         {
             writer.Write(Guid.ToString());
         }
 
-        public virtual void FromBytes(BinaryReader reader) 
+        public virtual void FromBytes(BinaryReader reader)
         {
             Guid = Guid.Parse(reader.ReadString());
         }
@@ -144,6 +149,11 @@ namespace VSCCI.GUI.Nodes
                 if (connections.Count <= 0)
                 {
                     hasConnection = false;
+
+                    if(pinValueType == typeof(DynamicType))
+                    {
+                        color = ColorForValueType(pinValueType);
+                    }
                 }
 
                 return true;
@@ -154,9 +164,9 @@ namespace VSCCI.GUI.Nodes
 
         public void AddConnectionsToList(List<ScriptNodePinConnection> connections)
         {
-            foreach(var connection in this.connections)
+            foreach (var connection in this.connections)
             {
-                if(connections.Contains(connection) == false)
+                if (connections.Contains(connection) == false)
                 {
                     connections.Add(connection);
                 }
@@ -213,13 +223,20 @@ namespace VSCCI.GUI.Nodes
             {
                 return new Color(0.8, 0.1, 0.1, 1.0);
             }
+            else if (type == typeof(DynamicType))
+            {
+                return new Color(0.6, 0.6, 0.6, 1.0);
+            }
 
-            return new Color(0.8, 0.8, 0.8, 1.0);
+            return new Color(0.0, 0.0, 0.0, 1.0);
         }
 
         public bool CanConnectTo(ScriptNodePinBase other, ScriptNodePinConnection forConnection)
         {
-            return this != other && pinValueType == other.pinValueType
+            bool TypesAllowConnection = (pinValueType == other.pinValueType || 
+                pinValueType == typeof(DynamicType) || other.pinValueType == typeof(DynamicType));
+
+            return this != other && TypesAllowConnection
                 && (CanCreateConnection || connections.Contains(forConnection))
                 && (other.CanCreateConnection || other.connections.Contains(forConnection));
         }

@@ -5,7 +5,12 @@
     using Vintagestory.API.Common;
     using Vintagestory.API.Datastructures;
     using VSCCI.Data;
+    using VSCCI.GUI.Nodes.Attributes;
 
+    [NodeData("Events", "Host Event")]
+    [OutputPin(typeof(Exec), 0)]
+    [InputPin(typeof(string), 1)]
+    [InputPin(typeof(int), 2)]
     class HostEventExecNode : EventBasedExecutableScriptNode
     {
         public static int WHO_OUTPUT_INDEX = 1;
@@ -16,8 +21,8 @@
 
         public HostEventExecNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("Host Event", api, nodeTransform, bounds)
         {
-            outputs.Add(new ScriptNodeOutput(this, "Who", 1, typeof(string)));
-            outputs.Add(new ScriptNodeOutput(this, "Viewer Count", 1, typeof(int)));
+            outputs.Add(new ScriptNodeOutput(this, "Who", typeof(string)));
+            outputs.Add(new ScriptNodeOutput(this, "Viewer Count", typeof(int)));
         }
 
         protected override void OnExecute()

@@ -5,7 +5,13 @@
     using Vintagestory.API.Common;
     using Vintagestory.API.Datastructures;
     using VSCCI.Data;
+    using VSCCI.GUI.Nodes.Attributes;
 
+    [NodeData("Events", "Follow Event")]
+    [OutputPin(typeof(Exec), 0)]
+    [InputPin(typeof(string), 1)]
+    [InputPin(typeof(string), 2)]
+    [InputPin(typeof(string), 3)]
     class FollowEventExecNode : EventBasedExecutableScriptNode
     {
         public static int WHO_OUTPUT_INDEX = 1;
@@ -18,9 +24,9 @@
 
         public FollowEventExecNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("Follow Event", api, nodeTransform, bounds)
         {
-            outputs.Add(new ScriptNodeOutput(this, "Who", 1, typeof(string)));
-            outputs.Add(new ScriptNodeOutput(this, "Channel", 1, typeof(string)));
-            outputs.Add(new ScriptNodeOutput(this, "Platform", 1, typeof(string)));
+            outputs.Add(new ScriptNodeOutput(this, "Who", typeof(string)));
+            outputs.Add(new ScriptNodeOutput(this, "Channel", typeof(string)));
+            outputs.Add(new ScriptNodeOutput(this, "Platform", typeof(string)));
         }
 
         protected override void OnExecute()

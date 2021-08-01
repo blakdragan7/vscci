@@ -5,7 +5,14 @@
     using Vintagestory.API.Common;
     using Vintagestory.API.Datastructures;
     using VSCCI.Data;
+    using VSCCI.GUI.Nodes.Attributes;
 
+    [NodeData("Events", "Redemption Event")]
+    [OutputPin(typeof(Exec), 0)]
+    [InputPin(typeof(string), 1)]
+    [InputPin(typeof(string), 2)]
+    [InputPin(typeof(string), 3)]
+    [InputPin(typeof(string), 4)]
     class PointRedemptionEventExecNode : EventBasedExecutableScriptNode
     {
         public static int WHO_OUTPUT_INDEX = 1;
@@ -20,10 +27,10 @@
 
         public PointRedemptionEventExecNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("Point Redemption Event", api, nodeTransform, bounds)
         {
-            outputs.Add(new ScriptNodeOutput(this, "Who", 1, typeof(string)));
-            outputs.Add(new ScriptNodeOutput(this, "Name", 1, typeof(string)));
-            outputs.Add(new ScriptNodeOutput(this, "Id", 1, typeof(string)));
-            outputs.Add(new ScriptNodeOutput(this, "Message", 1, typeof(string)));
+            outputs.Add(new ScriptNodeOutput(this, "Who", typeof(string)));
+            outputs.Add(new ScriptNodeOutput(this, "Name", typeof(string)));
+            outputs.Add(new ScriptNodeOutput(this, "Id", typeof(string)));
+            outputs.Add(new ScriptNodeOutput(this, "Message", typeof(string)));
         }
 
         protected override void OnExecute()

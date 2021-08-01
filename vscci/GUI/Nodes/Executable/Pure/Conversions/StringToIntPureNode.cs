@@ -3,12 +3,17 @@
     using Cairo;
     using System;
     using Vintagestory.API.Client;
+    using VSCCI.GUI.Nodes.Attributes;
+
+    [NodeData("Conversions", "String To Int")]
+    [InputPin(typeof(string), 0)]
+    [OutputPin(typeof(int), 0)]
     public class StringToIntPureNode : ExecutableScriptNode
     {
         public StringToIntPureNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("String => Int", api, nodeTransform, bounds, true)
         {
             inputs.Add(new ScriptNodeInput(this, "String", typeof(string)));
-            outputs.Add(new ScriptNodeOutput(this, "Int", 1, typeof(int)));
+            outputs.Add(new ScriptNodeOutput(this, "Int", typeof(int)));
         }
 
         protected override void OnExecute()

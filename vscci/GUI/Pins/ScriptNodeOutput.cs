@@ -28,7 +28,7 @@ namespace VSCCI.GUI.Nodes
             }
         }
 
-        public ScriptNodeOutput(ScriptNode owner, string name, int maxNumberOfConnections, System.Type pinType) : base(owner, name, maxNumberOfConnections, pinType)
+        public ScriptNodeOutput(ScriptNode owner, string name, System.Type pinType,int maxNumberOfConnections = -1) : base(owner, name, maxNumberOfConnections, pinType)
         {
             if (pinType.IsValueType)
             {
@@ -69,6 +69,16 @@ namespace VSCCI.GUI.Nodes
                     connection.Render(ctx, surface);
                 }
             }
+        }
+
+        public override bool Connect(ScriptNodePinConnection connection)
+        {
+            if(pinValueType == typeof(DynamicType))
+            {
+                color = connection.Input.PinColor;
+            }
+
+            return base.Connect(connection);
         }
 
         public override ScriptNodePinConnection CreateConnection()

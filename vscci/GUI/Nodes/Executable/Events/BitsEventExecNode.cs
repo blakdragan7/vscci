@@ -5,7 +5,13 @@
     using Vintagestory.API.Common;
     using Vintagestory.API.Datastructures;
     using VSCCI.Data;
+    using VSCCI.GUI.Nodes.Attributes;
 
+    [NodeData("Events", "Bit Event")]
+    [OutputPin(typeof(Exec), 0)]
+    [InputPin(typeof(int), 1)]
+    [InputPin(typeof(string), 2)]
+    [InputPin(typeof(string), 3)]
     class BitsEventExecNode : EventBasedExecutableScriptNode
     {
         public static int AMOUNT_OUTPUT_INDEX = 1;
@@ -18,9 +24,9 @@
 
         public BitsEventExecNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("Bit Event", api, nodeTransform, bounds)
         {
-            outputs.Add(new ScriptNodeOutput(this, "Amount", 1, typeof(int)));
-            outputs.Add(new ScriptNodeOutput(this, "From", 1, typeof(string)));
-            outputs.Add(new ScriptNodeOutput(this, "Message", 1, typeof(string)));
+            outputs.Add(new ScriptNodeOutput(this, "Amount", typeof(int)));
+            outputs.Add(new ScriptNodeOutput(this, "From", typeof(string)));
+            outputs.Add(new ScriptNodeOutput(this, "Message", typeof(string)));
         }
 
         protected override void OnExecute()

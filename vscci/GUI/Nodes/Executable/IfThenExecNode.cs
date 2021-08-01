@@ -2,6 +2,12 @@
 {
     using Cairo;
     using Vintagestory.API.Client;
+    using VSCCI.GUI.Nodes.Attributes;
+
+    [NodeData("Flow", "If Then")]
+    [InputPin(typeof(Exec), 0)]
+    [InputPin(typeof(bool), 1)]
+    [OutputPin(typeof(Exec), 0)]
     public class IfThenExecNode : ExecutableScriptNode
     {
         public static int CONDITION_INPUT_INDEX = 1;

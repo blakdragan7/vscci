@@ -4,7 +4,6 @@ namespace VSCCI.GUI.Nodes
     using Vintagestory.API.Client;
     using System.Collections.Generic;
     using VSCCI.Data;
-    using VSCCI.GUI.Elements;
     using Vintagestory.API.Common;
     using System;
     using System.IO;

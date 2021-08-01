@@ -13,7 +13,7 @@
             inputs.Add(new ScriptNodeInput(this, "First", typeof(T)));
             inputs.Add(new ScriptNodeInput(this, "Second", typeof(T)));
 
-            outputs.Add(new ScriptNodeOutput(this, "Result", 1, typeof(T)));
+            outputs.Add(new ScriptNodeOutput(this, "Result", typeof(T)));
 
             shouldAutoExecuteNext = false;
         }

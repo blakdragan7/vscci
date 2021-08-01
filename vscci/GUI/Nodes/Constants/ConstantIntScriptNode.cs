@@ -4,7 +4,11 @@
     using Vintagestory.API.Client;
     using System.Collections.Generic;
     using System;
+    using VSCCI.GUI.Nodes.Attributes;
 
+    [NodeData("Constants", "Constant Int")]
+    [InputPin(typeof(int), 0)]
+    [OutputPin(typeof(int), 0)]
     class ConstantIntScriptNode : ConstantTextInputScriptNode<int>
     {
         private static List<char> numbers = new List<char>()

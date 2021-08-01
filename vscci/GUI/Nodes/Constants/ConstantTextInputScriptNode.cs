@@ -6,12 +6,13 @@
     public abstract class ConstantTextInputScriptNode<T> : ScriptNode
     {
         private ScriptNodeTextInput input;
+
         private ScriptNodeOutput output;
 
         public ConstantTextInputScriptNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("", api, nodeTransform, bounds)
         {
             input = new ScriptNodeTextInput(this, api, typeof(T));
-            output = new ScriptNodeOutput(this, "out", 1, typeof(T));
+            output = new ScriptNodeOutput(this, "out", typeof(T));
 
             inputs.Add(input);
             outputs.Add(output);

@@ -4,12 +4,15 @@
     using Vintagestory.API.Client;
     using Vintagestory.API.Server;
     using VSCCI.Data;
+    using VSCCI.GUI.Nodes.Attributes;
 
     public abstract class ServerSideExecutable
     {
         public abstract void RunServerSide(IServerPlayer player, ICoreServerAPI api, string data);
     }
 
+    [InputPin(typeof(Exec), 0)]
+    [OutputPin(typeof(Exec), 0)]
     public class ServerSideExecutableNode<T> : ExecutableScriptNode where T : ServerSideExecutable
     {
         protected string data;
