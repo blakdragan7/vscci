@@ -9,6 +9,15 @@ namespace VSCCI.GUI.Nodes
     using System;
     using System.IO;
 
+    public enum ScriptNodeState
+    {
+        Focused,
+        Dragged,
+        Selected,
+        PinSelected,
+        None
+    }
+
     public abstract class ScriptNode : GuiElement
     {
         protected readonly List<ScriptNodeInput> inputs;
@@ -19,10 +28,11 @@ namespace VSCCI.GUI.Nodes
         protected double cachedRenderY;
         protected bool isDirty;
 
+        protected ScriptNodeState state;
+
         private readonly TextDrawUtil textUtil;
         private readonly CairoFont font;
 
-        private bool isMoving;
         private ScriptNodePinBase activePin;
         private ScriptNodePinConnection activeConnection;
 
@@ -43,7 +53,8 @@ namespace VSCCI.GUI.Nodes
             textUtil = new TextDrawUtil();
             font = CairoFont.WhiteDetailText().WithFontSize(20);
 
-            isMoving = false;
+            state = ScriptNodeState.None;
+
             activePin = null;
             activeConnection = null;
             title = _title;
@@ -128,7 +139,7 @@ namespace VSCCI.GUI.Nodes
             }
 
             // Draw selected highlight
-            if (hasFocus && isMoving == false)
+            if (state == ScriptNodeState.Selected)
             {
                 ctx.SetSourceRGBA(1.0, 1.0, 1.0, 0.3);
                 RoundRectangle(ctx, x, y, Bounds.OuterWidth, Bounds.OuterHeight, 1);
@@ -323,7 +334,7 @@ namespace VSCCI.GUI.Nodes
 
                 foreach (var input in inputs)
                 {
-                    if (input.PointIsWithinSelectionBounds(x, y))
+                    if (input.OnMouseDown(api, x, y, button))
                     {
                         if (button == EnumMouseButton.Middle)
                         {
@@ -344,7 +355,7 @@ namespace VSCCI.GUI.Nodes
                             else
                             {
                                 activePin = input;
-                                activePin.OnMouseDown(api, x, y, button);
+                                state = ScriptNodeState.PinSelected;
                             }
                         }
 
@@ -354,7 +365,7 @@ namespace VSCCI.GUI.Nodes
 
                 foreach (var output in outputs)
                 {
-                    if (output.PointIsWithinSelectionBounds(x, y))
+                    if (output.OnMouseDown(api, x, y, button))
                     {
                         if (button == EnumMouseButton.Middle)
                         {
@@ -373,6 +384,10 @@ namespace VSCCI.GUI.Nodes
                                 activeConnection.DrawPoint.X = origx - Bounds.ParentBounds.absX;
                                 activeConnection.DrawPoint.Y = origy - Bounds.ParentBounds.absY;
                             }
+                            else
+                            {
+                                state = ScriptNodeState.PinSelected;
+                            }
                         }
 
                         return true;
@@ -383,7 +398,9 @@ namespace VSCCI.GUI.Nodes
             }
             else
             {
-
+                activePin?.OnMouseDown(api, x, y, button);
+                OnFocusLost();
+                state = ScriptNodeState.None;
             }
 
 
@@ -394,15 +411,19 @@ namespace VSCCI.GUI.Nodes
         {
             if (IsPositionInside((int)x, (int)y))
             {
-                if (isMoving)
+                if (state == ScriptNodeState.Dragged)
                 {
-                    isMoving = false;
                     OnFocusLost();
+                    state = ScriptNodeState.None;
                 }
 
-                else if (activePin != null)
+                else if (activePin != null && activePin.OnMouseUp(api, x, y, button))
                 {
-                    activePin.OnMouseUp(api, x, y, button);
+                    state = ScriptNodeState.PinSelected;
+                }
+                else
+                {
+                    state = ScriptNodeState.Selected;
                 }
 
                 return true;
@@ -422,6 +443,7 @@ namespace VSCCI.GUI.Nodes
             }
 
             OnFocusLost();
+            state = ScriptNodeState.None;
 
             return false;
         }
@@ -433,7 +455,7 @@ namespace VSCCI.GUI.Nodes
                 Bounds = Bounds.WithFixedOffset(deltaX, deltaY);
                 Bounds.CalcWorldBounds();
 
-                isMoving = true;
+                state = ScriptNodeState.Dragged;
                 isDirty = true;
             }
             else if (activeConnection != null)

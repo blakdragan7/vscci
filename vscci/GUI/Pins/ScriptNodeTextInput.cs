@@ -173,12 +173,20 @@
             }
         }
 
-        public override void OnMouseDown(ICoreClientAPI api, double x, double y, EnumMouseButton button)
+        public override bool OnMouseDown(ICoreClientAPI api, double x, double y, EnumMouseButton button)
         {
-            textInput.OnFocusGained();
-
-            var mevent = new MouseEvent((int)x, (int)y, button);
-            textInput.OnMouseDownOnElement(api, mevent);
+            if (PointIsWithinSelectionBounds(x, y))
+            {
+                textInput.OnFocusGained();
+                var mevent = new MouseEvent((int)x, (int)y, button);
+                textInput.OnMouseDownOnElement(api, mevent);
+                return true;
+            }
+            else
+            {
+                textInput.OnFocusLost();
+                return false;
+            }
         }
 
         public override void OnMouseMove(ICoreClientAPI api, double x, double y, double deltaX, double deltaY)
@@ -186,14 +194,17 @@
             var mevent = new MouseEvent((int)x, (int)y, (int)deltaX, (int)deltaY);
             textInput.OnMouseMove(api, mevent);
         }
-        public override void OnMouseUp(ICoreClientAPI api, double x, double y, EnumMouseButton button)
+        public override bool OnMouseUp(ICoreClientAPI api, double x, double y, EnumMouseButton button)
         {
             var mevent = new MouseEvent((int)x, (int)y, button);
             textInput.OnMouseUp(api, mevent);
             if (PointIsWithinSelectionBounds(x, y) == false)
             {
                 textInput.OnFocusLost();
+                return false;
             }
+
+            return true;
         }
 
         public override void Dispose()

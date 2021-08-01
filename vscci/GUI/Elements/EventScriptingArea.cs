@@ -81,6 +81,7 @@ namespace VSCCI.GUI.Elements
             ctx.Dispose();
             surface.Dispose();
 
+            
             api.Render.Render2DTexture(texId, Bounds);
 
             foreach (var node in allNodes)
@@ -215,7 +216,7 @@ namespace VSCCI.GUI.Elements
                 {
                     if(selectedNode != null && selectedNode != node)
                     {
-                        selectedNode.OnFocusLost();
+                        selectedNode.MouseDown(args.X, args.Y, transformedX, transformedY, args.Button);
                     }
 
                     didMoveNode = false;

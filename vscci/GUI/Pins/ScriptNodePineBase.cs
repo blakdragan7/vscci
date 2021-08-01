@@ -237,15 +237,18 @@ namespace VSCCI.GUI.Nodes
             return null;
         }
 
-        public virtual void OnMouseDown(ICoreClientAPI api, double x, double y, EnumMouseButton button)
-        {}
+        public virtual bool OnMouseDown(ICoreClientAPI api, double x, double y, EnumMouseButton button)
+        { return PointIsWithinSelectionBounds(x, y); }
 
         public virtual void OnMouseMove(ICoreClientAPI api, double x, double y, double deltaX, double deltaY)
         {}
-        public virtual void OnMouseUp(ICoreClientAPI api, double x, double y, EnumMouseButton button)
-        {}
+
+        public virtual bool OnMouseUp(ICoreClientAPI api, double x, double y, EnumMouseButton button)
+        { return PointIsWithinSelectionBounds(x, y); }
+
         public virtual void OnKeyPress(ICoreClientAPI api, KeyEvent args)
         {}
+
         public virtual void OnKeyDown(ICoreClientAPI api, KeyEvent args)
         { }
     }
