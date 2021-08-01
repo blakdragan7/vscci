@@ -20,12 +20,15 @@ namespace VSCCI.GUI.Nodes
         public ScriptNodeInput Input => input;
         public ScriptNodeOutput Output => output;
 
+        public Type ConnectionType { get; private set; }
+
         public ScriptNodePinConnection(ScriptNodeOutput output)
         {
             this.input = null;
             this.output = output;
             this.output.Connect(this);
             this.DrawPoint = new PointD();
+            this.ConnectionType = output.PinType;
         }
 
         public ScriptNodePinConnection(ScriptNodeInput input)
@@ -34,6 +37,7 @@ namespace VSCCI.GUI.Nodes
             this.input = input;
             this.input.Connect(this);
             this.DrawPoint = new PointD();
+            this.ConnectionType = input.PinType;
         }
 
         public static ScriptNodePinConnection CreateConnectionBetween(ScriptNodeOutput output, ScriptNodeInput input)

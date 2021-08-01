@@ -9,9 +9,9 @@
 
     [NodeData("Events", "Donation Event")]
     [OutputPin(typeof(Exec), 0)]
-    [InputPin(typeof(string), 1)]
-    [InputPin(typeof(NumberType), 2)]
-    [InputPin(typeof(string), 3)]
+    [OutputPin(typeof(string), 1)]
+    [OutputPin(typeof(NumberType), 2)]
+    [OutputPin(typeof(string), 3)]
     class DonationEventExecNode : EventBasedExecutableScriptNode
     {
         public static int WHO_OUTPUT_INDEX = 1;

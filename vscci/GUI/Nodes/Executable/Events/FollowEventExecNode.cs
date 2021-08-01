@@ -9,9 +9,9 @@
 
     [NodeData("Events", "Follow Event")]
     [OutputPin(typeof(Exec), 0)]
-    [InputPin(typeof(string), 1)]
-    [InputPin(typeof(string), 2)]
-    [InputPin(typeof(string), 3)]
+    [OutputPin(typeof(string), 1)]
+    [OutputPin(typeof(string), 2)]
+    [OutputPin(typeof(string), 3)]
     class FollowEventExecNode : EventBasedExecutableScriptNode
     {
         public static int WHO_OUTPUT_INDEX = 1;

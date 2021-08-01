@@ -9,10 +9,10 @@
 
     [NodeData("Events", "Redemption Event")]
     [OutputPin(typeof(Exec), 0)]
-    [InputPin(typeof(string), 1)]
-    [InputPin(typeof(string), 2)]
-    [InputPin(typeof(string), 3)]
-    [InputPin(typeof(string), 4)]
+    [OutputPin(typeof(string), 1)]
+    [OutputPin(typeof(string), 2)]
+    [OutputPin(typeof(string), 3)]
+    [OutputPin(typeof(string), 4)]
     class PointRedemptionEventExecNode : EventBasedExecutableScriptNode
     {
         public static int WHO_OUTPUT_INDEX = 1;

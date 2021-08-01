@@ -9,8 +9,8 @@
 
     [NodeData("Events", "Raid Event")]
     [OutputPin(typeof(Exec), 0)]
-    [InputPin(typeof(string), 1)]
-    [InputPin(typeof(NumberType), 2)]
+    [OutputPin(typeof(string), 1)]
+    [OutputPin(typeof(NumberType), 2)]
     class RaidEventExecNode : EventBasedExecutableScriptNode
     {
         public static int CHANNEL_OUTPUT_INDEX = 1;

@@ -9,9 +9,9 @@
 
     [NodeData("Events", "Bit Event")]
     [OutputPin(typeof(Exec), 0)]
-    [InputPin(typeof(NumberType), 1)]
-    [InputPin(typeof(string), 2)]
-    [InputPin(typeof(string), 3)]
+    [OutputPin(typeof(NumberType), 1)]
+    [OutputPin(typeof(string), 2)]
+    [OutputPin(typeof(string), 3)]
     class BitsEventExecNode : EventBasedExecutableScriptNode
     {
         public static int AMOUNT_OUTPUT_INDEX = 1;

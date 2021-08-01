@@ -61,12 +61,23 @@ namespace VSCCI.GUI.Nodes
             return new NumberType(i, d);
         }
 
-        public static bool operator ==(NumberType lhs, NumberType rhs) =>
-            lhs.isInteger ? (lhs.intVal == rhs.intVal) : (rhs.doubleVal == lhs.doubleVal);
+        public static bool operator ==(NumberType lhs, NumberType rhs)
+        {
+            if (lhs is null)
+                return rhs is null;
+            if (rhs is null)
+                return lhs is null;
 
-        public static bool operator !=(NumberType lhs, NumberType rhs) =>
-            lhs.isInteger ? (lhs.intVal != rhs.intVal) : (rhs.doubleVal != lhs.doubleVal);
+            return lhs.isInteger ? (lhs.intVal == rhs.intVal) : (rhs.doubleVal == lhs.doubleVal);
+        }
 
+        public static bool operator !=(NumberType lhs, NumberType rhs)
+        {
+            if (lhs is null && rhs is null) return false;
+            else if (lhs is null || rhs is null) return true;
+
+            return lhs.isInteger ? (lhs.intVal != rhs.intVal) : (rhs.doubleVal != lhs.doubleVal);
+        }
         public static bool operator <=(NumberType lhs, NumberType rhs) =>
             lhs.isInteger ? (lhs.intVal <= rhs.intVal) : (rhs.doubleVal <= lhs.doubleVal);
 
@@ -143,7 +154,7 @@ namespace VSCCI.GUI.Nodes
         {
             if (obj == null) return false;
             var o = obj as NumberType;
-            return o == null ? false : this == o;
+            return o is null ? false : this == o;
         }
 
         public override int GetHashCode()
@@ -197,6 +208,8 @@ namespace VSCCI.GUI.Nodes
          * @Connections is simply a list of all connections to this pin.
          */
         public List<ScriptNodePinConnection> Connections => connections;
+
+        public Type PinType => pinValueType; 
 
         public Guid Guid;
 

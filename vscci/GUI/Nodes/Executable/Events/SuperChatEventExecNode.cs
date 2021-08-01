@@ -9,9 +9,9 @@
 
     [NodeData("Events", "Super Chat Event")]
     [OutputPin(typeof(Exec), 0)]
-    [InputPin(typeof(string), 1)]
-    [InputPin(typeof(string), 2)]
-    [InputPin(typeof(NumberType), 3)]
+    [OutputPin(typeof(string), 1)]
+    [OutputPin(typeof(string), 2)]
+    [OutputPin(typeof(NumberType), 3)]
 
     class SuperChatEventExecNode : EventBasedExecutableScriptNode
     {

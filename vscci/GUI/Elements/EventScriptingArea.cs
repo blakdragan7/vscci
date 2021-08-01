@@ -8,12 +8,15 @@ namespace VSCCI.GUI.Elements
     using Vintagestory.API.Client;
     using Vintagestory.API.Common;
 
+    using VSCCI.GUI.Interfaces;
     using VSCCI.GUI.Nodes;
     using VSCCI.GUI.Nodes.Attributes;
 
     public class EventScriptingArea : GuiElement, IByteSerializable
     {
+        private readonly Dictionary<Type, ISelectableList> contextSelectionLists;
         private readonly List<ScriptNode> allNodes;
+
         private int texId;
         private ScriptNode selectedNode;
 
@@ -21,22 +24,19 @@ namespace VSCCI.GUI.Elements
         private int lastMouseY;
 
         private bool isPanningView;
-        private bool didMoveNode;
 
         private readonly Matrix nodeTransform;
         private Matrix inverseNodeTransform;
 
         private MouseEvent selectListActiveDownEvent;
-        private bool selectListActive; 
-        private readonly CascadingListElement nodeSelectList;
+        private ISelectableList activeList;
 
         public EventScriptingArea(ICoreClientAPI api, ElementBounds bounds) : base(api, bounds)
         {
             bounds.IsDrawingSurface = true;
             isPanningView = false;
-            didMoveNode = false;
-            selectListActive = false;
 
+            activeList = null;
             selectedNode = null;
             allNodes = new List<ScriptNode>();
 
@@ -45,9 +45,13 @@ namespace VSCCI.GUI.Elements
 
             var b = ElementBounds.Fixed(0, 0, 100, 150);
             bounds.WithChild(b);
-
-            nodeSelectList = new CascadingListElement(api, b);
+            var nodeSelectList = new CascadingListElement(api, b);
             nodeSelectList.OnItemSelected += NewNodeSelected;
+
+            contextSelectionLists = new Dictionary<Type, ISelectableList>()
+            {
+                { typeof(DynamicType), nodeSelectList }
+            };
 
             PopulateNodeSelectionList();
         }
@@ -73,9 +77,9 @@ namespace VSCCI.GUI.Elements
                 node.OnRender(ctx, surface, deltaTime);
             }
 
-            if (selectListActive)
+            if (activeList != null)
             {
-                nodeSelectList.OnRender(ctx, surface, deltaTime);
+                activeList.OnRender(ctx, surface, deltaTime);
             }
 
             generateTexture(surface, ref texId);
@@ -193,9 +197,9 @@ namespace VSCCI.GUI.Elements
         {
             base.OnMouseWheel(api, args);
 
-            if(selectListActive)
+            if(activeList != null)
             {
-                nodeSelectList.OnMouseWheel(api, args);
+                activeList.OnMouseWheel(api, args);
             }
         }
         public override void OnMouseDownOnElement(ICoreClientAPI api, MouseEvent args)
@@ -207,9 +211,9 @@ namespace VSCCI.GUI.Elements
 
             inverseNodeTransform.TransformPoint(ref transformedX, ref transformedY);
 
-            if (selectListActive)
+            if (activeList != null)
             {
-                nodeSelectList.OnMouseDownOnElement(api, args);
+                activeList.OnMouseDownOnElement(api, args);
             }
 
             foreach (var node in allNodes)
@@ -221,7 +225,6 @@ namespace VSCCI.GUI.Elements
                         selectedNode.MouseDown(args.X, args.Y, transformedX, transformedY, args.Button);
                     }
 
-                    didMoveNode = false;
                     selectedNode = node;
                     lastMouseX = args.X;
                     lastMouseY = args.Y;
@@ -242,8 +245,8 @@ namespace VSCCI.GUI.Elements
                     // open context window
                     if(selectedNode == null)
                     {
-                        nodeSelectList.SetPosition(args.X - (nodeSelectList.Bounds.OuterWidth / 4.0), args.Y - (nodeSelectList.Bounds.OuterHeight / 4.0));
-                        selectListActive = true;
+                        activeList = contextSelectionLists[typeof(DynamicType)];
+                        activeList.SetPosition(args.X - (activeList.ListBounds.OuterWidth / 4.0), args.Y - (activeList.ListBounds.OuterHeight / 4.0));
                         selectListActiveDownEvent = args;
                     }
                     break;
@@ -255,9 +258,9 @@ namespace VSCCI.GUI.Elements
         {
             base.OnMouseMove(api, args);
 
-            if(selectListActive)
+            if(activeList != null)
             {
-                nodeSelectList.OnMouseMove(api, args);
+                activeList.OnMouseMove(api, args);
             }
 
             if (isPanningView)
@@ -271,11 +274,6 @@ namespace VSCCI.GUI.Elements
             }
             else if (selectedNode != null)
             {
-                if(selectedNode.ActiveConnection == null)
-                {
-                    didMoveNode = true;
-                }
-
                 double transformedX = args.X;
                 double transformedY = args.Y;
 
@@ -292,14 +290,14 @@ namespace VSCCI.GUI.Elements
         {
             base.OnMouseUpOnElement(api, args);
 
-            if (selectListActive)
+            if (activeList != null)
             {
-                nodeSelectList.OnMouseUpOnElement(api, args);
+                activeList.OnMouseUpOnElement(api, args);
 
-                if (nodeSelectList.IsPositionInside(args.X, args.Y) == false)
+                if (activeList.IsPositionInside(args.X, args.Y) == false)
                 {
-                    nodeSelectList.ResetSelections();
-                    selectListActive = false;
+                    activeList.ResetSelections();
+                    activeList = null;
                 }
             }
 
@@ -316,13 +314,29 @@ namespace VSCCI.GUI.Elements
 
                 inverseNodeTransform.TransformPoint(ref transformedX, ref transformedY);
 
+                var foundConnection = false;
                 if (selectedNode.ActiveConnection != null)
                 {
                     foreach (var node in allNodes)
                     {
                         if (node.ConnectionWillConnecttPoint(selectedNode.ActiveConnection, transformedX, transformedY))
                         {
+                            foundConnection = true;
                             break;
+                        }
+                    }
+
+                    if(foundConnection == false)
+                    {
+                        if(contextSelectionLists.TryGetValue(selectedNode.ActiveConnection.ConnectionType, out activeList))
+                        {
+                            activeList.SetPosition(args.X - (activeList.ListBounds.OuterWidth / 4.0), 
+                                args.Y - (activeList.ListBounds.OuterHeight / 4.0));
+                            selectListActiveDownEvent = args;
+                        }
+                        else
+                        {
+                            activeList = null;
                         }
                     }
                 }
@@ -362,7 +376,7 @@ namespace VSCCI.GUI.Elements
             }
         }
 
-        private void NewNodeSelected(object sender, CascadingListItem item)
+        private void NewNodeSelected(object sender, ListItem item)
         {
             if (item != null)
             {
@@ -387,12 +401,36 @@ namespace VSCCI.GUI.Elements
 
         private void PopulateNodeSelectionList()
         {
+            var globalSelectionList = contextSelectionLists[typeof(DynamicType)];
+
             foreach (Type type in typeof(ScriptNode).Assembly.GetTypes())
             {
                 var attrs = (NodeDataAttribute[])type.GetCustomAttributes(typeof(NodeDataAttribute), true);
                 if (attrs.Length > 0)
                 {
-                    nodeSelectList.AddListItem(attrs[0].Category, attrs[0].ListName, type);
+                    globalSelectionList.AddListItem(attrs[0].Category, attrs[0].ListName, type);
+
+                    var inputs = (InputPinAttribute[])type.GetCustomAttributes(typeof(InputPinAttribute), true);
+
+                    foreach(var input in inputs)
+                    {
+                        ISelectableList contextList = null;
+                        if(contextSelectionLists.TryGetValue(input.PinType, out contextList))
+                        {
+                            contextList.AddListItem(attrs[0].Category, attrs[0].ListName, type);
+                        }
+                        else
+                        {
+                            var b = ElementBounds.Fixed(0, 0, 100, 150);
+                            Bounds.WithChild(b);
+                            b.CalcWorldBounds();
+
+                            contextList = new UniqueSelectableListElement(api, b);
+                            contextList.AddListItem(attrs[0].Category, attrs[0].ListName, type);
+
+                            contextSelectionLists.Add(input.PinType, contextList);
+                        }
+                    }
                 }
             }
         }

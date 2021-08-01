@@ -1,15 +1,53 @@
 ﻿namespace VSCCI.GUI.Elements
 {
     using Cairo;
+    using System;
     using Vintagestory.API.Client;
     using System.Collections.Generic;
-    using System;
 
-    public class CascadingListItem
+    using VSCCI.GUI.Interfaces;
+
+    public class ListItem
     {
         public string Catagory;
         public string Name;
         public dynamic Value;
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null) return false;
+            var o = obj as ListItem;
+            if (o is null) return false;
+            return Value.Equals(o.Value);
+        }
+
+        public override int GetHashCode()
+        {
+            return Value.GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            return $"{{{Catagory}, {Name}, {Value}}}";
+        }
+
+        public static bool operator == (ListItem lhs, ListItem rhs)
+        {
+            if (lhs is null)
+                return rhs is null;
+            if (rhs is null)
+                return lhs is null;
+
+            return lhs.Value == rhs.Value;
+        }
+
+        public static bool operator !=(ListItem lhs, ListItem rhs)
+        {
+            if (lhs is null && rhs is null) return false;
+            else if (lhs is null || rhs is null) return true;
+
+            return lhs.Value != rhs.Value;
+        }
     }
 
     internal class ListItemSelection
@@ -19,7 +57,7 @@
 
         public int index;
 
-        public CascadingListItem selectedItem;
+        public ListItem selectedItem;
     }
 
     internal class CategorySelection
@@ -30,16 +68,16 @@
         public int index;
 
         public ElementBounds Bounds;
-        public List<CascadingListItem> selectedItems;
+        public List<ListItem> selectedItems;
     }
 
-    public class CascadingListElement : GuiElement
+    public class CascadingListElement : GuiElement, ISelectableList
     {
         private readonly CairoFont font;
         private readonly int maxVisibleItemsPerList;
         private readonly TextDrawUtil util;
 
-        private Dictionary<string, List<CascadingListItem>> items;
+        private Dictionary<string, List<ListItem>> items;
         private ListItemSelection itemSelection;
         private CategorySelection categorySelection;
 
@@ -53,13 +91,13 @@
         protected int selectedIndex;
 
 
-        public event EventHandler<CascadingListItem> OnItemSelected;
-
-        public CascadingListItem SelectedItem => itemSelection?.selectedItem;
+        public event EventHandler<ListItem> OnItemSelected;
+        public ElementBounds ListBounds => Bounds;
+        public ListItem SelectedItem => itemSelection?.selectedItem;
 
         public CascadingListElement(ICoreClientAPI api, ElementBounds bounds, int maxVisibleItemsPerList = 5, CairoFont font = null) : base(api, bounds)
         {
-            items = new Dictionary<string, List<CascadingListItem>>();
+            items = new Dictionary<string, List<ListItem>>();
             bounds.CalcWorldBounds();
             this.maxVisibleItemsPerList = maxVisibleItemsPerList;
             if (font == null)
@@ -114,7 +152,7 @@
             RenderCategorySelection(ctx, surface);
         }
 
-        public void AddListItems(List<CascadingListItem> newItems)
+        public void AddListItems(List<ListItem> newItems)
         {
             foreach(var item in newItems)
             {
@@ -122,16 +160,16 @@
             }
         }
 
-        public void AddListItem(CascadingListItem item)
+        public void AddListItem(ListItem item)
         {
-            List<CascadingListItem> list = null;
+            List<ListItem> list = null;
             if (items.TryGetValue(item.Catagory, out list))
             {
                 list.Add(item);
             }
             else
             {
-                list = new List<CascadingListItem>();
+                list = new List<ListItem>();
                 list.Add(item);
 
                 items.Add(item.Catagory, list);
@@ -140,12 +178,12 @@
 
         public void AddListItem(string Category, string Name, dynamic Value)
         {
-            AddListItem(new CascadingListItem() { Catagory = Category, Name = Name, Value = Value } );
+            AddListItem(new ListItem() { Catagory = Category, Name = Name, Value = Value } );
         }
 
-        public void RemoveListItem(CascadingListItem item)
+        public void RemoveListItem(ListItem item)
         {
-            List<CascadingListItem> list = null;
+            List<ListItem> list = null;
             if (items.TryGetValue(item.Catagory, out list))
             {
                 list.Remove(item);
@@ -188,7 +226,7 @@
 
                     string[] keys = new string[items.Keys.Count];
                     items.Keys.CopyTo(keys, 0);
-                    List<CascadingListItem> list = null;
+                    List<ListItem> list = null;
 
                     var bounds = ElementBounds.Fixed(Bounds.fixedX + Bounds.fixedWidth, Bounds.fixedY + ((index - offsetScrollIndex) * yAdvance) - (yAdvance / 2.0), Bounds.fixedWidth, Bounds.fixedHeight);
                     Bounds.ParentBounds.WithChild(bounds);
@@ -423,7 +461,7 @@
             }
         }
 
-        private void RenderListItem(Context ctx, Surface surface, double x, double y, CascadingListItem item, ref int currentRendered)
+        private void RenderListItem(Context ctx, Surface surface, double x, double y, ListItem item, ref int currentRendered)
         {
             ctx.SetSourceRGBA(GuiStyle.DialogStrongBgColor[0], GuiStyle.DialogStrongBgColor[1], GuiStyle.DialogStrongBgColor[2], GuiStyle.DialogStrongBgColor[3]);
             RoundRectangle(ctx, x + 2, y + 2, categorySelection.Bounds.InnerWidth - 4, yAdvance - 4, 1);

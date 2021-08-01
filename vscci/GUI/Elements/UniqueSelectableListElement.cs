@@ -1,0 +1,226 @@
+﻿namespace VSCCI.GUI.Elements
+{
+    using Cairo;
+    using System;
+    using Vintagestory.API.Client;
+    using System.Collections.Generic;
+    using VSCCI.GUI.Interfaces;
+
+    public class UniqueSelectableListElement : GuiElement, ISelectableList
+    {
+        private readonly CairoFont font;
+        private readonly int maxVisibleItems;
+        private readonly TextDrawUtil util;
+
+        private List<ListItem> items;
+        private ListItemSelection itemSelection;
+
+        private double yAdvance;
+        private double yScrollOffset;
+
+        private int offsetScrollIndex;
+
+        protected int selectedIndex;
+
+        public event EventHandler<ListItem> OnItemSelected;
+
+        public ListItem SelectedItem => itemSelection?.selectedItem;
+
+        public ElementBounds ListBounds => Bounds;
+
+        public UniqueSelectableListElement(ICoreClientAPI api, ElementBounds bounds, int maxVisibleItems = 5, CairoFont font = null) : base(api, bounds)
+        {
+            items = new List<ListItem>();
+            bounds.CalcWorldBounds();
+            this.maxVisibleItems = maxVisibleItems;
+            if (font == null)
+            {
+                this.font = CairoFont.WhiteDetailText();
+            }
+            else
+            {
+                this.font = font;
+            }
+            util = new TextDrawUtil();
+            itemSelection = null;
+            yAdvance = Bounds.InnerHeight / maxVisibleItems;
+            yScrollOffset = 0;
+            offsetScrollIndex = 0;
+        }
+
+        public override void ComposeElements(Context ctxStatic, ImageSurface surface)
+        {
+            base.ComposeElements(ctxStatic, surface);
+        }
+
+        public override void RenderInteractiveElements(float deltaTime)
+        {
+            base.RenderInteractiveElements(deltaTime);
+        }
+
+        public void ResetSelections()
+        {
+            yScrollOffset = 0;
+
+            offsetScrollIndex = 0;
+
+            itemSelection = null;
+        }
+
+        public void OnRender(Context ctx, ImageSurface surface, float deltaTime)
+        {
+            RenderBackground(ctx, surface);
+            RenderList(ctx, surface);
+        }
+
+        public void AddListItems(List<ListItem> newItems)
+        {
+            foreach(var item in newItems)
+            {
+                AddListItem(item);
+            }
+        }
+
+        public void AddListItem(ListItem item)
+        {
+            if(items.Contains(item) == false)
+                items.Add(item);
+        }
+
+        public void AddListItem(string Category, string Name, dynamic Value)
+        {
+            AddListItem(new ListItem() { Catagory = Category, Name = Name, Value = Value } );
+        }
+
+        public void RemoveListItem(ListItem item)
+        {
+            items.Remove(item);
+        }
+
+        public void SetPosition(double x, double y)
+        {
+            Bounds.WithFixedPosition(x - Bounds.ParentBounds.absX, y - Bounds.ParentBounds.absY);
+            Bounds.CalcWorldBounds();
+        }
+
+        public override void OnMouseMove(ICoreClientAPI api, MouseEvent args)
+        {
+            base.OnMouseMove(api, args);
+
+            if (IsPositionInside(args.X, args.Y))
+            {
+                itemSelection = null;
+
+                int index = (int)Math.Floor(((args.Y - Bounds.absY) - yScrollOffset) / yAdvance);
+
+                if (index < 0) index = 0;
+
+                if (items.Count > index)
+                {
+                    if (itemSelection != null && itemSelection.index == index)
+                    {
+                        return;
+                    }
+
+                    var drawY = Bounds.drawY + (index * yAdvance);
+                    
+                    itemSelection = new ListItemSelection()
+                    {
+                        highlightDrawX = Bounds.drawX,
+                        highlightDrawY = drawY,
+                        index = index,
+                        selectedItem = items[index]
+                    };
+                }
+            }
+            else if(itemSelection != null)
+            {
+                itemSelection = null;
+            }
+        }
+
+        public override void OnMouseWheel(ICoreClientAPI api, MouseWheelEventArgs args)
+        {
+            base.OnMouseWheel(api, args);
+
+            if(itemSelection != null && maxVisibleItems < items.Count)
+            {
+                var indexDiff = (items.Count - maxVisibleItems);
+
+                yScrollOffset += args.delta * 2;
+                yScrollOffset = Math.Min(yScrollOffset, 0);
+                yScrollOffset = Math.Max(yScrollOffset, -(indexDiff * yAdvance));
+
+                offsetScrollIndex = (int)Math.Floor(Math.Abs(yScrollOffset) / yAdvance);
+            }
+            else if (itemSelection == null)
+            {
+                yScrollOffset = 0;
+            }
+        }
+
+        public override void OnMouseDownOnElement(ICoreClientAPI api, MouseEvent args)
+        {
+            base.OnMouseDownOnElement(api, args);
+
+            if(itemSelection != null)
+            {
+                OnItemSelected?.Invoke(this, itemSelection.selectedItem);
+            }
+        }
+
+        private void RenderBackground(Context ctx, Surface surface)
+        {
+            ctx.SetSourceRGBA(GuiStyle.DialogDefaultBgColor[0], GuiStyle.DialogDefaultBgColor[1], GuiStyle.DialogDefaultBgColor[2], GuiStyle.DialogDefaultBgColor[3]);
+            ElementRoundRectangle(ctx, Bounds, true);
+            ctx.Fill();
+
+            EmbossRoundRectangleElement(ctx, Bounds);
+        }
+
+        private void RenderList(Context ctx, Surface surface)
+        {
+            var x = Bounds.drawX + Bounds.InnerWidth / 2.0;
+            var y = Bounds.drawY + (yAdvance / 2.0) + yScrollOffset;
+
+            var cellDrawY = Bounds.drawY + yScrollOffset;
+
+            var currentRendered = 0;
+
+            var lclIndex = offsetScrollIndex;
+
+            foreach (var item in items)
+            {
+                if (lclIndex > 0)
+                {
+                    lclIndex--;
+                    cellDrawY += yAdvance;
+                    y += yAdvance;
+
+                    continue;
+                }
+
+                ctx.SetSourceRGBA(GuiStyle.DialogStrongBgColor[0], GuiStyle.DialogStrongBgColor[1], GuiStyle.DialogStrongBgColor[2], GuiStyle.DialogStrongBgColor[3]);
+                RoundRectangle(ctx, Bounds.drawX + 2, cellDrawY + 2, Bounds.InnerWidth - 4, yAdvance - 4, 1);
+                ctx.Fill();
+
+                cellDrawY += yAdvance;
+
+                ctx.Save();
+                font.SetupContext(ctx);
+                var extents = ctx.TextExtents(item.Name);
+                util.DrawTextLine(ctx, font, item.Name, x - (extents.Width / 2.0), y - (extents.Height / 2.2));
+                ctx.Restore();
+
+                var currentSize = (Bounds.drawX + Bounds.InnerWidth) - (x - (extents.Width / 2.2) + extents.Width);
+
+                y += yAdvance;
+                currentRendered++;
+                if(currentRendered >= maxVisibleItems)
+                {
+                    break;
+                }
+            }
+        }
+    }
+}
