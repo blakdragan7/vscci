@@ -63,6 +63,7 @@
   </ItemGroup>
   <PropertyGroup>
     <NoWarn>NU1605</NoWarn>
+    <RootNamespace>VSCCI</RootNamespace>
   </PropertyGroup>
   <!-- Template includes: -->
   <ItemGroup Label="VSModTemplate Includes">
