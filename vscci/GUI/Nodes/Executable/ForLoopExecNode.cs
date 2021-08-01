@@ -6,10 +6,10 @@
 
     [NodeData("Flow", "For Loop")]
     [InputPin(typeof(Exec), 0)]
-    [InputPin(typeof(int), 1)]
-    [InputPin(typeof(int), 2)]
+    [InputPin(typeof(NumberType), 1)]
+    [InputPin(typeof(NumberType), 2)]
     [OutputPin(typeof(Exec), 0)]
-    [OutputPin(typeof(int), 1)]
+    [OutputPin(typeof(NumberType), 1)]
     [OutputPin(typeof(Exec), 2)]
     public class ForLoopExecNode : ExecutableScriptNode
     {
@@ -20,17 +20,17 @@
 
         public ForLoopExecNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("Forloop", "Iteration", api, nodeTransform, bounds)
         {
-            inputs.Add(new ScriptNodeInput(this, "Start Index", typeof(int)));
-            inputs.Add(new ScriptNodeInput(this, "End Index", typeof(int)));
+            inputs.Add(new ScriptNodeInput(this, "Start Index", typeof(NumberType)));
+            inputs.Add(new ScriptNodeInput(this, "End Index", typeof(NumberType)));
 
-            outputs.Add(new ScriptNodeOutput(this, "Index", typeof(int)));
+            outputs.Add(new ScriptNodeOutput(this, "Index", typeof(NumberType)));
             outputs.Add(new ExecOutputNode(this, "Done"));
         }
 
         protected override void OnExecute()
         {
-            int start = inputs[START_INPUT_INDEX].GetInput();
-            int end = inputs[END_INPUT_INDEX].GetInput();
+            int start = (int)inputs[START_INPUT_INDEX].GetInput();
+            int end = (int)inputs[END_INPUT_INDEX].GetInput();
 
             for(var i=start;i<end;i++)
             {

@@ -1,6 +1,7 @@
 namespace VSCCI.GUI.Elements
 {
     using Cairo;
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
@@ -8,6 +9,7 @@ namespace VSCCI.GUI.Elements
     using Vintagestory.API.Common;
 
     using VSCCI.GUI.Nodes;
+    using VSCCI.GUI.Nodes.Attributes;
 
     public class EventScriptingArea : GuiElement, IByteSerializable
     {
@@ -385,61 +387,14 @@ namespace VSCCI.GUI.Elements
 
         private void PopulateNodeSelectionList()
         {
-            nodeSelectList.AddListItem("Event", "Bit Event", typeof(BitsEventExecNode));
-            nodeSelectList.AddListItem("Event", "Donation Event", typeof(DonationEventExecNode));
-            nodeSelectList.AddListItem("Event", "Follow Event", typeof(FollowEventExecNode));
-            nodeSelectList.AddListItem("Event", "Host Event", typeof(HostEventExecNode));
-            nodeSelectList.AddListItem("Event", "Point Redemption", typeof(PointRedemptionEventExecNode));
-            nodeSelectList.AddListItem("Event", "Raid Event", typeof(RaidEventExecNode));
-            nodeSelectList.AddListItem("Event", "Sub Event", typeof(SubEventExecNode));
-            nodeSelectList.AddListItem("Event", "Super Chat", typeof(SuperChatEventExecNode));
-
-            nodeSelectList.AddListItem("Basic", "Add Int", typeof(AddPureNode<int>));
-            nodeSelectList.AddListItem("Basic", "Add Float", typeof(AddPureNode<float>));
-            nodeSelectList.AddListItem("Basic", "Add Double", typeof(AddPureNode<double>));
-            nodeSelectList.AddListItem("Basic", "Append String", typeof(AddPureNode<string>));
-
-            nodeSelectList.AddListItem("Basic", "Multiply Int", typeof(MultiplyPureNode<int>));
-            nodeSelectList.AddListItem("Basic", "Multiply Float", typeof(MultiplyPureNode<float>));
-            nodeSelectList.AddListItem("Basic", "Multiply Double", typeof(MultiplyPureNode<double>));
-
-            nodeSelectList.AddListItem("Basic", "Devide Int", typeof(DevidePureNode<int>));
-            nodeSelectList.AddListItem("Basic", "Devide Float", typeof(DevidePureNode<float>));
-            nodeSelectList.AddListItem("Basic", "Devide Double", typeof(DevidePureNode<double>));
-
-            nodeSelectList.AddListItem("Basic", "Subtract Int", typeof(SubtractPureNode<int>));
-            nodeSelectList.AddListItem("Basic", "Subtract Float", typeof(SubtractPureNode<float>));
-            nodeSelectList.AddListItem("Basic", "Subtract Double", typeof(SubtractPureNode<double>));
-
-            nodeSelectList.AddListItem("Flow", "For Loop", typeof(ForLoopExecNode));
-            nodeSelectList.AddListItem("Flow", "If Then", typeof(IfThenExecNode));
-            nodeSelectList.AddListItem("Flow", "Delay", typeof(DelayExecutableNode));
-
-            nodeSelectList.AddListItem("Actions", "Show Chat Local", typeof(PrintToChatLocalExecNode));
-            nodeSelectList.AddListItem("Actions", "Run Server Command", typeof(ServerSideCommandExecutionNode));
-
-            nodeSelectList.AddListItem("Comparisons", ">= (float)", typeof(GreaterOrEqualPureNode<float>));
-            nodeSelectList.AddListItem("Comparisons", ">= (double)", typeof(GreaterOrEqualPureNode<double>));
-            nodeSelectList.AddListItem("Comparisons", ">= (int)", typeof(GreaterOrEqualPureNode<int>));
-
-            nodeSelectList.AddListItem("Comparisons", "<= (float)", typeof(LessOrEqualPureNode<float>));
-            nodeSelectList.AddListItem("Comparisons", "<= (double)", typeof(LessOrEqualPureNode<double>));
-            nodeSelectList.AddListItem("Comparisons", "<= (int)", typeof(LessOrEqualPureNode<int>));
-
-            nodeSelectList.AddListItem("Comparisons", "> (float)", typeof(GreaterThenPureNode<float>));
-            nodeSelectList.AddListItem("Comparisons", "> (double)", typeof(GreaterThenPureNode<double>));
-            nodeSelectList.AddListItem("Comparisons", "> (int)", typeof(GreaterThenPureNode<int>));
-
-            nodeSelectList.AddListItem("Comparisons", "< (float)", typeof(LessThenPureNode<float>));
-            nodeSelectList.AddListItem("Comparisons", "< (double)", typeof(LessThenPureNode<double>));
-            nodeSelectList.AddListItem("Comparisons", "< (int)", typeof(LessThenPureNode<int>));
-
-            nodeSelectList.AddListItem("Constants", "Constant Int", typeof(ConstantIntScriptNode));
-            nodeSelectList.AddListItem("Constants", "Constant String", typeof(ConstantStringScriptNode));
-            nodeSelectList.AddListItem("Constants", "Constant Float", typeof(ConstantFloatScriptNode));
-            nodeSelectList.AddListItem("Constants", "Constant Double", typeof(ConstantDoubleScriptNode));
-
-            nodeSelectList.AddListItem("Conversions", "To String", typeof(ToStringPureNode));
+            foreach (Type type in typeof(ScriptNode).Assembly.GetTypes())
+            {
+                var attrs = (NodeDataAttribute[])type.GetCustomAttributes(typeof(NodeDataAttribute), true);
+                if (attrs.Length > 0)
+                {
+                    nodeSelectList.AddListItem(attrs[0].Category, attrs[0].ListName, type);
+                }
+            }
         }
 
         private void DrawBackground(Context ctx)

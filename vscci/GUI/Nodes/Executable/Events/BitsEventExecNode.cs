@@ -9,7 +9,7 @@
 
     [NodeData("Events", "Bit Event")]
     [OutputPin(typeof(Exec), 0)]
-    [InputPin(typeof(int), 1)]
+    [InputPin(typeof(NumberType), 1)]
     [InputPin(typeof(string), 2)]
     [InputPin(typeof(string), 3)]
     class BitsEventExecNode : EventBasedExecutableScriptNode
@@ -24,7 +24,7 @@
 
         public BitsEventExecNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("Bit Event", api, nodeTransform, bounds)
         {
-            outputs.Add(new ScriptNodeOutput(this, "Amount", typeof(int)));
+            outputs.Add(new ScriptNodeOutput(this, "Amount", typeof(NumberType)));
             outputs.Add(new ScriptNodeOutput(this, "From", typeof(string)));
             outputs.Add(new ScriptNodeOutput(this, "Message", typeof(string)));
         }

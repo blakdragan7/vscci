@@ -12,9 +12,144 @@ namespace VSCCI.GUI.Nodes
 
     }
 
-    public class DynamicType // stuv for any connection type allowed
+    public class DynamicType // stub for any connection type allowed
     {
 
+    }
+
+    public class NumberType
+    {
+        int intVal;
+        double doubleVal;
+
+        public bool isInteger => Math.Abs(doubleVal % 1) <= (double.Epsilon * 100);
+
+        public static implicit operator int(NumberType n)
+        {
+            return n.intVal;
+        }
+
+        public static implicit operator double(NumberType n)
+        {
+            return n.doubleVal;
+        }
+
+        public static implicit operator NumberType(int i)
+        {
+            return new NumberType() { intVal = i, doubleVal = (double)i };
+        }
+
+        public static implicit operator NumberType(double d)
+        {
+            return new NumberType() { intVal = (int)d, doubleVal = d };
+        }
+
+        public static NumberType operator +(NumberType lhs, NumberType rhs) =>
+            new NumberType(lhs.intVal + rhs.intVal, lhs.doubleVal + rhs.doubleVal);
+
+        public static NumberType operator -(NumberType lhs, NumberType rhs) =>
+            new NumberType(lhs.intVal - rhs.intVal, lhs.doubleVal - rhs.doubleVal);
+
+        public static NumberType operator *(NumberType lhs, NumberType rhs)
+            => new NumberType(lhs.intVal * rhs.intVal, lhs.doubleVal * rhs.doubleVal);
+
+        public static NumberType operator /(NumberType lhs, NumberType rhs)
+        {
+            int i = rhs.intVal == 0 ? 0 : lhs.intVal / rhs.intVal;
+            double d = rhs.doubleVal == 0 ? 0 : lhs.doubleVal / rhs.doubleVal;
+
+            return new NumberType(i, d);
+        }
+
+        public static bool operator ==(NumberType lhs, NumberType rhs) =>
+            lhs.isInteger ? (lhs.intVal == rhs.intVal) : (rhs.doubleVal == lhs.doubleVal);
+
+        public static bool operator !=(NumberType lhs, NumberType rhs) =>
+            lhs.isInteger ? (lhs.intVal != rhs.intVal) : (rhs.doubleVal != lhs.doubleVal);
+
+        public static bool operator <=(NumberType lhs, NumberType rhs) =>
+            lhs.isInteger ? (lhs.intVal <= rhs.intVal) : (rhs.doubleVal <= lhs.doubleVal);
+
+        public static bool operator >=(NumberType lhs, NumberType rhs) =>
+            lhs.isInteger ? (lhs.intVal >= rhs.intVal) : (rhs.doubleVal >= lhs.doubleVal);
+
+        public static bool operator <(NumberType lhs, NumberType rhs) => 
+            lhs.isInteger ? (lhs.intVal < rhs.intVal) : (rhs.doubleVal < lhs.doubleVal);
+
+        public static bool operator >(NumberType lhs, NumberType rhs) =>
+            lhs.isInteger ? (lhs.intVal > rhs.intVal) : (rhs.doubleVal > lhs.doubleVal);
+
+        public NumberType()
+        {
+            intVal = 0;
+            doubleVal = 0;
+        }
+
+        public NumberType(int i)
+        {
+            intVal = i;
+            doubleVal = i;
+        }
+
+        public NumberType(double d)
+        {
+            intVal = (int)Math.Floor(d);
+            doubleVal = d;
+        }
+
+        public NumberType(int i, double d)
+        {
+            intVal = i;
+            doubleVal = d;
+        }
+
+        public dynamic GetValue()
+        {
+            return isInteger ? intVal : doubleVal;
+        }
+
+        public override string ToString()
+        {
+            return isInteger ? intVal.ToString() : doubleVal.ToString();
+        }
+
+        public static NumberType Parse(string value)
+        {
+            var nt = new NumberType();
+            try
+            {
+                nt.intVal = int.Parse(value);
+            }
+            catch (Exception)
+            {
+                // ignore erros
+                nt.intVal = 0;
+            }
+
+            try
+            {
+                nt.doubleVal = double.Parse(value);
+            }
+            catch (Exception)
+            {
+                // ignore erros
+                nt.doubleVal = 0;
+            }
+
+            return nt;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null) return false;
+            var o = obj as NumberType;
+            return o == null ? false : this == o;
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
     }
 
     public abstract class ScriptNodePinBase : IDisposable
@@ -203,17 +338,9 @@ namespace VSCCI.GUI.Nodes
             {
                 return new Color(1.0, 1.0, 1.0, 1.0);
             }
-            else if (type.IsAssignableFrom(typeof(int)))
+            else if (type.IsAssignableFrom(typeof(NumberType)))
             {
                 return new Color(0.0, 1.0, 0.0, 1.0);
-            }
-            else if (type.IsAssignableFrom(typeof(float)))
-            {
-                return new Color(0.1, 0.9, 0.1, 1.0);
-            }
-            else if (type.IsAssignableFrom(typeof(double)))
-            {
-                return new Color(0.0, 0.7, 0.7, 1.0);
             }
             else if (type.IsAssignableFrom(typeof(string)))
             {

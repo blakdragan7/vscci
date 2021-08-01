@@ -6,10 +6,10 @@
     using System;
     using VSCCI.GUI.Nodes.Attributes;
 
-    [NodeData("Constants", "Constant Int")]
-    [InputPin(typeof(int), 0)]
-    [OutputPin(typeof(int), 0)]
-    class ConstantIntScriptNode : ConstantTextInputScriptNode<int>
+    [NodeData("Constants", "Constant Number")]
+    [InputPin(typeof(NumberType), 0)]
+    [OutputPin(typeof(NumberType), 0)]
+    class ConstantNumberScriptNode : ConstantTextInputScriptNode<NumberType>
     {
         private static List<char> numbers = new List<char>()
         {
@@ -23,8 +23,9 @@
             '7',
             '8',
             '9',
+            '.'
         };
-        public ConstantIntScriptNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base(api, nodeTransform, bounds)
+        public ConstantNumberScriptNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base(api, nodeTransform, bounds)
         {
         }
 
@@ -33,15 +34,15 @@
             return numbers.Contains(key);
         }
 
-        protected override int ParseValue(string text)
+        protected override NumberType ParseValue(string text)
         {
             try
             {
-                return int.Parse(text);
+                return NumberType.Parse(text);
             }
             catch(Exception exc)
             {
-                api.Logger.Error("Error trying to parse value on Constant Int {0}", exc.Message);
+                api.Logger.Error("Error trying to parse text {0} on Constant NumberType {1}", text, exc.Message);
             }
 
             return 0;

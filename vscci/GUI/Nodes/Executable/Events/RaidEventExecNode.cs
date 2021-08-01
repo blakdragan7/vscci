@@ -10,7 +10,7 @@
     [NodeData("Events", "Raid Event")]
     [OutputPin(typeof(Exec), 0)]
     [InputPin(typeof(string), 1)]
-    [InputPin(typeof(int), 2)]
+    [InputPin(typeof(NumberType), 2)]
     class RaidEventExecNode : EventBasedExecutableScriptNode
     {
         public static int CHANNEL_OUTPUT_INDEX = 1;
@@ -22,7 +22,7 @@
         public RaidEventExecNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("Raid Event", api, nodeTransform, bounds)
         {
             outputs.Add(new ScriptNodeOutput(this, "Channel", typeof(string)));
-            outputs.Add(new ScriptNodeOutput(this, "Viewer Count", typeof(int)));
+            outputs.Add(new ScriptNodeOutput(this, "Viewer Count", typeof(NumberType)));
         }
 
         protected override void OnExecute()

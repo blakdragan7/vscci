@@ -4,12 +4,18 @@ namespace VSCCI.GUI.Nodes
     using Cairo;
     using System;
     using Vintagestory.API.Client;
-    class GreaterOrEqualPureNode<T> : ExecutableScriptNode where T : IComparable
+    using VSCCI.GUI.Nodes.Attributes;
+
+    [NodeData("Basic", ">=")]
+    [InputPin(typeof(NumberType), 0)]
+    [InputPin(typeof(NumberType), 1)]
+    [OutputPin(typeof(bool), 0)]
+    class GreaterOrEqualPureNode : ExecutableScriptNode
     {
         public GreaterOrEqualPureNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base(">=", api, nodeTransform, bounds, true)
         {
-            inputs.Add(new ScriptNodeInput(this, "First", typeof(T)));
-            inputs.Add(new ScriptNodeInput(this, "Second", typeof(T)));
+            inputs.Add(new ScriptNodeInput(this, "First", typeof(NumberType)));
+            inputs.Add(new ScriptNodeInput(this, "Second", typeof(NumberType)));
 
             outputs.Add(new ScriptNodeOutput(this, "Result", typeof(bool)));
 
@@ -18,8 +24,8 @@ namespace VSCCI.GUI.Nodes
 
         protected override void OnExecute()
         {
-            dynamic first = inputs[0].GetInput();
-            dynamic second = inputs[1].GetInput();
+            NumberType first = inputs[0].GetInput();
+            NumberType second = inputs[1].GetInput();
 
             outputs[0].Value = first >= second;
         }

@@ -10,7 +10,7 @@
     [NodeData("Events", "Donation Event")]
     [OutputPin(typeof(Exec), 0)]
     [InputPin(typeof(string), 1)]
-    [InputPin(typeof(int), 2)]
+    [InputPin(typeof(NumberType), 2)]
     [InputPin(typeof(string), 3)]
     class DonationEventExecNode : EventBasedExecutableScriptNode
     {
@@ -25,7 +25,7 @@
         public DonationEventExecNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("Donation Event", api, nodeTransform, bounds)
         {
             outputs.Add(new ScriptNodeOutput(this, "Who", typeof(string)));
-            outputs.Add(new ScriptNodeOutput(this, "Amount", typeof(int)));
+            outputs.Add(new ScriptNodeOutput(this, "Amount", typeof(NumberType)));
             outputs.Add(new ScriptNodeOutput(this, "Message", typeof(string)));
         }
 
