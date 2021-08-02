@@ -411,14 +411,17 @@
 
         private void RenderSearchText(Context ctx, Surface surface)
         {
-            if (searchText.Length > 0)
-            {
-                ctx.Save();
-                font.SetupContext(ctx);
-                var extents = ctx.TextExtents(searchText);
-                util.DrawTextLine(ctx, font, searchText, Bounds.drawX, Bounds.drawY - extents.Height);
-                ctx.Restore();
-            }
+            // render search text background
+
+            ctx.SetSourceRGBA(0.1568627450980392, 0.0980392156862745, 0.0509803921568627, 0.4);
+            RoundRectangle(ctx, Bounds.drawX, Bounds.drawY - 20, Bounds.OuterWidth, 15, 1);
+            ctx.Fill();
+
+            ctx.Save();
+            font.SetupContext(ctx);
+            var extents = ctx.TextExtents(searchText);
+            util.DrawTextLine(ctx, font, searchText, Bounds.drawX, Bounds.drawY - 20);
+            ctx.Restore();
         }
 
         private void RenderSearchedList(Context ctx, Surface surface)
