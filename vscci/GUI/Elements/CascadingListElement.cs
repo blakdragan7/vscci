@@ -77,6 +77,7 @@
         private readonly int maxVisibleItemsPerList;
         private readonly TextDrawUtil util;
 
+        private List<ListItem> searchedItems;
         private Dictionary<string, List<ListItem>> items;
         private ListItemSelection itemSelection;
         private CategorySelection categorySelection;
@@ -98,6 +99,7 @@
 
         public CascadingListElement(ICoreClientAPI api, ElementBounds bounds, int maxVisibleItemsPerList = 5, CairoFont font = null) : base(api, bounds)
         {
+            searchedItems = new List<ListItem>();
             items = new Dictionary<string, List<ListItem>>();
             bounds.CalcWorldBounds();
             this.maxVisibleItemsPerList = maxVisibleItemsPerList;
@@ -146,14 +148,22 @@
 
             itemSelection = null;
             searchText = "";
+            searchedItems.Clear();
         }
 
         public void OnRender(Context ctx, ImageSurface surface, float deltaTime)
         {
             RenderBackground(ctx, surface);
-            RenderSearchText(ctx, surface);
-            RenderCategories(ctx, surface);
-            RenderCategorySelection(ctx, surface);
+            if (searchText.Length > 0)
+            {
+                RenderSearchedList(ctx, surface);
+                RenderSearchText(ctx, surface);
+            }
+            else
+            {
+                RenderCategories(ctx, surface);
+                RenderCategorySelection(ctx, surface);
+            }
         }
 
         public void AddListItems(List<ListItem> newItems)
@@ -210,57 +220,78 @@
 
             if (IsPositionInside(args.X, args.Y))
             {
-                itemSelection = null;
-
                 int index = (int)Math.Floor(((args.Y - Bounds.absY) - yScrollOffset) / yAdvance);
 
                 if (index < 0) index = 0;
 
-                if (items.Keys.Count > index)
+                if (searchText.Length > 0)
                 {
-                    if (categorySelection != null && categorySelection.index == index)
+                    if (categorySelection != null)
                     {
-                        return;
+                        Bounds.ParentBounds.ChildBounds.Remove(categorySelection.Bounds);
+                        categorySelection = null;
                     }
 
-                    ySubScrollOffset = 0;
-                    offsetSubScrollIndex = 0;
-
-                    var drawY = Bounds.drawY + (index * yAdvance);
-
-                    string[] keys = new string[items.Keys.Count];
-                    items.Keys.CopyTo(keys, 0);
-                    List<ListItem> list = null;
-
-                    var bounds = ElementBounds.Fixed(Bounds.fixedX + Bounds.fixedWidth, Bounds.fixedY + ((index - offsetScrollIndex) * yAdvance) - (yAdvance / 2.0), Bounds.fixedWidth, Bounds.fixedHeight);
-                    Bounds.ParentBounds.WithChild(bounds);
-                    bounds.CalcWorldBounds();
-
-                    if (items.TryGetValue(keys[index], out list))
+                    if (searchedItems.Count > index)
                     {
-                        categorySelection = new CategorySelection()
+                        ySubScrollOffset = 0;
+                        offsetSubScrollIndex = 0;
+
+                        var drawY = Bounds.drawY + (index * yAdvance);
+
+                        itemSelection = new ListItemSelection()
                         {
                             highlightDrawX = Bounds.drawX,
                             highlightDrawY = drawY,
                             index = index,
-                            Bounds = bounds,
-                            selectedItems = list
+                            selectedItem = searchedItems[index]
                         };
                     }
                 }
-                else if (categorySelection != null)
+                else
                 {
-                    Bounds.ParentBounds.ChildBounds.Remove(categorySelection.Bounds);
-                    categorySelection = null;
+                    if (items.Keys.Count > index)
+                    {
+                        itemSelection = null;
+                        ySubScrollOffset = 0;
+                        offsetSubScrollIndex = 0;
+
+                        var drawY = Bounds.drawY + (index * yAdvance);
+
+                        string[] keys = new string[items.Keys.Count];
+                        items.Keys.CopyTo(keys, 0);
+                        List<ListItem> list = null;
+
+                        var bounds = ElementBounds.Fixed(Bounds.fixedX + Bounds.fixedWidth, Bounds.fixedY + ((index - offsetScrollIndex) * yAdvance) - (yAdvance / 2.0), Bounds.fixedWidth, Bounds.fixedHeight);
+                        Bounds.ParentBounds.WithChild(bounds);
+                        bounds.CalcWorldBounds();
+
+                        if (items.TryGetValue(keys[index], out list))
+                        {
+                            categorySelection = new CategorySelection()
+                            {
+                                highlightDrawX = Bounds.drawX,
+                                highlightDrawY = drawY,
+                                index = index,
+                                Bounds = bounds,
+                                selectedItems = list
+                            };
+                        }
+                    }
+                    else if (categorySelection != null)
+                    {
+                        Bounds.ParentBounds.ChildBounds.Remove(categorySelection.Bounds);
+                        categorySelection = null;
+                    }
                 }
             }
-            else if(categorySelection != null && categorySelection.Bounds.PointInside(args.X, args.Y))
+            else if (categorySelection != null && categorySelection.Bounds.PointInside(args.X, args.Y))
             {
                 int index = (int)Math.Floor((args.Y - categorySelection.Bounds.absY - ySubScrollOffset) / yAdvance);
 
                 if (index < 0) index = 0;
 
-                if(itemSelection != null && itemSelection.index == index)
+                if (itemSelection != null && itemSelection.index == index)
                 {
                     return;
                 }
@@ -282,10 +313,14 @@
                     itemSelection = null;
                 }
             }
-            else if(categorySelection != null)
+            else if (categorySelection != null)
             {
                 Bounds.ParentBounds.ChildBounds.Remove(categorySelection.Bounds);
                 categorySelection = null;
+                itemSelection = null;
+            }
+            else if (itemSelection != null)
+            {
                 itemSelection = null;
             }
         }
@@ -339,7 +374,12 @@
             if (args.KeyCode == (int)GlKeys.BackSpace)
             {
                 if (searchText.Length > 0)
+                {
                     searchText = searchText.Remove(searchText.Length - 1);
+
+                    if (searchText.Length == 0)
+                        searchedItems.Clear();
+                }
             }
         }
 
@@ -347,6 +387,17 @@
         {
             base.OnKeyPress(api, args);
             searchText += args.KeyChar;
+            searchedItems.Clear();
+            itemSelection = null;
+            categorySelection = null;
+            foreach(var listPair in items)
+            {
+                foreach(var item in listPair.Value)
+                {
+                    if(item.Name.ToLower().Contains(searchText.ToLower()))
+                        searchedItems.Add(item);
+                }
+            }
         }
 
         private void RenderBackground(Context ctx, Surface surface)
@@ -367,6 +418,61 @@
                 var extents = ctx.TextExtents(searchText);
                 util.DrawTextLine(ctx, font, searchText, Bounds.drawX, Bounds.drawY - extents.Height);
                 ctx.Restore();
+            }
+        }
+
+        private void RenderSearchedList(Context ctx, Surface surface)
+        {
+            var x = Bounds.drawX + Bounds.InnerWidth / 2.0;
+            var y = Bounds.drawY + (yAdvance / 2.0) + yScrollOffset;
+
+            var cellDrawY = Bounds.drawY + yScrollOffset;
+
+            var currentRendered = 0;
+
+            var lclIndex = offsetScrollIndex;
+
+            foreach (var item in searchedItems)
+            {
+                if (lclIndex > 0)
+                {
+                    lclIndex--;
+                    cellDrawY += yAdvance;
+                    y += yAdvance;
+
+                    continue;
+                }
+
+                ctx.SetSourceRGBA(GuiStyle.DialogStrongBgColor[0], GuiStyle.DialogStrongBgColor[1], GuiStyle.DialogStrongBgColor[2], GuiStyle.DialogStrongBgColor[3]);
+                RoundRectangle(ctx, Bounds.drawX + 2, cellDrawY + 2, Bounds.InnerWidth - 4, yAdvance - 4, 1);
+                ctx.Fill();
+
+                cellDrawY += yAdvance;
+
+                ctx.Save();
+                font.SetupContext(ctx);
+                var extents = ctx.TextExtents(item.Name);
+                util.DrawTextLine(ctx, font, item.Name, x - (extents.Width / 2.0), y - (extents.Height / 2.2));
+                ctx.Restore();
+
+                y += yAdvance;
+                currentRendered++;
+                if (currentRendered >= maxVisibleItemsPerList)
+                {
+                    break;
+                }
+            }
+
+            if (itemSelection != null)
+            {
+                x = itemSelection.highlightDrawX;
+                y = itemSelection.highlightDrawY + yScrollOffset;
+
+                // draw selection highlight
+
+                ctx.SetSourceRGBA(1.0, 1.0, 1.0, 0.4);
+                RoundRectangle(ctx, x, y, Bounds.InnerWidth, yAdvance, 1);
+                ctx.Fill();
             }
         }
 
