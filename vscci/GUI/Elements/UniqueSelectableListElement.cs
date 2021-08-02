@@ -13,6 +13,7 @@
         private readonly TextDrawUtil util;
 
         private List<ListItem> items;
+        private List<ListItem> searchedItems;
         private ListItemSelection itemSelection;
 
         private double yAdvance;
@@ -21,6 +22,8 @@
         private int offsetScrollIndex;
 
         protected int selectedIndex;
+
+        protected string searchText;
 
         public event EventHandler<ListItem> OnItemSelected;
 
@@ -31,6 +34,8 @@
         public UniqueSelectableListElement(ICoreClientAPI api, ElementBounds bounds, int maxVisibleItems = 5, CairoFont font = null) : base(api, bounds)
         {
             items = new List<ListItem>();
+            searchedItems = new List<ListItem>();
+
             bounds.CalcWorldBounds();
             this.maxVisibleItems = maxVisibleItems;
             if (font == null)
@@ -46,6 +51,8 @@
             yAdvance = Bounds.InnerHeight / maxVisibleItems;
             yScrollOffset = 0;
             offsetScrollIndex = 0;
+
+            searchText = "";
         }
 
         public override void ComposeElements(Context ctxStatic, ImageSurface surface)
@@ -65,12 +72,22 @@
             offsetScrollIndex = 0;
 
             itemSelection = null;
+            searchText = "";
+            searchedItems.Clear();
         }
 
         public void OnRender(Context ctx, ImageSurface surface, float deltaTime)
         {
             RenderBackground(ctx, surface);
-            RenderList(ctx, surface);
+            if (searchText.Length > 0)
+            {
+                RenderSearchedList(ctx, surface);
+                RenderSearchText(ctx, surface);
+            }
+            else
+            {
+                RenderList(ctx, surface);
+            }
         }
 
         public void AddListItems(List<ListItem> newItems)
@@ -109,31 +126,42 @@
 
             if (IsPositionInside(args.X, args.Y))
             {
-                itemSelection = null;
-
                 int index = (int)Math.Floor(((args.Y - Bounds.absY) - yScrollOffset) / yAdvance);
 
                 if (index < 0) index = 0;
 
-                if (items.Count > index)
+                if (searchText.Length > 0)
                 {
-                    if (itemSelection != null && itemSelection.index == index)
+                    if (searchedItems.Count > index)
                     {
-                        return;
-                    }
+                        var drawY = Bounds.drawY + (index * yAdvance);
 
-                    var drawY = Bounds.drawY + (index * yAdvance);
-                    
-                    itemSelection = new ListItemSelection()
+                        itemSelection = new ListItemSelection()
+                        {
+                            highlightDrawX = Bounds.drawX,
+                            highlightDrawY = drawY,
+                            index = index,
+                            selectedItem = searchedItems[index]
+                        };
+                    }
+                }
+                else
+                {
+                    if (items.Count > index)
                     {
-                        highlightDrawX = Bounds.drawX,
-                        highlightDrawY = drawY,
-                        index = index,
-                        selectedItem = items[index]
-                    };
+                        var drawY = Bounds.drawY + (index * yAdvance);
+
+                        itemSelection = new ListItemSelection()
+                        {
+                            highlightDrawX = Bounds.drawX,
+                            highlightDrawY = drawY,
+                            index = index,
+                            selectedItem = items[index]
+                        };
+                    }
                 }
             }
-            else if(itemSelection != null)
+            else
             {
                 itemSelection = null;
             }
@@ -169,6 +197,31 @@
             }
         }
 
+        public override void OnKeyDown(ICoreClientAPI api, KeyEvent args)
+        {
+            base.OnKeyDown(api, args);
+            if(args.KeyCode == (int)GlKeys.BackSpace)
+            {
+                if(searchText.Length > 0)
+                    searchText = searchText.Remove(searchText.Length - 1);
+            }
+        }
+
+        public override void OnKeyPress(ICoreClientAPI api, KeyEvent args)
+        {
+            base.OnKeyPress(api, args);
+            searchText += args.KeyChar;
+            searchedItems.Clear();
+
+            foreach(var item in items)
+            {
+                if(item.Name.ToLower().Contains(searchText.ToLower()))
+                {
+                    searchedItems.Add(item);
+                }
+            }
+        }
+
         private void RenderBackground(Context ctx, Surface surface)
         {
             ctx.SetSourceRGBA(GuiStyle.DialogDefaultBgColor[0], GuiStyle.DialogDefaultBgColor[1], GuiStyle.DialogDefaultBgColor[2], GuiStyle.DialogDefaultBgColor[3]);
@@ -176,6 +229,15 @@
             ctx.Fill();
 
             EmbossRoundRectangleElement(ctx, Bounds);
+        }
+
+        private void RenderSearchText(Context ctx, Surface surface)
+        {
+            ctx.Save();
+            font.SetupContext(ctx);
+            var extents = ctx.TextExtents(searchText);
+            util.DrawTextLine(ctx, font, searchText, Bounds.drawX, Bounds.drawY - extents.Height - extents.YBearing);
+            ctx.Restore();
         }
 
         private void RenderList(Context ctx, Surface surface)
@@ -212,14 +274,79 @@
                 util.DrawTextLine(ctx, font, item.Name, x - (extents.Width / 2.0), y - (extents.Height / 2.2));
                 ctx.Restore();
 
-                var currentSize = (Bounds.drawX + Bounds.InnerWidth) - (x - (extents.Width / 2.2) + extents.Width);
-
                 y += yAdvance;
                 currentRendered++;
                 if(currentRendered >= maxVisibleItems)
                 {
                     break;
                 }
+            }
+
+            if(itemSelection != null)
+            {
+                x = itemSelection.highlightDrawX;
+                y = itemSelection.highlightDrawY + yScrollOffset;
+
+                // draw selection highlight
+
+                ctx.SetSourceRGBA(1.0, 1.0, 1.0, 0.4);
+                RoundRectangle(ctx, x, y, Bounds.InnerWidth, yAdvance, 1);
+                ctx.Fill();
+            }
+        }
+
+        private void RenderSearchedList(Context ctx, Surface surface)
+        {
+            var x = Bounds.drawX + Bounds.InnerWidth / 2.0;
+            var y = Bounds.drawY + (yAdvance / 2.0) + yScrollOffset;
+
+            var cellDrawY = Bounds.drawY + yScrollOffset;
+
+            var currentRendered = 0;
+
+            var lclIndex = offsetScrollIndex;
+
+            foreach (var item in searchedItems)
+            {
+                if (lclIndex > 0)
+                {
+                    lclIndex--;
+                    cellDrawY += yAdvance;
+                    y += yAdvance;
+
+                    continue;
+                }
+
+                ctx.SetSourceRGBA(GuiStyle.DialogStrongBgColor[0], GuiStyle.DialogStrongBgColor[1], GuiStyle.DialogStrongBgColor[2], GuiStyle.DialogStrongBgColor[3]);
+                RoundRectangle(ctx, Bounds.drawX + 2, cellDrawY + 2, Bounds.InnerWidth - 4, yAdvance - 4, 1);
+                ctx.Fill();
+
+                cellDrawY += yAdvance;
+
+                ctx.Save();
+                font.SetupContext(ctx);
+                var extents = ctx.TextExtents(item.Name);
+                util.DrawTextLine(ctx, font, item.Name, x - (extents.Width / 2.0), y - (extents.Height / 2.2));
+                ctx.Restore();
+
+                y += yAdvance;
+                currentRendered++;
+                if (currentRendered >= maxVisibleItems)
+                {
+                    break;
+                }
+            }
+
+            if (itemSelection != null)
+            {
+                x = itemSelection.highlightDrawX;
+                y = itemSelection.highlightDrawY + yScrollOffset;
+
+                // draw selection highlight
+
+                ctx.SetSourceRGBA(1.0, 1.0, 1.0, 0.4);
+                RoundRectangle(ctx, x, y, Bounds.InnerWidth, yAdvance, 1);
+                ctx.Fill();
             }
         }
     }

@@ -12,6 +12,48 @@ namespace VSCCI.GUI.Elements
     using VSCCI.GUI.Nodes;
     using VSCCI.GUI.Nodes.Attributes;
 
+    internal class ContextValue
+    {
+        public Type NodeType;
+        public int Index;
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null) return false;
+            var o = obj as ContextValue;
+            if (o is null) return false;
+            return NodeType.Equals(o.NodeType);
+        }
+
+        public override int GetHashCode()
+        {
+            return NodeType.GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            return $"{{{NodeType}, {Index}}}";
+        }
+
+        public static bool operator ==(ContextValue lhs, ContextValue rhs)
+        {
+            if (lhs is null)
+                return rhs is null;
+            if (rhs is null)
+                return lhs is null;
+
+            return lhs.NodeType == rhs.NodeType;
+        }
+
+        public static bool operator !=(ContextValue lhs, ContextValue rhs)
+        {
+            if (lhs is null && rhs is null) return false;
+            else if (lhs is null || rhs is null) return true;
+
+            return lhs.NodeType != rhs.NodeType;
+        }
+    }
+
     public class EventScriptingArea : GuiElement, IByteSerializable
     {
         private readonly Dictionary<Type, ISelectableList> contextSelectionLists;
@@ -19,6 +61,7 @@ namespace VSCCI.GUI.Elements
 
         private int texId;
         private ScriptNode selectedNode;
+        private ScriptNodeOutput contextOutput;
 
         private int lastMouseX;
         private int lastMouseY;
@@ -38,6 +81,7 @@ namespace VSCCI.GUI.Elements
 
             activeList = null;
             selectedNode = null;
+            contextOutput = null;
             allNodes = new List<ScriptNode>();
 
             nodeTransform = new Matrix();
@@ -300,6 +344,10 @@ namespace VSCCI.GUI.Elements
                     activeList = null;
                 }
             }
+            else
+            {
+                contextOutput = null;
+            }
 
             if (isPanningView)
             {
@@ -333,10 +381,12 @@ namespace VSCCI.GUI.Elements
                             activeList.SetPosition(args.X - (activeList.ListBounds.OuterWidth / 4.0), 
                                 args.Y - (activeList.ListBounds.OuterHeight / 4.0));
                             selectListActiveDownEvent = args;
+                            contextOutput = selectedNode.ActiveConnection.Output;
                         }
                         else
                         {
                             activeList = null;
+                            contextOutput = null;
                         }
                     }
                 }
@@ -363,6 +413,12 @@ namespace VSCCI.GUI.Elements
                     args.Handled = true;
                 }
             }
+            if (activeList != null)
+            {
+                activeList.OnKeyDown(api, args);
+                args.Handled = true;
+            }
+
         }
 
         public override void OnKeyPress(ICoreClientAPI api, KeyEvent args)
@@ -372,6 +428,11 @@ namespace VSCCI.GUI.Elements
             if (selectedNode != null)
             {
                 selectedNode.OnKeyPress(api, args);
+                args.Handled = true;
+            }
+            if (activeList != null)
+            {
+                activeList.OnKeyPress(api, args);
                 args.Handled = true;
             }
         }
@@ -386,15 +447,58 @@ namespace VSCCI.GUI.Elements
                 inverseNodeTransform.TransformPoint(ref spawnX, ref spawnY);
 
                 var bounds = MakeBoundsAtPoint((int)spawnX, (int)spawnY);
-                var type = item.Value as System.Type;
+                var type = item.Value as Type;
                 if (type != null && type.IsSubclassOf(typeof(ScriptNode)))
                 {
                     api.Event.EnqueueMainThreadTask(() =>
                     {
-                        ScriptNode newNode = (ScriptNode)System.Activator.CreateInstance(type, api, nodeTransform, bounds);
+                        ScriptNode newNode = (ScriptNode)Activator.CreateInstance(type, api, nodeTransform, bounds);
 
                         allNodes.Add(newNode);
                     }, "Spawn Node");
+
+                    if (activeList != null)
+                    {
+                        activeList.ResetSelections();
+                        activeList = null;
+                    }
+                }
+            }
+        }
+
+        private void NewNodeSelectedContext(object sender, ListItem item)
+        {
+            if (item != null)
+            {
+                double spawnX = selectListActiveDownEvent.X - Bounds.absX;
+                double spawnY = selectListActiveDownEvent.Y - Bounds.absY;
+
+                inverseNodeTransform.TransformPoint(ref spawnX, ref spawnY);
+
+                var bounds = MakeBoundsAtPoint((int)spawnX, (int)spawnY);
+                var val = item.Value as ContextValue;
+                var nodeType = val.NodeType;
+                var pinIndex = val.Index;
+                if (nodeType != null && nodeType.IsSubclassOf(typeof(ScriptNode)))
+                {
+                    api.Event.EnqueueMainThreadTask(() =>
+                    {
+                        ScriptNode newNode = (ScriptNode)Activator.CreateInstance(nodeType, api, nodeTransform, bounds);
+                        if(contextOutput != null)
+                        {
+                            var input = newNode.InputForIndex(pinIndex);
+                            if(input != null)
+                                ScriptNodePinConnection.CreateConnectionBetween(contextOutput, input);
+                        }
+
+                        allNodes.Add(newNode);
+                    }, "Spawn Node");
+
+                    if (activeList != null)
+                    {
+                        activeList.ResetSelections();
+                        activeList = null;
+                    }
                 }
             }
         }
@@ -414,10 +518,28 @@ namespace VSCCI.GUI.Elements
 
                     foreach(var input in inputs)
                     {
+                        // add dynamic to everything
+                        if(input.PinType == typeof(DynamicType))
+                        {
+                            foreach (var contextListPair in contextSelectionLists)
+                            {
+                                contextListPair.Value.AddListItem(attrs[0].Category, attrs[0].ListName, new ContextValue()
+                                {
+                                    Index = input.Index,
+                                    NodeType = type
+                                });
+                            }
+                            continue;
+                        }
+
                         ISelectableList contextList = null;
                         if(contextSelectionLists.TryGetValue(input.PinType, out contextList))
                         {
-                            contextList.AddListItem(attrs[0].Category, attrs[0].ListName, type);
+                            contextList.AddListItem(attrs[0].Category, attrs[0].ListName, new ContextValue() 
+                            {
+                                Index = input.Index,
+                                NodeType = type
+                            });
                         }
                         else
                         {
@@ -426,7 +548,13 @@ namespace VSCCI.GUI.Elements
                             b.CalcWorldBounds();
 
                             contextList = new UniqueSelectableListElement(api, b);
-                            contextList.AddListItem(attrs[0].Category, attrs[0].ListName, type);
+                            contextList.AddListItem(attrs[0].Category, attrs[0].ListName, new ContextValue()
+                            {
+                                Index = input.Index,
+                                NodeType = type
+                            });
+
+                            contextList.OnItemSelected += NewNodeSelectedContext;
 
                             contextSelectionLists.Add(input.PinType, contextList);
                         }

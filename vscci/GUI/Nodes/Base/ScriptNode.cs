@@ -198,6 +198,22 @@ namespace VSCCI.GUI.Nodes
             return null;
         }
 
+        public ScriptNodeOutput OutputForIndex(int index)
+        {
+            if (index >= outputs.Count)
+                return null;
+
+            return outputs[index];
+        }
+
+        public ScriptNodeInput InputForIndex(int index)
+        {
+            if (index >= inputs.Count)
+                return null;
+
+            return inputs[index];
+        }
+
         public void ReadPinsFromBytes(BinaryReader reader)
         {
             foreach (var pin in inputs)

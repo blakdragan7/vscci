@@ -25,6 +25,8 @@
         void OnMouseWheel(ICoreClientAPI api, MouseWheelEventArgs args);
         void OnMouseDownOnElement(ICoreClientAPI api, MouseEvent args);
         void OnMouseUpOnElement(ICoreClientAPI api, MouseEvent args);
+        void OnKeyDown(ICoreClientAPI api, KeyEvent args);
+        void OnKeyPress(ICoreClientAPI api, KeyEvent args);
         bool IsPositionInside(int x, int y);
     }
 }

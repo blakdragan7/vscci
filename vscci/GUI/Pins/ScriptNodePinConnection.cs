@@ -11,6 +11,8 @@ namespace VSCCI.GUI.Nodes
         private ScriptNodeInput input;
         public PointD DrawPoint;
 
+        private bool skipFirstRender;
+
         public bool IsConnected => input != null && output != null;
         public bool HasAnyConnection => input != null || output != null;
 
@@ -27,8 +29,9 @@ namespace VSCCI.GUI.Nodes
             this.input = null;
             this.output = output;
             this.output.Connect(this);
-            this.DrawPoint = new PointD();
+            this.DrawPoint = output.PinConnectionPoint;
             this.ConnectionType = output.PinType;
+            this.skipFirstRender = true;
         }
 
         public ScriptNodePinConnection(ScriptNodeInput input)
@@ -36,8 +39,9 @@ namespace VSCCI.GUI.Nodes
             this.output = null;
             this.input = input;
             this.input.Connect(this);
-            this.DrawPoint = new PointD();
+            this.DrawPoint = input.PinConnectionPoint;
             this.ConnectionType = input.PinType;
+            this.skipFirstRender = true;
         }
 
         public static ScriptNodePinConnection CreateConnectionBetween(ScriptNodeOutput output, ScriptNodeInput input)
@@ -102,6 +106,14 @@ namespace VSCCI.GUI.Nodes
 
         public void Render(Context ctx, ImageSurface surface)
         {
+
+            // hack to fix visual glitch with connections rendering before nodes are composed
+            if (skipFirstRender)
+            {
+                skipFirstRender = false;
+                return;
+            }
+
             ctx.Save();
 
 

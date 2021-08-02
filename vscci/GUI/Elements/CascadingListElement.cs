@@ -90,6 +90,7 @@
 
         protected int selectedIndex;
 
+        protected string searchText;
 
         public event EventHandler<ListItem> OnItemSelected;
         public ElementBounds ListBounds => Bounds;
@@ -116,6 +117,7 @@
             ySubScrollOffset = 0;
             offsetScrollIndex = 0;
             offsetSubScrollIndex = 0;
+            searchText = "";
         }
 
         public override void ComposeElements(Context ctxStatic, ImageSurface surface)
@@ -143,11 +145,13 @@
             }
 
             itemSelection = null;
+            searchText = "";
         }
 
         public void OnRender(Context ctx, ImageSurface surface, float deltaTime)
         {
             RenderBackground(ctx, surface);
+            RenderSearchText(ctx, surface);
             RenderCategories(ctx, surface);
             RenderCategorySelection(ctx, surface);
         }
@@ -329,6 +333,22 @@
             }
         }
 
+        public override void OnKeyDown(ICoreClientAPI api, KeyEvent args)
+        {
+            base.OnKeyDown(api, args);
+            if (args.KeyCode == (int)GlKeys.BackSpace)
+            {
+                if (searchText.Length > 0)
+                    searchText = searchText.Remove(searchText.Length - 1);
+            }
+        }
+
+        public override void OnKeyPress(ICoreClientAPI api, KeyEvent args)
+        {
+            base.OnKeyPress(api, args);
+            searchText += args.KeyChar;
+        }
+
         private void RenderBackground(Context ctx, Surface surface)
         {
             ctx.SetSourceRGBA(GuiStyle.DialogDefaultBgColor[0], GuiStyle.DialogDefaultBgColor[1], GuiStyle.DialogDefaultBgColor[2], GuiStyle.DialogDefaultBgColor[3]);
@@ -336,6 +356,18 @@
             ctx.Fill();
 
             EmbossRoundRectangleElement(ctx, Bounds);
+        }
+
+        private void RenderSearchText(Context ctx, Surface surface)
+        {
+            if (searchText.Length > 0)
+            {
+                ctx.Save();
+                font.SetupContext(ctx);
+                var extents = ctx.TextExtents(searchText);
+                util.DrawTextLine(ctx, font, searchText, Bounds.drawX, Bounds.drawY - extents.Height);
+                ctx.Restore();
+            }
         }
 
         private void RenderCategories(Context ctx, Surface surface)
