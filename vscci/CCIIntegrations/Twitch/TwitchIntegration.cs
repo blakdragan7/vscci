@@ -16,7 +16,7 @@ namespace VSCCI.CCIIntegrations.Twitch
     using VSCCI.Data;
     using System.Collections.Generic;
 
-    internal class TwitchIntegration : CCIInterface
+    internal class TwitchIntegration : CCIIntegrationBase
     {
         private string twitchUsername;
         private string twitchID;

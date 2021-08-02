@@ -9,7 +9,7 @@ namespace VSCCI.CCIIntegrations.Streamlabs
     using VSCCI.Data;
     using VSCCI.CCINetworkTypes;
 
-    public class SteamLabsIntegration : CCIInterface
+    public class SteamLabsIntegration : CCIIntegrationBase
     {
         private readonly ICoreClientAPI api;
         private Socket socket;
