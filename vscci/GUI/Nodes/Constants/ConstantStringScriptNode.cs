@@ -22,5 +22,10 @@
         {
             return text;
         }
+
+        public override string GetNodeDescription()
+        {
+            return "This represents a constant string";
+        }
     }
 }

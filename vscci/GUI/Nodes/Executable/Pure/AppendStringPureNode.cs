@@ -25,10 +25,15 @@
 
         protected override void OnExecute()
         {
-            NumberType first = inputs[INPUT_ONE_INDEX].GetInput();
-            NumberType second = inputs[INPUT_TWO_INDEX].GetInput();
+            Number first = inputs[INPUT_ONE_INDEX].GetInput();
+            Number second = inputs[INPUT_TWO_INDEX].GetInput();
 
             outputs[OUTPUT_INDEX].Value = first + second;
+        }
+
+        public override string GetNodeDescription()
+        {
+            return "This will add \"Second\" to the end of \"First\"";
         }
     }
 }

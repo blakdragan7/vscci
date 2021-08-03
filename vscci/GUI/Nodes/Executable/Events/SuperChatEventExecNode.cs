@@ -11,7 +11,7 @@
     [OutputPin(typeof(Exec), 0)]
     [OutputPin(typeof(string), 1)]
     [OutputPin(typeof(string), 2)]
-    [OutputPin(typeof(NumberType), 3)]
+    [OutputPin(typeof(Number), 3)]
 
     class SuperChatEventExecNode : EventBasedExecutableScriptNode
     {
@@ -27,7 +27,7 @@
         {
             outputs.Add(new ScriptNodeOutput(this, "From", typeof(string)));
             outputs.Add(new ScriptNodeOutput(this, "Message", typeof(string)));
-            outputs.Add(new ScriptNodeOutput(this, "Amount", typeof(NumberType)));
+            outputs.Add(new ScriptNodeOutput(this, "Amount", typeof(Number)));
         }
 
         protected override void OnExecute()

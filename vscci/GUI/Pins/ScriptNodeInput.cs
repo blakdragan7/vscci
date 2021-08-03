@@ -73,8 +73,19 @@ namespace VSCCI.GUI.Nodes
             pinSelectBounds = ElementBounds.Fixed(colx, coly + (extents.Height / 2.0), extents.Height, extents.Height);
             owner.Bounds.ParentBounds.WithChild(pinSelectBounds);
             pinSelectBounds.CalcWorldBounds();
+
+            if (hoverBounds != null)
+            {
+                owner.Bounds.ParentBounds.ChildBounds.Remove(hoverBounds);
+            }
+
+            hoverBounds = ElementBounds.Fixed(colx, coly, extents.Width, extents.Height);
+            owner.Bounds.ParentBounds.WithChild(hoverBounds);
+            hoverBounds.CalcWorldBounds();
+
             pinConnectionPoint.X = X + (pinSelectBounds.OuterWidth / 2.0);
             pinConnectionPoint.Y = Y + (pinSelectBounds.OuterHeight / 2.0);
+
             isDirty = false;
         }
 

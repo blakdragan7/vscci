@@ -35,5 +35,10 @@
                 outputs[0].Value = 0;
             }
         }
+
+        public override string GetNodeDescription()
+        {
+            return "This will convert any value to a String";
+        }
     }
 }

@@ -13,7 +13,7 @@
 
     [InputPin(typeof(Exec), 0)]
     [OutputPin(typeof(Exec), 0)]
-    public class ServerSideExecutableNode<T> : ExecutableScriptNode where T : ServerSideExecutable
+    public abstract class ServerSideExecutableNode<T> : ExecutableScriptNode where T : ServerSideExecutable
     {
         protected string data;
         public ServerSideExecutableNode(string title, ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base(title, api, nodeTransform, bounds, false)

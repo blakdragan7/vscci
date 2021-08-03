@@ -34,5 +34,10 @@
 
             base.OnExecute();
         }
+
+        public override string GetNodeDescription()
+        {
+            return "This Executes a command Server side. Only thise with \"All-Allowed\" Event persmissions can use this node";
+        }
     }
 }

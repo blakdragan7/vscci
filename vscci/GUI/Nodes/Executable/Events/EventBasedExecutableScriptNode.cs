@@ -22,5 +22,10 @@
         }
 
         public abstract void OnEvent(string eventName, IAttribute data);
+
+        public override string GetNodeDescription()
+        {
+            return "This represents an event that came from some form of Streaming service, such as twitch, youtube or streamlabs.";
+        }
     }
 }

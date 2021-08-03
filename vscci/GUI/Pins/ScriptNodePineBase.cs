@@ -17,51 +17,51 @@ namespace VSCCI.GUI.Nodes
 
     }
 
-    public class NumberType
+    public class Number
     {
         int intVal;
         double doubleVal;
 
         public bool isInteger => Math.Abs(doubleVal % 1) <= (double.Epsilon * 100);
 
-        public static implicit operator int(NumberType n)
+        public static implicit operator int(Number n)
         {
             return n.intVal;
         }
 
-        public static implicit operator double(NumberType n)
+        public static implicit operator double(Number n)
         {
             return n.doubleVal;
         }
 
-        public static implicit operator NumberType(int i)
+        public static implicit operator Number(int i)
         {
-            return new NumberType() { intVal = i, doubleVal = (double)i };
+            return new Number() { intVal = i, doubleVal = (double)i };
         }
 
-        public static implicit operator NumberType(double d)
+        public static implicit operator Number(double d)
         {
-            return new NumberType() { intVal = (int)d, doubleVal = d };
+            return new Number() { intVal = (int)d, doubleVal = d };
         }
 
-        public static NumberType operator +(NumberType lhs, NumberType rhs) =>
-            new NumberType(lhs.intVal + rhs.intVal, lhs.doubleVal + rhs.doubleVal);
+        public static Number operator +(Number lhs, Number rhs) =>
+            new Number(lhs.intVal + rhs.intVal, lhs.doubleVal + rhs.doubleVal);
 
-        public static NumberType operator -(NumberType lhs, NumberType rhs) =>
-            new NumberType(lhs.intVal - rhs.intVal, lhs.doubleVal - rhs.doubleVal);
+        public static Number operator -(Number lhs, Number rhs) =>
+            new Number(lhs.intVal - rhs.intVal, lhs.doubleVal - rhs.doubleVal);
 
-        public static NumberType operator *(NumberType lhs, NumberType rhs)
-            => new NumberType(lhs.intVal * rhs.intVal, lhs.doubleVal * rhs.doubleVal);
+        public static Number operator *(Number lhs, Number rhs)
+            => new Number(lhs.intVal * rhs.intVal, lhs.doubleVal * rhs.doubleVal);
 
-        public static NumberType operator /(NumberType lhs, NumberType rhs)
+        public static Number operator /(Number lhs, Number rhs)
         {
             int i = rhs.intVal == 0 ? 0 : lhs.intVal / rhs.intVal;
             double d = rhs.doubleVal == 0 ? 0 : lhs.doubleVal / rhs.doubleVal;
 
-            return new NumberType(i, d);
+            return new Number(i, d);
         }
 
-        public static bool operator ==(NumberType lhs, NumberType rhs)
+        public static bool operator ==(Number lhs, Number rhs)
         {
             if (lhs is null)
                 return rhs is null;
@@ -71,44 +71,44 @@ namespace VSCCI.GUI.Nodes
             return lhs.isInteger ? (lhs.intVal == rhs.intVal) : (rhs.doubleVal == lhs.doubleVal);
         }
 
-        public static bool operator !=(NumberType lhs, NumberType rhs)
+        public static bool operator !=(Number lhs, Number rhs)
         {
             if (lhs is null && rhs is null) return false;
             else if (lhs is null || rhs is null) return true;
 
             return lhs.isInteger ? (lhs.intVal != rhs.intVal) : (rhs.doubleVal != lhs.doubleVal);
         }
-        public static bool operator <=(NumberType lhs, NumberType rhs) =>
+        public static bool operator <=(Number lhs, Number rhs) =>
             lhs.isInteger ? (lhs.intVal <= rhs.intVal) : (rhs.doubleVal <= lhs.doubleVal);
 
-        public static bool operator >=(NumberType lhs, NumberType rhs) =>
+        public static bool operator >=(Number lhs, Number rhs) =>
             lhs.isInteger ? (lhs.intVal >= rhs.intVal) : (rhs.doubleVal >= lhs.doubleVal);
 
-        public static bool operator <(NumberType lhs, NumberType rhs) => 
+        public static bool operator <(Number lhs, Number rhs) => 
             lhs.isInteger ? (lhs.intVal < rhs.intVal) : (rhs.doubleVal < lhs.doubleVal);
 
-        public static bool operator >(NumberType lhs, NumberType rhs) =>
+        public static bool operator >(Number lhs, Number rhs) =>
             lhs.isInteger ? (lhs.intVal > rhs.intVal) : (rhs.doubleVal > lhs.doubleVal);
 
-        public NumberType()
+        public Number()
         {
             intVal = 0;
             doubleVal = 0;
         }
 
-        public NumberType(int i)
+        public Number(int i)
         {
             intVal = i;
             doubleVal = i;
         }
 
-        public NumberType(double d)
+        public Number(double d)
         {
             intVal = (int)Math.Floor(d);
             doubleVal = d;
         }
 
-        public NumberType(int i, double d)
+        public Number(int i, double d)
         {
             intVal = i;
             doubleVal = d;
@@ -124,9 +124,9 @@ namespace VSCCI.GUI.Nodes
             return isInteger ? intVal.ToString() : doubleVal.ToString();
         }
 
-        public static NumberType Parse(string value)
+        public static Number Parse(string value)
         {
-            var nt = new NumberType();
+            var nt = new Number();
             try
             {
                 nt.intVal = int.Parse(value);
@@ -153,7 +153,7 @@ namespace VSCCI.GUI.Nodes
         public override bool Equals(object obj)
         {
             if (obj == null) return false;
-            var o = obj as NumberType;
+            var o = obj as Number;
             return o is null ? false : this == o;
         }
 
@@ -170,6 +170,7 @@ namespace VSCCI.GUI.Nodes
         protected TextExtents extents;
         protected bool hasConnection;
         protected ElementBounds pinSelectBounds;
+        protected ElementBounds hoverBounds;
         protected PointD pinConnectionPoint;
         protected Color color;
 
@@ -225,7 +226,6 @@ namespace VSCCI.GUI.Nodes
             this.connections = new List<ScriptNodePinConnection>();
             this.pinConnectionPoint = new PointD();
             this.allowsConnections = true;
-
             this.Guid = Guid.NewGuid();
         }
         /*
@@ -351,7 +351,7 @@ namespace VSCCI.GUI.Nodes
             {
                 return new Color(1.0, 1.0, 1.0, 1.0);
             }
-            else if (type.IsAssignableFrom(typeof(NumberType)))
+            else if (type.IsAssignableFrom(typeof(Number)))
             {
                 return new Color(0.0, 1.0, 0.0, 1.0);
             }
@@ -383,7 +383,14 @@ namespace VSCCI.GUI.Nodes
 
         public virtual bool PointIsWithinSelectionBounds(double x, double y)
         {
+            if (isDirty) return false;
             return pinSelectBounds.PointInside(x, y);
+        }
+
+        public virtual bool PointIsWithinHoverBounds(double x, double y)
+        {
+            if (isDirty) return false;
+            return hoverBounds.PointInside(x, y);
         }
 
         public ScriptNodePinConnection TopConnection()
@@ -392,6 +399,24 @@ namespace VSCCI.GUI.Nodes
                 return connections[connections.Count - 1];
 
             return null;
+        }
+
+        public virtual string GetHoverText()
+        {
+            string typeString;
+            if (pinValueType == typeof(DynamicType))
+            {
+                typeString = "Any";
+            }
+            else if (pinValueType == typeof(Exec))
+            {
+                typeString = "Execution";
+            }
+            else
+            {
+                typeString = pinValueType.Name;
+            }
+            return "This pin excepts " + typeString + " Pin Connections"; 
         }
 
         public virtual bool OnMouseDown(ICoreClientAPI api, double x, double y, EnumMouseButton button)

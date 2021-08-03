@@ -30,5 +30,10 @@
                 }
             }
         }
+
+        public override string GetNodeDescription()
+        {
+            return "If \"condition\" is true, the \"True\" path is executed, Otherwise the \"False\" path is executed.";
+        }
     }
 }

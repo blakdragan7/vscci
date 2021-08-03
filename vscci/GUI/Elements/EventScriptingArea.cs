@@ -92,6 +92,9 @@ namespace VSCCI.GUI.Elements
             var nodeSelectList = new CascadingListElement(api, b);
             nodeSelectList.OnItemSelected += NewNodeSelected;
 
+            b = ElementBounds.Fixed(200, 200, 300, 150);
+            bounds.WithChild(b);
+
             contextSelectionLists = new Dictionary<Type, ISelectableList>()
             {
                 { typeof(DynamicType), nodeSelectList }
@@ -316,14 +319,17 @@ namespace VSCCI.GUI.Elements
                     node.MarkDirty();
                 }
             }
-            else if (selectedNode != null)
+            else
             {
                 double transformedX = args.X;
                 double transformedY = args.Y;
 
                 inverseNodeTransform.TransformPoint(ref transformedX, ref transformedY);
 
-                selectedNode.MouseMove(args.X, args.Y, transformedX, transformedY, args.X - lastMouseX, args.Y - lastMouseY);
+                foreach (var node in allNodes)
+                {
+                    node.MouseMove(args.X, args.Y, transformedX, transformedY, args.X - lastMouseX, args.Y - lastMouseY);
+                }
             }
 
             lastMouseX = args.X;

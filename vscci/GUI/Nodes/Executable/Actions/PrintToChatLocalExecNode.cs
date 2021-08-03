@@ -27,5 +27,10 @@
 
             ExecuteNextNode();
         }
+
+        public override string GetNodeDescription()
+        {
+            return "This Prints to the local chat. Only the current player will see the chat message";
+        }
     }
 }

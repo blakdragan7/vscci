@@ -6,15 +6,15 @@
     using VSCCI.GUI.Nodes.Attributes;
 
     [NodeData("Basic", ">")]
-    [InputPin(typeof(NumberType), 0)]
-    [InputPin(typeof(NumberType), 1)]
+    [InputPin(typeof(Number), 0)]
+    [InputPin(typeof(Number), 1)]
     [OutputPin(typeof(bool), 0)]
     class GreaterThenPureNode : ExecutableScriptNode
     {
         public GreaterThenPureNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base(">", api, nodeTransform, bounds, true)
         {
-            inputs.Add(new ScriptNodeInput(this, "First", typeof(NumberType)));
-            inputs.Add(new ScriptNodeInput(this, "Second", typeof(NumberType)));
+            inputs.Add(new ScriptNodeInput(this, "First", typeof(Number)));
+            inputs.Add(new ScriptNodeInput(this, "Second", typeof(Number)));
 
             outputs.Add(new ScriptNodeOutput(this, "Result", typeof(bool)));
 
@@ -23,10 +23,15 @@
 
         protected override void OnExecute()
         {
-            NumberType first = inputs[0].GetInput();
-            NumberType second = inputs[1].GetInput();
+            Number first = inputs[0].GetInput();
+            Number second = inputs[1].GetInput();
 
             outputs[0].Value = first > second;
+        }
+
+        public override string GetNodeDescription()
+        {
+            return "This will set \"Result\" to true if \"First\" is greater then \"Second\"";
         }
     }
 }

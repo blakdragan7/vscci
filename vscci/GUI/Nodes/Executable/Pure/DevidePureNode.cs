@@ -5,9 +5,9 @@
     using VSCCI.GUI.Nodes.Attributes;
 
     [NodeData("Basic", "/")]
-    [InputPin(typeof(NumberType), 0)]
-    [InputPin(typeof(NumberType), 1)]
-    [OutputPin(typeof(NumberType), 0)]
+    [InputPin(typeof(Number), 0)]
+    [InputPin(typeof(Number), 1)]
+    [OutputPin(typeof(Number), 0)]
     public class DevidePureNode : ExecutableScriptNode
     {
         public static int INPUT_ONE_INDEX = 0;
@@ -15,20 +15,25 @@
         public static int OUTPUT_INDEX = 0;
         public DevidePureNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("/", api, nodeTransform, bounds, true)
         {
-            inputs.Add(new ScriptNodeInput(this, "Top", typeof(NumberType)));
-            inputs.Add(new ScriptNodeInput(this, "Bottom", typeof(NumberType)));
+            inputs.Add(new ScriptNodeInput(this, "Top", typeof(Number)));
+            inputs.Add(new ScriptNodeInput(this, "Bottom", typeof(Number)));
 
-            outputs.Add(new ScriptNodeOutput(this, "Result", typeof(NumberType)));
+            outputs.Add(new ScriptNodeOutput(this, "Result", typeof(Number)));
 
             shouldAutoExecuteNext = false;
         }
 
         protected override void OnExecute()
         {
-            NumberType first = inputs[INPUT_ONE_INDEX].GetInput();
-            NumberType second = inputs[INPUT_TWO_INDEX].GetInput();
+            Number first = inputs[INPUT_ONE_INDEX].GetInput();
+            Number second = inputs[INPUT_TWO_INDEX].GetInput();
 
             outputs[OUTPUT_INDEX].Value = first / second;
+        }
+
+        public override string GetNodeDescription()
+        {
+            return "This Devides \"First\" by \"Second\"";
         }
     }
 }

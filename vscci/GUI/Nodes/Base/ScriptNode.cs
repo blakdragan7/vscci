@@ -1,12 +1,13 @@
 namespace VSCCI.GUI.Nodes
 {
     using Cairo;
-    using Vintagestory.API.Client;
-    using System.Collections.Generic;
-    using VSCCI.Data;
-    using Vintagestory.API.Common;
     using System;
+    using System.Collections.Generic;
     using System.IO;
+    using Vintagestory.API.Client;
+    using Vintagestory.API.Common;
+    using VSCCI.Data;
+    using VSCCI.GUI.Elements;
 
     public enum ScriptNodeState
     {
@@ -15,6 +16,13 @@ namespace VSCCI.GUI.Nodes
         Selected,
         PinSelected,
         None
+    }
+
+    public enum HoverState
+    {
+        NotHovered,
+        PendingHover,
+        Hovered
     }
 
     public abstract class ScriptNode : GuiElement
@@ -29,6 +37,8 @@ namespace VSCCI.GUI.Nodes
 
         protected ScriptNodeState state;
 
+        protected string hoverText;
+
         private readonly TextDrawUtil textUtil;
         private readonly CairoFont font;
 
@@ -36,9 +46,15 @@ namespace VSCCI.GUI.Nodes
         private ScriptNodePinConnection activeConnection;
 
         private string title;
+        private HoverState hoverState;
+        private long hoverID;
+
+        private object hoveredObject;
 
         private TextExtents titleExtents;
 
+
+        private HoverTextElement hoverTextElement;
         public bool IsDirty => isDirty;
 
         public Guid Guid;
@@ -54,6 +70,7 @@ namespace VSCCI.GUI.Nodes
 
             state = ScriptNodeState.None;
 
+            hoveredObject = null;
             activePin = null;
             activeConnection = null;
             title = _title;
@@ -62,12 +79,17 @@ namespace VSCCI.GUI.Nodes
             outputs = new List<ScriptNodeOutput>();
 
             isDirty = true;
+            hoverState = HoverState.NotHovered;
             titleExtents = new TextExtents();
 
             cachedRenderX = 0;
             cachedRenderY = 0;
 
             Guid = Guid.NewGuid();
+
+            var b = ElementBounds.Fixed(0, 0, 1, 1);
+            bounds.ParentBounds.WithChild(b);
+            hoverTextElement = new HoverTextElement(api, b);
         }
 
         public virtual void OnRender(Context ctx, ImageSurface surface, float deltaTime)
@@ -143,6 +165,11 @@ namespace VSCCI.GUI.Nodes
                 ctx.SetSourceRGBA(1.0, 1.0, 1.0, 0.3);
                 RoundRectangle(ctx, x, y, Bounds.OuterWidth, Bounds.OuterHeight, 1);
                 ctx.Fill();
+            }
+
+            if(hoverState == HoverState.Hovered)
+            {
+                hoverTextElement.OnRender(ctx, surface, deltaTime);
             }
 
             activeConnection?.Render(ctx, surface);
@@ -251,6 +278,13 @@ namespace VSCCI.GUI.Nodes
 
             var x = cachedRenderX;
             var y = cachedRenderY;
+
+            Bounds.ParentBounds.ChildBounds.Remove(hoverTextElement.Bounds);
+            hoverTextElement.Bounds = ElementBounds.Fixed(x + 20, y - 20, 300, 150);
+            Bounds.ParentBounds.WithChild(hoverTextElement.Bounds);
+            hoverTextElement.Bounds.CalcWorldBounds();
+
+            hoverTextElement.SetHoverText(GetNodeDescription());
 
             var colX = Bounds.drawX;
             var colY = Bounds.drawY;
@@ -472,16 +506,95 @@ namespace VSCCI.GUI.Nodes
 
                 state = ScriptNodeState.Dragged;
                 isDirty = true;
+
+                if (hoverState == HoverState.PendingHover) api.Event.UnregisterCallback(hoverID);
+                hoverState = HoverState.NotHovered;
             }
-            else if (activeConnection != null)
+            else if (activeConnection != null && api.Input.MouseButton.Left)
             {
                 activeConnection.DrawPoint.X += deltaX;
                 activeConnection.DrawPoint.Y += deltaY;
+
+                if (hoverState == HoverState.PendingHover) api.Event.UnregisterCallback(hoverID);
+                hoverState = HoverState.NotHovered;
             }
             else if (activePin != null)
             {
                 activePin.OnMouseMove(api, x, y, deltaX, deltaY);
+
+                if (hoverState == HoverState.PendingHover) api.Event.UnregisterCallback(hoverID);
+                hoverState = HoverState.NotHovered;
             }
+            else // nothing else is happening so we prepare for hover text
+            {
+                if (IsPositionInside((int)x, (int)y))
+                {
+                    if (hoverState == HoverState.NotHovered)
+                    {
+                        hoverState = HoverState.PendingHover;
+                        hoverID = api.Event.RegisterCallback(SetHovered, Constants.HOVER_DELAY);
+                        hoverTextElement.SetPosition((origx + Constants.HOVER_DISPLAY_X_OFFSET) - Bounds.ParentBounds.absX, (origy + Constants.HOVER_DISPLAY_Y_OFFSET) - Bounds.ParentBounds.absY);
+                        DetermineCorrectHoverText(x, y);
+                    }
+                    else if(hoverState == HoverState.Hovered)
+                    {
+                        hoverTextElement.SetPosition((origx + Constants.HOVER_DISPLAY_X_OFFSET) - Bounds.ParentBounds.absX, (origy + Constants.HOVER_DISPLAY_Y_OFFSET) - Bounds.ParentBounds.absY);
+
+                        DetermineCorrectHoverText(x, y);
+                    }
+                }
+                else
+                {
+                    if (hoverState == HoverState.PendingHover) api.Event.UnregisterCallback(hoverID);
+                    hoverState = HoverState.NotHovered;
+                }
+            }
+        }
+
+        private void DetermineCorrectHoverText(double x, double y)
+        {
+            foreach (var input in inputs)
+            {
+                if (input.PointIsWithinHoverBounds(x, y))
+                {
+                    if(hoveredObject == input)
+                    {
+                        return;
+                    }
+
+                    hoveredObject = input;
+                    hoverTextElement.SetHoverText(input.GetHoverText());
+                    return;
+                }
+            }
+
+            foreach (var output in outputs)
+            {
+                if (output.PointIsWithinHoverBounds(x, y))
+                {
+                    if (hoveredObject == output)
+                    {
+                        return;
+                    }
+
+                    hoveredObject = output;
+                    hoverTextElement.SetHoverText(output.GetHoverText());
+                    return;
+                }
+            }
+
+            if (hoveredObject == this)
+            {
+                return;
+            }
+
+            hoveredObject = this;
+            hoverTextElement.SetHoverText(GetNodeDescription());
+        }
+
+        private void SetHovered(float _)
+        {
+            hoverState = HoverState.Hovered;
         }
 
         public override void OnKeyDown(ICoreClientAPI api, KeyEvent args)
@@ -555,5 +668,7 @@ namespace VSCCI.GUI.Nodes
 
             return false;
         }
+
+        public abstract string GetNodeDescription();
     }
 }

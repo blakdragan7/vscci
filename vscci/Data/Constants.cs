@@ -12,6 +12,9 @@ namespace VSCCI.Data
         public const double NODE_SCIPRT_DRAW_PADDING        = 10.0;
         public const double NODE_SCIPRT_TEXT_PADDING        = 10.0;
         public const double NODE_SCIPRT_PIN_PADDING         = 2.0;
+        public const int    HOVER_DELAY                     = 1000;
+        public const int    HOVER_DISPLAY_X_OFFSET            = 15;
+        public const int    HOVER_DISPLAY_Y_OFFSET            = 10;
 
         // GUI EVENT CONSTANTS
         public const string CCI_EVENT_SERVER_UPDATE         = "ccisu";

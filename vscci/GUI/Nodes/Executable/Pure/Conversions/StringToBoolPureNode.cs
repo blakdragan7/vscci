@@ -26,8 +26,13 @@
             catch(Exception exc)
             {
                 api.Logger.Error("Error Converting {0} to Bool {1}", input, exc.Message);
-                outputs[0].Value = 0;
+                outputs[0].Value = false;
             }
+        }
+
+        public override string GetNodeDescription()
+        {
+            return "If \"String\" is True or true then \"Bool\" will be true. Otherwise it will be false";
         }
     }
 }

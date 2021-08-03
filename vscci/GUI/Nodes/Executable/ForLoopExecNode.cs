@@ -6,10 +6,10 @@
 
     [NodeData("Flow", "For Loop")]
     [InputPin(typeof(Exec), 0)]
-    [InputPin(typeof(NumberType), 1)]
-    [InputPin(typeof(NumberType), 2)]
+    [InputPin(typeof(Number), 1)]
+    [InputPin(typeof(Number), 2)]
     [OutputPin(typeof(Exec), 0)]
-    [OutputPin(typeof(NumberType), 1)]
+    [OutputPin(typeof(Number), 1)]
     [OutputPin(typeof(Exec), 2)]
     public class ForLoopExecNode : ExecutableScriptNode
     {
@@ -20,10 +20,10 @@
 
         public ForLoopExecNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("Forloop", "Iteration", api, nodeTransform, bounds)
         {
-            inputs.Add(new ScriptNodeInput(this, "Start Index", typeof(NumberType)));
-            inputs.Add(new ScriptNodeInput(this, "End Index", typeof(NumberType)));
+            inputs.Add(new ScriptNodeInput(this, "Start Index", typeof(Number)));
+            inputs.Add(new ScriptNodeInput(this, "End Index", typeof(Number)));
 
-            outputs.Add(new ScriptNodeOutput(this, "Index", typeof(NumberType)));
+            outputs.Add(new ScriptNodeOutput(this, "Index", typeof(Number)));
             outputs.Add(new ExecOutputNode(this, "Done"));
         }
 
@@ -40,6 +40,11 @@
             }
 
             nextExecutableIndex = LOOP_END_INDEX;
+        }
+
+        public override string GetNodeDescription()
+        {
+            return "This executes the \"iteration\" path exactly one time per real number between \"Start Index\" and \"End Index\". Setting \"Index\" to the current number.";
         }
     }
 }

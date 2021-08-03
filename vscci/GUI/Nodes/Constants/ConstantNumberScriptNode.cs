@@ -7,9 +7,9 @@
     using VSCCI.GUI.Nodes.Attributes;
 
     [NodeData("Constants", "Constant Number")]
-    [InputPin(typeof(NumberType), 0)]
-    [OutputPin(typeof(NumberType), 0)]
-    class ConstantNumberScriptNode : ConstantTextInputScriptNode<NumberType>
+    [InputPin(typeof(Number), 0)]
+    [OutputPin(typeof(Number), 0)]
+    class ConstantNumberScriptNode : ConstantTextInputScriptNode<Number>
     {
         private static List<char> numbers = new List<char>()
         {
@@ -34,11 +34,11 @@
             return numbers.Contains(key);
         }
 
-        protected override NumberType ParseValue(string text)
+        protected override Number ParseValue(string text)
         {
             try
             {
-                return NumberType.Parse(text);
+                return Number.Parse(text);
             }
             catch(Exception exc)
             {
@@ -46,6 +46,11 @@
             }
 
             return 0;
+        }
+
+        public override string GetNodeDescription()
+        {
+            return "This represents a constant number";
         }
     }
 }
