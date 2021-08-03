@@ -167,6 +167,8 @@ namespace VSCCI.GUI.Nodes
     {
         protected bool isDirty;
 
+        public static double DefaultPinSize = 15;
+
         protected TextExtents extents;
         protected bool hasConnection;
         protected ElementBounds pinSelectBounds;
@@ -263,11 +265,13 @@ namespace VSCCI.GUI.Nodes
         public virtual void ToBytes(BinaryWriter writer)
         {
             writer.Write(Guid.ToString());
+            MarkDirty();
         }
 
         public virtual void FromBytes(BinaryReader reader)
         {
             Guid = Guid.Parse(reader.ReadString());
+            MarkDirty();
         }
 
         public abstract ScriptNodePinConnection CreateConnection();
@@ -389,7 +393,7 @@ namespace VSCCI.GUI.Nodes
 
         public virtual bool PointIsWithinHoverBounds(double x, double y)
         {
-            if (isDirty) return false;
+            if (isDirty || hoverBounds == null) return false;
             return hoverBounds.PointInside(x, y);
         }
 

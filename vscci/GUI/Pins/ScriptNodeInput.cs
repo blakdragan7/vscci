@@ -17,14 +17,14 @@ namespace VSCCI.GUI.Nodes
         {
             ctx.SetSourceRGBA(1, 1, 1, 1.0);
 
-            textUtil.DrawTextLine(ctx, font, name, X + extents.Height + Constants.NODE_SCIPRT_TEXT_PADDING, Y);
+            textUtil.DrawTextLine(ctx, font, name, X + DefaultPinSize + Constants.NODE_SCIPRT_TEXT_PADDING, Y);
         }
 
         public override void RenderPin(Context ctx, ImageSurface surface, double deltaTime)
         {
             ctx.SetSourceColor(PinColor);
             ctx.LineWidth = 2;
-            RoundRectangle(ctx, X, Y + (extents.Height / 2.0), extents.Height, extents.Height, GuiStyle.ElementBGRadius);
+            RoundRectangle(ctx, X, Y + (extents.Height / 2.0), DefaultPinSize, DefaultPinSize, GuiStyle.ElementBGRadius);
             if (hasConnection)
             {
                 ctx.Fill();
@@ -63,14 +63,14 @@ namespace VSCCI.GUI.Nodes
             Y = drawy;
 
             extents = ctx.TextExtents(name);
-            extents.Width += extents.Height + Constants.NODE_SCIPRT_TEXT_PADDING;
+            extents.Width += DefaultPinSize + Constants.NODE_SCIPRT_TEXT_PADDING;
 
             if (pinSelectBounds != null)
             {
                 owner.Bounds.ParentBounds.ChildBounds.Remove(pinSelectBounds);
             }
 
-            pinSelectBounds = ElementBounds.Fixed(colx, coly + (extents.Height / 2.0), extents.Height, extents.Height);
+            pinSelectBounds = ElementBounds.Fixed(colx, (coly + (extents.Height / 2.0)), DefaultPinSize, DefaultPinSize);
             owner.Bounds.ParentBounds.WithChild(pinSelectBounds);
             pinSelectBounds.CalcWorldBounds();
 
