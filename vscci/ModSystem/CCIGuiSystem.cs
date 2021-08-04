@@ -54,9 +54,10 @@ namespace VSCCI.ModSystem
                     {
                         configGui.UpdateGuiTwitchConnectionText(cu.status);
                     }
-                    else if (cu.type == CCIIntegrations.CCIType.Streamlabs)
+                    else
                     {
-                        configGui.UpdateGuiStreamlabsConnectionText(cu.status);
+                        configGui.UpdateGuiPlatformConnectionText(cu.status);
+                        configGui.UpdatePlatfformSelection(cu.type);
                     }
                     break;
                 case Constants.CCI_EVENT_LOGIN_UPDATE:

@@ -12,6 +12,12 @@ namespace VSCCI.CCINetworkTypes
     }
 
     [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
+    public class CCIDisconnectRequest
+    {
+        public CCIType type;
+    }
+
+    [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
     public class TwitchLoginStep
     {
         public string url;

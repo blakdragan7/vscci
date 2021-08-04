@@ -16,6 +16,8 @@ namespace VSCCI.CCIIntegrations.Streamlabs
         private string authToken;
         private bool connected;
 
+        public override bool IsConnected() => connected;
+
         public SteamLabsIntegration(ICoreClientAPI capi)
         {
             api = capi;
@@ -29,8 +31,8 @@ namespace VSCCI.CCIIntegrations.Streamlabs
             {
                 CreateSocket();
             }
-
-            socket.Connect();
+            if(connected == false)
+                socket.Connect();
         }
 
         public override void Disconnect()

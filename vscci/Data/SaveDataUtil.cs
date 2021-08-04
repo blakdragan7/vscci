@@ -6,12 +6,13 @@ namespace VSCCI.Data
     using Newtonsoft.Json.Linq;
     using Vintagestory.API.Common;
     using Vintagestory.API.Client;
+    using VSCCI.CCIIntegrations;
 
     public class ClientSaveData
     {
         public string TwitchAuth;
-        public string StreamlabsAuth;
-        public string StreamelementsAuth;
+        public CCIType PlatformType;
+        public string PlatformAuth;
     }
 
     public class SaveDataUtil
@@ -23,8 +24,8 @@ namespace VSCCI.Data
                 var d = new Dictionary<string, string>
                 {
                     { "auth", data.TwitchAuth },
-                    { "streamlabs", data.StreamlabsAuth},
-                    { "streamelements", data.StreamelementsAuth}
+                    { "platform", StringFromCCIType(data.PlatformType)},
+                    { "platform_auth", data.PlatformAuth}
                 };
 
                 var jsonData = JsonUtil.ToString(d);
@@ -50,8 +51,8 @@ namespace VSCCI.Data
                     if (obj != null)
                     {
                         data.TwitchAuth = obj.SelectToken("auth")?.ToString();
-                        data.StreamlabsAuth = obj.SelectToken("streamlabs")?.ToString();
-                        data.StreamelementsAuth = obj.SelectToken("streamelements")?.ToString();
+                        data.PlatformType = CCITypeFromString(obj.SelectToken("platform")?.ToString());
+                        data.PlatformAuth = obj.SelectToken("platform_auth")?.ToString();
                     }
                 }
             }
@@ -62,6 +63,37 @@ namespace VSCCI.Data
             }
 
             return data;
+        }
+
+        public static string StringFromCCIType(CCIType type)
+        {
+            switch(type)
+            {
+                case CCIType.Twitch:
+                    return "Twitch";
+                case CCIType.Streamlabs:
+                    return "Streamlabs";
+                case CCIType.Streamelements:
+                    return "Streamelements";
+                default:
+                    return "Invalid";
+            }
+        }
+
+        public static CCIType CCITypeFromString(string type)
+        {
+            switch (type)
+            {
+                case "Twitch":
+                    return CCIType.Twitch;
+                case "Streamlabs":
+                    return CCIType.Streamlabs;
+                case "Streamelements":
+                    return CCIType.Streamelements;
+                default:
+                    return CCIType.Twitch;
+            }
+
         }
     }
 }

@@ -39,6 +39,7 @@ namespace VSCCI.CCIIntegrations.Twitch
         public bool IsTwitchCommerceAccount { get; set; }
         public bool IsFailedState { get; set; }
 
+        public override bool IsConnected() => connected && hasTopics;
 
         public TwitchIntegration(ICoreClientAPI capi)
         {

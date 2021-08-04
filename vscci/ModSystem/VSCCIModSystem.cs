@@ -115,7 +115,34 @@ namespace VSCCI.ModSystem
             {
                 case Constants.CCI_EVENT_DISCONNECT_REQUEST:
                     handling = EnumHandling.PreventSubsequent;
-                    ti.Disconnect();
+                    var dc = data.GetValue() as CCIDisconnectRequest;
+                    if (dc != null)
+                    {
+                        var saveData = SaveDataUtil.LoadClientData(capi);
+
+                        switch (dc.type)
+                        {
+                            case CCIType.Twitch:
+                                ti.Reset();
+                                saveData.TwitchAuth = "";
+                                break;
+                            case CCIType.Streamlabs:
+                                si.Reset();
+                                saveData.PlatformType = CCIType.Twitch;
+                                saveData.PlatformAuth = "";
+                                break;
+                            case CCIType.Streamelements:
+                                se.Reset();
+                                saveData.PlatformType = CCIType.Twitch;
+                                saveData.PlatformAuth = "";
+                                break;
+                            default:
+                                break;
+                        }
+
+                        SaveDataUtil.SaveClientData(capi, saveData);
+                    }
+            
                     break;
                 case Constants.CCI_EVENT_LOGIN_REQUEST:
                     var ld = data.GetValue() as CCILoginRequest;
@@ -128,8 +155,14 @@ namespace VSCCI.ModSystem
                                 ti.StartSignInFlow();
                                 break;
                             case CCIType.Streamlabs:
+                                se.SetRawAuthData("");
                                 si.SetRawAuthData(ld.data);
                                 si.Connect();
+                                break;
+                            case CCIType.Streamelements:
+                                si.SetRawAuthData("");
+                                se.SetRawAuthData(ld.data);
+                                se.Connect();
                                 break;
                             default:
                                 break;
@@ -148,8 +181,8 @@ namespace VSCCI.ModSystem
                 var data = new ClientSaveData() 
                 { 
                     TwitchAuth = ti.GetAuthDataForSaving(), 
-                    StreamlabsAuth = si.GetAuthDataForSaving(), 
-                    StreamelementsAuth = token 
+                    PlatformType = CCIType.Streamelements, 
+                    PlatformAuth = token 
                 };
                 SaveDataUtil.SaveClientData(capi, data);
             }
@@ -162,8 +195,8 @@ namespace VSCCI.ModSystem
                 var data = new ClientSaveData()
                 {
                     TwitchAuth = ti.GetAuthDataForSaving(),
-                    StreamlabsAuth = token,
-                    StreamelementsAuth = se.GetAuthDataForSaving()
+                    PlatformType = CCIType.Streamlabs,
+                    PlatformAuth = token
                 };
                 SaveDataUtil.SaveClientData(capi, data);
             }
@@ -174,12 +207,26 @@ namespace VSCCI.ModSystem
             // if token is null this was received from save file, so no reason to save again
             if (token != null)
             {
-                var data = new ClientSaveData()
+                var data = SaveDataUtil.LoadClientData(capi);
+
+                data.TwitchAuth = ti.GetAuthDataForSaving();
+
+                if (se.IsConnected())
                 {
-                    TwitchAuth = token,
-                    StreamlabsAuth = si.GetAuthDataForSaving(),
-                    StreamelementsAuth = se.GetAuthDataForSaving()
-                };
+                    data.PlatformType = CCIType.Streamelements;
+                    data.PlatformAuth = se.GetAuthDataForSaving();
+                }
+                else if(si.IsConnected())
+                {
+                    data.PlatformType = CCIType.Streamlabs;
+                    data.PlatformAuth = se.GetAuthDataForSaving();
+                }
+                else
+                {
+                    data.PlatformType = CCIType.Twitch;
+                    data.PlatformAuth = "";
+                }
+
                 SaveDataUtil.SaveClientData(capi, data);
             }
             ti.Connect();
@@ -194,13 +241,16 @@ namespace VSCCI.ModSystem
                 {
                     ti.SetAuthDataFromSaveData(data.TwitchAuth);
                 }
-                if(data.StreamlabsAuth != null && data.StreamlabsAuth.Length > 0)
+                switch(data.PlatformType)
                 {
-                    si.SetAuthDataFromSaveData(data.StreamlabsAuth);
-                }
-                if(data.StreamelementsAuth != null && data.StreamelementsAuth.Length > 0)
-                {
-                    se.SetAuthDataFromSaveData(data.StreamelementsAuth);
+                    case CCIType.Streamlabs:
+                        if(data.PlatformAuth.Length > 0)
+                            si.SetAuthDataFromSaveData(data.PlatformAuth);
+                        break;
+                    case CCIType.Streamelements:
+                        if(data.PlatformAuth.Length > 0)
+                            se.SetAuthDataFromSaveData(data.PlatformAuth);
+                        break;
                 }
             }
         }

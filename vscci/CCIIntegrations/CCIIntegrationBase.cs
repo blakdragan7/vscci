@@ -32,6 +32,8 @@ namespace VSCCI.CCIIntegrations
         public event EventHandler OnConnectSuccess;
         public event EventHandler<OnConnectFailedArgs> OnConnectFailed;
 
+        public abstract bool IsConnected();
+
         public abstract void SetRawAuthData(string authData);
         public abstract void SetAuthDataFromSaveData(string savedAuth);
         public abstract string GetAuthDataForSaving();

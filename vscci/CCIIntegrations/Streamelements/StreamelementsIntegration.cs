@@ -19,6 +19,8 @@
         private string jwtToken;
         private bool connected;
 
+        public override bool IsConnected() => connected;
+
         public StreamelementsIntegration(ICoreClientAPI capi)
         {
             api = capi;
@@ -33,7 +35,8 @@
                 CreateSocket();
             }
 
-            seClient.Connect();
+            if (connected == false)
+                seClient.Connect();
         }
 
         public override void Disconnect()
@@ -103,6 +106,7 @@
 
             seClient.OnError += OnError;
             seClient.OnConnected += OnConnected;
+            seClient.OnDisconnected += OnDisconnected;
             seClient.OnAuthenticated += OnAuthenticated;
             seClient.OnAuthenticationFailure += OnAuthenticationFailure;
 
@@ -280,6 +284,19 @@
             api.Logger.Notification("Streamelements Socket Connected");
             api.Event.EnqueueMainThreadTask(() => api.ShowChatMessage("Streamelements Socket Connected"), null);
             
+        }
+
+        private void OnDisconnected(object sender, EventArgs e)
+        {
+            api.Logger.Notification("Streamelements Socket Disconnected");
+            api.Event.EnqueueMainThreadTask(() => api.ShowChatMessage("Streamelements Socket Disconnected"), null);
+
+            api.Event.PushEvent(Constants.CCI_EVENT_CONNECT_UPDATE,
+                new ProtoDataTypeAttribute<CCIConnectionUpdate>(new CCIConnectionUpdate()
+                {
+                    type = CCIType.Streamelements,
+                    status = "Disconnected"
+                }));
         }
 
         private void OnError(object sender, ErrorEventArgs e)
