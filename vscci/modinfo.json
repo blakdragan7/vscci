@@ -4,7 +4,7 @@
   "name": "vscci",
   "author": "blakdragan7",
   "description": "Content Creator Integration For Vintage Story !",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "dependency": {
     "game": ""
   },
