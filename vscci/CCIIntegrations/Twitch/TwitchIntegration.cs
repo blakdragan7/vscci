@@ -123,6 +123,10 @@ namespace VSCCI.CCIIntegrations.Twitch
             numberOfSuccesfulListens = 0;
         }
 
+        public override CCIType GetCCIType()
+        {
+            return CCIType.Twitch;
+        }
         public void StartSignInFlow()
         {
             if (authToken != null)

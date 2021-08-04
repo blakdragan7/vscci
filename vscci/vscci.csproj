@@ -110,6 +110,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\StreamElementsNET\StreamElementsNET\StreamElementsNET\StreamElementsNET.csproj" />
     <ProjectReference Include="..\TwitchLib.PubSub\TwitchLib.PubSub\TwitchLib.PubSub.csproj" />
   </ItemGroup>
 </Project>

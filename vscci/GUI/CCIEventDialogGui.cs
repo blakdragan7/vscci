@@ -91,6 +91,7 @@ namespace VSCCI.GUI
             if (args.CtrlPressed && args.KeyCode == (int)GlKeys.S)
             {
                 SaveToFile();
+                args.Handled = true;
             }
         }
 

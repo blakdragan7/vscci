@@ -6,7 +6,8 @@ namespace VSCCI.CCIIntegrations
     public enum CCIType
     {
         Twitch,
-        Streamlabs
+        Streamlabs,
+        Streamelements
     }
 
     public class OnConnectFailedArgs : EventArgs
@@ -37,6 +38,8 @@ namespace VSCCI.CCIIntegrations
         public abstract void Connect();
         public abstract void Disconnect();
         public abstract void Reset();
+
+        public abstract CCIType GetCCIType();
         protected virtual void CallLoginError(OnAuthFailedArgs args)
         {
             OnLoginError?.Invoke(this, args);

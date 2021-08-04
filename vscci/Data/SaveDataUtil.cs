@@ -11,6 +11,7 @@ namespace VSCCI.Data
     {
         public string TwitchAuth;
         public string StreamlabsAuth;
+        public string StreamelementsAuth;
     }
 
     public class SaveDataUtil
@@ -22,7 +23,8 @@ namespace VSCCI.Data
                 var d = new Dictionary<string, string>
                 {
                     { "auth", data.TwitchAuth },
-                    { "streamlabs", data.StreamlabsAuth}
+                    { "streamlabs", data.StreamlabsAuth},
+                    { "streamelements", data.StreamelementsAuth}
                 };
 
                 var jsonData = JsonUtil.ToString(d);
@@ -49,6 +51,7 @@ namespace VSCCI.Data
                     {
                         data.TwitchAuth = obj.SelectToken("auth")?.ToString();
                         data.StreamlabsAuth = obj.SelectToken("streamlabs")?.ToString();
+                        data.StreamelementsAuth = obj.SelectToken("streamelements")?.ToString();
                     }
                 }
             }

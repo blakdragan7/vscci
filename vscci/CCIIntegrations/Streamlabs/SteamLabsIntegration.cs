@@ -79,6 +79,11 @@ namespace VSCCI.CCIIntegrations.Streamlabs
             Connect();
         }
 
+        public override CCIType GetCCIType()
+        {
+            return CCIType.Streamlabs;
+        }
+
         private void CreateSocket()
         {
             if (socket != null)
