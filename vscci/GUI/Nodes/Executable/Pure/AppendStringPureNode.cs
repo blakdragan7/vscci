@@ -25,8 +25,8 @@
 
         protected override void OnExecute()
         {
-            Number first = inputs[INPUT_ONE_INDEX].GetInput();
-            Number second = inputs[INPUT_TWO_INDEX].GetInput();
+            string first = inputs[INPUT_ONE_INDEX].GetInput();
+            string second = inputs[INPUT_TWO_INDEX].GetInput();
 
             outputs[OUTPUT_INDEX].Value = first + second;
         }
