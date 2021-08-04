@@ -2,7 +2,6 @@
 {
     using Cairo;
     using Vintagestory.API.Client;
-    using Vintagestory.API.Common;
     using Vintagestory.API.Datastructures;
     using VSCCI.Data;
     using VSCCI.GUI.Nodes.Attributes;

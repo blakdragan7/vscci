@@ -4,11 +4,16 @@ namespace VSCCI.GUI
     using VSCCI.Data;
     using VSCCI.CCINetworkTypes;
     using VSCCI.CCIIntegrations;
+    using VSCCI.GUI.Elements;
     using System.Collections.Generic;
 
     public class CCIConfigDialogGui : GuiDialog
     {
+        internal static readonly string[] Platforms = { "Streamlabs", "Streamelements" };
+
         public override string ToggleKeyCombinationCode => "ccigui";
+
+        public override bool ShouldReceiveMouseEvents() => true;
 
         private const string TWITCH_USER_KEY = "twitch_user";
         private const string TWITCH_ID_KEY = "twitch_id";
@@ -21,7 +26,9 @@ namespace VSCCI.GUI
         private string status;
         private string slStatus;
         private string serverStatus;
-        private ElementBounds streamlabsTextInputBounds;
+        private int selectedPlatform;
+        private ElementBounds streamPlatformTextInputBounds;
+        private GuiTinyDropdown dropdown;
 
         public CCIConfigDialogGui(ICoreClientAPI capi) : base(capi)
         {
@@ -31,6 +38,7 @@ namespace VSCCI.GUI
             status = "Disconnected";
             slStatus = "Disconnected";
             serverStatus = "None-Allowed";
+            selectedPlatform = 0;
         }
 
         public override void OnOwnPlayerDataReceived()
@@ -43,23 +51,25 @@ namespace VSCCI.GUI
             bgBounds.verticalSizing = ElementSizing.FitToChildren;
 
             var elementStart                  = ElementBounds.Fixed(25, 0);
-            var twitchUserNameBounds          = elementStart.CopyOffsetedSibling(0,   45,  100, 50);
-            var twitchUserNameBoundsDyn       = elementStart.CopyOffsetedSibling(100, 45,  100, 50);
-            var twitchUserIdBounds            = elementStart.CopyOffsetedSibling(00,  60,  100, 50);
-            var twitchUserIdBoundsDyn         = elementStart.CopyOffsetedSibling(100, 60,  100, 50);
-            var twitchStatusBounds            = elementStart.CopyOffsetedSibling(0,   75,  100, 50);
-            var twitchStatusBoundsDyn         = elementStart.CopyOffsetedSibling(100, 75,  100, 50);
-            var streamlabsStatusBounds        = elementStart.CopyOffsetedSibling(0,   90,  100, 50);
-            var streamlabsStatusBoundsDyn     = elementStart.CopyOffsetedSibling(100, 90,  100, 50);
-            var streamlabsKeyBounds           = elementStart.CopyOffsetedSibling(0,   105, 100, 50);
-                streamlabsTextInputBounds     = elementStart.CopyOffsetedSibling(100, 105, 100, 15);
-            var serverStatusBounds            = elementStart.CopyOffsetedSibling(0,   120, 100, 50);
-            var serverStatusBoundsDyn         = elementStart.CopyOffsetedSibling(100, 120, 100, 50);
-            var connectToTwitchButtonBounds   = elementStart.CopyOffsetedSibling(0,   155, 100, 25);
-            var loginToTwitchButtonBounds     = elementStart.CopyOffsetedSibling(0,   185, 100, 25);
+            var twitchUserNameBounds          = elementStart.CopyOffsetedSibling(0,   45,  120, 50);
+            var twitchUserNameBoundsDyn       = elementStart.CopyOffsetedSibling(120, 45,  120, 50);
+            var twitchUserIdBounds            = elementStart.CopyOffsetedSibling(00,  60,  120, 50);
+            var twitchUserIdBoundsDyn         = elementStart.CopyOffsetedSibling(120, 60,  120, 50);
+            var twitchStatusBounds            = elementStart.CopyOffsetedSibling(0,   75,  120, 50);
+            var twitchStatusBoundsDyn         = elementStart.CopyOffsetedSibling(120, 75,  120, 50);
+            var streamPlatformTypeBounds      = elementStart.CopyOffsetedSibling(0,   90,  120, 50);
+            var streamPlatformDropdownBounds  = elementStart.CopyOffsetedSibling(120, 90,  120, 15);
+            var streamPlatformStatusBounds    = elementStart.CopyOffsetedSibling(0,   105, 120, 50);
+            var streamPlatformStatusBoundsDyn = elementStart.CopyOffsetedSibling(120, 105, 120, 50);
+            var streamPlatformKeyBounds       = elementStart.CopyOffsetedSibling(0,   120, 120, 50);
+            streamPlatformTextInputBounds     = elementStart.CopyOffsetedSibling(120, 120, 120, 15);
+            var serverStatusBounds            = elementStart.CopyOffsetedSibling(0,   135, 120, 50);
+            var serverStatusBoundsDyn         = elementStart.CopyOffsetedSibling(120, 135, 120, 50);
+            var connectToTwitchButtonBounds   = elementStart.CopyOffsetedSibling(0,   170, 100, 25);
+            var loginToTwitchButtonBounds     = elementStart.CopyOffsetedSibling(0,   200, 100, 25);
 
             bgBounds.WithChildren(elementStart, twitchUserNameBounds, twitchUserNameBoundsDyn, twitchUserIdBounds, twitchUserIdBoundsDyn,
-                twitchStatusBounds, twitchStatusBoundsDyn, streamlabsKeyBounds, streamlabsStatusBounds, streamlabsStatusBoundsDyn, streamlabsTextInputBounds, serverStatusBoundsDyn, serverStatusBounds, serverStatusBoundsDyn, connectToTwitchButtonBounds, loginToTwitchButtonBounds);
+                twitchStatusBounds, twitchStatusBoundsDyn, streamPlatformTypeBounds, streamPlatformDropdownBounds, streamPlatformKeyBounds, streamPlatformStatusBounds, streamPlatformStatusBoundsDyn, streamPlatformTextInputBounds, serverStatusBoundsDyn, serverStatusBounds, serverStatusBoundsDyn, connectToTwitchButtonBounds, loginToTwitchButtonBounds);
 
             SingleComposer = capi.Gui.CreateCompo("cciconfig", dialogBounds)
                 .AddDialogTitleBar("Content Creator Integration Config", () => TryClose(), CairoFont.WhiteSmallText())
@@ -70,10 +80,12 @@ namespace VSCCI.GUI
                 .AddDynamicText(id, CairoFont.WhiteSmallText().WithFontSize(10), EnumTextOrientation.Left, twitchUserIdBoundsDyn, TWITCH_ID_KEY)
                 .AddStaticText("Twitch Status: ", CairoFont.WhiteSmallText().WithFontSize(10), twitchStatusBounds)
                 .AddDynamicText(status, CairoFont.WhiteSmallText().WithFontSize(10), EnumTextOrientation.Left, twitchStatusBoundsDyn, TWITCH_STATUS_KEY)
-                .AddStaticText("Streamlabs Key: ", CairoFont.WhiteSmallText().WithFontSize(10), streamlabsKeyBounds)
-                .AddTextInput(streamlabsTextInputBounds, null, CairoFont.WhiteSmallText().WithFontSize(10), STREAMLABS_TEXT_INPUT)
-                .AddStaticText("Streamlabs Status: ", CairoFont.WhiteSmallText().WithFontSize(10), streamlabsStatusBounds)
-                .AddDynamicText(slStatus, CairoFont.WhiteSmallText().WithFontSize(10), EnumTextOrientation.Left, streamlabsStatusBoundsDyn, STREAMLABS_STATUS_KEY)
+                .AddStaticText("Stream Platform Type: ", CairoFont.WhiteSmallText().WithFontSize(10), streamPlatformTypeBounds)
+                .AddTinyDropDown(Platforms, Platforms, selectedPlatform, SelectionChangedDelegate, streamPlatformDropdownBounds, CairoFont.WhiteSmallText().WithFontSize(10), "platform_dropdown")
+                .AddStaticText("Stream Platform Key: ", CairoFont.WhiteSmallText().WithFontSize(10), streamPlatformKeyBounds)
+                .AddTextInput(streamPlatformTextInputBounds, null, CairoFont.WhiteSmallText().WithFontSize(10), STREAMLABS_TEXT_INPUT)
+                .AddStaticText("Stream Platform Status: ", CairoFont.WhiteSmallText().WithFontSize(10), streamPlatformStatusBounds)
+                .AddDynamicText(slStatus, CairoFont.WhiteSmallText().WithFontSize(10), EnumTextOrientation.Left, streamPlatformStatusBoundsDyn, STREAMLABS_STATUS_KEY)
                 .AddStaticText("Server Events: ", CairoFont.WhiteSmallText().WithFontSize(10), serverStatusBounds)
                 .AddDynamicText(serverStatus, CairoFont.WhiteSmallText().WithFontSize(10), EnumTextOrientation.Left, serverStatusBoundsDyn, SERVER_EVENT_STATUS_KEY)
                 .AddTextToggleButtons(new string[] { "Disconnect", "Login/Connect" }, CairoFont.ButtonText().WithFontSize(10),
@@ -118,16 +130,36 @@ namespace VSCCI.GUI
                 .Compose();
 
             SingleComposer.GetToggleButton("buttons-0").Enabled = false;
+
+            dropdown = SingleComposer.GetTinyDropDown("platform_dropdown");
         }
 
         public override void OnMouseDown(MouseEvent args)
         {
             base.OnMouseDown(args);
 
-            if (streamlabsTextInputBounds.PositionInside(args.X, args.Y) != null)
+            dropdown?.OnMouseDown(capi, args);
+
+            if (args.Handled) return;
+
+            if (streamPlatformTextInputBounds.PositionInside(args.X, args.Y) != null)
             {
                 SingleComposer.GetTextInput(STREAMLABS_TEXT_INPUT).OnFocusGained();
             }
+        }
+
+        public override void OnMouseMove(MouseEvent args)
+        {
+            base.OnMouseMove(args);
+
+            dropdown?.OnMouseMove(capi, args);
+        }
+
+        public override void OnMouseUp(MouseEvent args)
+        {
+            base.OnMouseUp(args);
+
+            dropdown?.OnMouseUp(capi, args);
         }
 
         public void UpdateGuiTwitchLoginText(string username, string userid)
@@ -187,6 +219,26 @@ namespace VSCCI.GUI
                 SingleComposer.GetDynamicText(SERVER_EVENT_STATUS_KEY).SetNewTextAsync(serverStatus);
                 SingleComposer.GetTextInput(STREAMLABS_TEXT_INPUT).SetValue("");
             }
+        }
+
+        private void SelectionChangedDelegate(string code, bool selected)
+        {
+            if (code == Platforms[0] && selected)
+            {
+                selectedPlatform = 0;
+            }
+            else if (selected)
+            {
+                selectedPlatform = 1;
+            }
+            else
+            {
+                capi.Logger.Error("VSCCI CCIConfigDialogGui Invalid State for Selection Changed");
+            }
+            capi.Event.EnqueueMainThreadTask(() =>
+            {
+                capi.ShowChatMessage($"code: {code}, selected: {selected}");
+            }, "");
         }
 
         public override bool TryOpen()
