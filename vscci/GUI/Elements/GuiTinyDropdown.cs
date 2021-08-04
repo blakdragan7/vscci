@@ -145,12 +145,15 @@
         {
             base.OnMouseDown(api, args);
 
-            listOpen = !listOpen;
-            if (listOpen)
+            if (IsPositionInside(args.X, args.Y))
             {
-                api.Gui.PlaySound("menubutton");
+                listOpen = !listOpen;
+                if (listOpen)
+                {
+                    api.Gui.PlaySound("menubutton");
+                }
+                args.Handled = true;
             }
-            args.Handled = true;
         }
 
         public override void Dispose()
