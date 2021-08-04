@@ -53,6 +53,12 @@ namespace VSCCI.Data
                         data.TwitchAuth = obj.SelectToken("auth")?.ToString();
                         data.PlatformType = CCITypeFromString(obj.SelectToken("platform")?.ToString());
                         data.PlatformAuth = obj.SelectToken("platform_auth")?.ToString();
+                        var oldData = obj.SelectToken("streamlabs")?.ToString();
+                        if(oldData != null && oldData.Length > 0)
+                        {
+                            data.PlatformType = CCIType.Streamlabs;
+                            data.PlatformAuth = oldData;
+                        }
                     }
                 }
             }
