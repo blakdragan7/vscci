@@ -18,7 +18,7 @@
         public static int WHO_OUTPUT_INDEX = 1;
         public static int NAME_OUTPUT_INDEX = 2;
         public static int ID_OUTPUT_INDEX = 3;
-        public static int MESSAGE_OUTPUT_INDEX = 3;
+        public static int MESSAGE_OUTPUT_INDEX = 4;
 
         private string name;
         private string id;
