@@ -10,16 +10,19 @@ namespace VSCCI.GUI
     {
         private EventScriptingArea scriptingArea;
 
+        private bool needsKeyboardEvents;
+
         public override string ToggleKeyCombinationCode => "ccievent";
         public override string DebugName => "ccieventgui";
 
-        public override bool ShouldReceiveKeyboardEvents() => true;
+        public override bool ShouldReceiveKeyboardEvents() => needsKeyboardEvents;
 
         //public override float ZSize => 3000;
 
 
         public CCIEventDialogGui(ICoreClientAPI capi) : base(capi)
         {
+            needsKeyboardEvents = false;
             OnOwnPlayerDataReceived();
         }
 
@@ -99,7 +102,8 @@ namespace VSCCI.GUI
         {
             if (base.TryOpen())
             {
-                if(SingleComposer == null)OnOwnPlayerDataReceived();
+                needsKeyboardEvents = true;
+                OnOwnPlayerDataReceived();
                 return true;
             }
             return false;
@@ -111,6 +115,8 @@ namespace VSCCI.GUI
 
             if (base.TryClose())
             {
+                needsKeyboardEvents = false;
+                Dispose();
                 return true;
             }
             return false;
