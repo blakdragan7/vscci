@@ -127,14 +127,22 @@ namespace VSCCI.ModSystem
                                 saveData.TwitchAuth = "";
                                 break;
                             case CCIType.Streamlabs:
-                                si.Reset();
-                                saveData.PlatformType = CCIType.Twitch;
-                                saveData.PlatformAuth = "";
+                                if(ConfigData.clientData.PlatformType == CCIType.Streamlabs)
+                                {
+                                    si.Reset();
+                                    saveData.PlatformType = CCIType.Twitch;
+                                    saveData.PlatformAuth = "";
+                                    ConfigData.clientData.PlatformType = CCIType.Twitch;
+                                }
                                 break;
                             case CCIType.Streamelements:
-                                se.Reset();
-                                saveData.PlatformType = CCIType.Twitch;
-                                saveData.PlatformAuth = "";
+                                if (ConfigData.clientData.PlatformType == CCIType.Streamelements)
+                                {
+                                    se.Reset();
+                                    saveData.PlatformType = CCIType.Twitch;
+                                    saveData.PlatformAuth = "";
+                                    ConfigData.clientData.PlatformType = CCIType.Twitch;
+                                }
                                 break;
                             default:
                                 break;
@@ -186,6 +194,8 @@ namespace VSCCI.ModSystem
                 };
                 SaveDataUtil.SaveClientData(capi, data);
             }
+
+            ConfigData.clientData.PlatformType = CCIType.Streamelements;
         }
 
         private void OnStreamlabsLoginSuccess(object sender, string token)
@@ -200,6 +210,8 @@ namespace VSCCI.ModSystem
                 };
                 SaveDataUtil.SaveClientData(capi, data);
             }
+
+            ConfigData.clientData.PlatformType = CCIType.Streamlabs;
         }
 
         private void OnTwitchLoginSuccess(object sender, string token)

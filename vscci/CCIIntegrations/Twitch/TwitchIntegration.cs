@@ -236,6 +236,9 @@ namespace VSCCI.CCIIntegrations.Twitch
 
         private async void OnHost(object sender, OnHostArgs e)
         {
+            if (ConfigData.clientData.PlatformType != CCIType.Twitch)
+                return;
+
             if(e != null)
             {
                 api.Event.PushEvent(Constants.EVENT_HOST, new ProtoDataTypeAttribute<HostData>(new HostData()
@@ -248,6 +251,9 @@ namespace VSCCI.CCIIntegrations.Twitch
 
         private void OnBitsReceived(object sender, OnBitsReceivedArgs args)
         {
+            if (ConfigData.clientData.PlatformType != CCIType.Twitch)
+                return;
+
             if (args != null)
             {
                 var data = new BitsData() { amount = args.BitsUsed, from = args.Username, message = args.ChatMessage };
@@ -269,6 +275,9 @@ namespace VSCCI.CCIIntegrations.Twitch
 
         private async void OnFollows(object sender, OnFollowArgs args)
         {
+            if (ConfigData.clientData.PlatformType != CCIType.Twitch)
+                return;
+
             if (args != null)
             {
                 var channelName = await GetChannelNameForId(args.FollowedChannelId);
@@ -280,6 +289,9 @@ namespace VSCCI.CCIIntegrations.Twitch
 
         private async void OnRaid(object sender, OnRaidGoArgs args)
         {
+            if (ConfigData.clientData.PlatformType != CCIType.Twitch)
+                return;
+
             if (args != null)
             {
                 var channelName = await GetChannelNameForId(args.ChannelId);
@@ -293,6 +305,9 @@ namespace VSCCI.CCIIntegrations.Twitch
 
         private void OnSubscription(object sender, OnChannelSubscriptionArgs args)
         {
+            if (ConfigData.clientData.PlatformType != CCIType.Twitch)
+                return;
+
             if (args != null)
             {
                 if (args.Subscription.IsGift.GetValueOrDefault(false))

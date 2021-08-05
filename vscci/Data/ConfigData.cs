@@ -6,6 +6,7 @@ namespace VSCCI.Data
 
     using System;
     using Newtonsoft.Json.Linq;
+    using VSCCI.CCIIntegrations;
 
     public class ServerConfigData
     {
@@ -14,7 +15,8 @@ namespace VSCCI.Data
 
     public class ClientConfigData
     {
-        public bool playerIsAllowedServerEvents;
+        public bool PlayerIsAllowedServerEvents;
+        public CCIType PlatformType;
     }
 
     public class ConfigData

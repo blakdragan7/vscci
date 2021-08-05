@@ -34,7 +34,7 @@
             base.OnRender(ctx, surface, deltaTime);
 
             // visually render that this node won't do anything because we don't have permission
-            if(ConfigData.clientData.playerIsAllowedServerEvents == false)
+            if(ConfigData.clientData.PlayerIsAllowedServerEvents == false)
             {
                 var drawX = cachedRenderX;
                 var drawY = cachedRenderY;
