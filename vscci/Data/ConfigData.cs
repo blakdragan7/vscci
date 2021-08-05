@@ -17,6 +17,12 @@ namespace VSCCI.Data
     {
         public bool PlayerIsAllowedServerEvents;
         public CCIType PlatformType;
+
+        public ClientConfigData()
+        {
+            PlayerIsAllowedServerEvents = false;
+            PlatformType = CCIType.Twitch;
+        }
     }
 
     public class ConfigData
