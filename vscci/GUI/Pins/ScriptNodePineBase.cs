@@ -6,6 +6,8 @@ namespace VSCCI.GUI.Nodes
     using System.IO;
     using Vintagestory.API.Client;
     using Vintagestory.API.Common;
+    using Vintagestory.API.Common.Entities;
+    using Vintagestory.API.MathTools;
 
     public class Exec // stub for exec type
     {
@@ -370,6 +372,14 @@ namespace VSCCI.GUI.Nodes
             else if (type == typeof(DynamicType))
             {
                 return new Color(0.6, 0.6, 0.6, 1.0);
+            }
+            else if(type == typeof(Vec3d))
+            {
+                return new Color(0.9411764705882353, 1, 0, 1);
+            }
+            else if (type == typeof(Entity))
+            {
+                return new Color(0, 0, 1, 1);
             }
 
             return new Color(0.0, 0.0, 0.0, 1.0);

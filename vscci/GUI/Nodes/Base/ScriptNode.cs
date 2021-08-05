@@ -40,7 +40,7 @@ namespace VSCCI.GUI.Nodes
         protected string hoverText;
 
         private readonly TextDrawUtil textUtil;
-        private readonly CairoFont font;
+        protected readonly CairoFont font;
 
         private ScriptNodePinBase activePin;
         private ScriptNodePinConnection activeConnection;

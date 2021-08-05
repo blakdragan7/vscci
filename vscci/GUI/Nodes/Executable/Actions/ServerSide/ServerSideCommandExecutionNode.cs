@@ -14,7 +14,6 @@
             {
                 command = "/" + data;
             }
-
             api.InjectConsole(command);
         }
     }

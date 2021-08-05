@@ -244,9 +244,10 @@ namespace VSCCI.GUI
             }
         }
 
-        private void PlatfformSelectionChanged(string code, bool selected)
+        private void PlatfformSelectionChanged(dynamic code, bool selected)
         {
-            var index = code == Platforms[0] ? 0 : 1;
+            var strCode = code as string;
+            var index = strCode == Platforms[0] ? 0 : 1;
             if (selectedPlatformIndex != index)
             {
                 selectedPlatformIndex = index;

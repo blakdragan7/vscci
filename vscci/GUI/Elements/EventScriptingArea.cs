@@ -511,6 +511,8 @@ namespace VSCCI.GUI.Elements
 
         private void PopulateNodeSelectionList()
         {
+            ServerSideSpawnEntityNode.PopulateEntitySelectionOptions();
+
             var globalSelectionList = contextSelectionLists[typeof(DynamicType)];
 
             foreach (Type type in typeof(ScriptNode).Assembly.GetTypes())

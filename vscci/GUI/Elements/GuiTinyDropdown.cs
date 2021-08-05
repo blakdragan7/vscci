@@ -6,9 +6,11 @@
     using Vintagestory.API.Config;
     using Vintagestory.API.MathTools;
 
+    public delegate void DynamicSelectionChangedDelegate(dynamic code, bool selected);
+
     public class GuiTinyDropdown : GuiElement
     {
-        string[] values;
+        dynamic[] values;
         string[] names;
 
         private bool listOpen;
@@ -28,14 +30,41 @@
         private ElementBounds listBounds;
         private ElementBounds arrowBounds;
 
-        private SelectionChangedDelegate onSelectionChanged;
+        private DynamicSelectionChangedDelegate onSelectionChanged;
+        private event EventHandler<int> onSelectionIndexChanged;
 
         public int Selection => selectedIndex;
         public string SelectionValue => values[selectedIndex];
         public string SelectionName => names[selectedIndex];
 
         public override bool Focusable => true;
-        public GuiTinyDropdown(ICoreClientAPI capi, string[] values, string[] names, int selectedIndex, SelectionChangedDelegate onSelectionChanged, ElementBounds bounds, CairoFont font) : base(capi, bounds)
+
+        public GuiTinyDropdown(ICoreClientAPI capi, DynamicSelectionChangedDelegate onSelectionChanged, ElementBounds bounds, CairoFont font) : base(capi, bounds)
+        {
+            this.values = null;
+            this.names = null;
+            this.font = font;
+            this.selectedIndex = -1;
+            this.onSelectionChanged = onSelectionChanged;
+
+            util = new TextDrawUtil();
+            listTexture = new LoadedTexture(capi);
+            currentSelectionTexture = new LoadedTexture(capi);
+            listHoverTexture = new LoadedTexture(capi);
+            arrowTexture = new LoadedTexture(capi);
+            arrowDownTexture = new LoadedTexture(capi);
+
+            listOpen = false;
+            listBounds = null;
+            arrowDown = false;
+
+            hoverIndex = -1;
+
+            arrowBounds = ElementBounds.Fixed(bounds.fixedWidth - bounds.fixedHeight, 0, bounds.fixedHeight, bounds.fixedHeight);
+            bounds.WithChild(arrowBounds);
+        }
+
+        public GuiTinyDropdown(ICoreClientAPI capi, dynamic[] values, string[] names, int selectedIndex, DynamicSelectionChangedDelegate onSelectionChanged, ElementBounds bounds, CairoFont font) : base(capi, bounds)
         {
             this.values = values;
             this.names = names;
@@ -58,6 +87,27 @@
 
             arrowBounds = ElementBounds.Fixed(bounds.fixedWidth - bounds.fixedHeight, 0, bounds.fixedHeight, bounds.fixedHeight);
             bounds.WithChild(arrowBounds);
+        }
+
+        public void SetOptions(string[] names, dynamic[] values, int selectedIndex)
+        {
+            this.names = names;
+            this.values = values;
+            this.selectedIndex = selectedIndex;
+
+            ComposeDynamicElements();
+        }
+
+        public void SetFont(CairoFont font)
+        {
+            this.font = font;
+
+            ComposeDynamicElements();
+        }
+
+        public bool FontIs(CairoFont font)
+        {
+            return this.font == font;
         }
 
         public override void ComposeElements(Context ctx, ImageSurface surface)
@@ -195,7 +245,7 @@
                 var extents = ctx.TextExtents(names[selectedIndex]);
 
                 var drawX = (Bounds.InnerWidth / 2.0) - (extents.Width / 2.0);
-                var drawY = 0;
+                var drawY = (Bounds.InnerHeight / 2.0) - (extents.Height / 2.0); ;
 
                 ctx.Antialias = Antialias.Best;
                 util.DrawTextLine(ctx, font, names[selectedIndex], drawX, drawY);
@@ -317,6 +367,7 @@
                 {
                     selectedIndex = hoverIndex;
                     onSelectionChanged.Invoke(values[selectedIndex], true);
+                    onSelectionIndexChanged?.Invoke(this, selectedIndex);
                     ComposeSelection();
                     args.Handled = true;
                     api.Gui.PlaySound("menubutton");
@@ -361,7 +412,7 @@
         /// <param name="onSelectionChanged">The event fired when the index is changed.</param>
         /// <param name="bounds">The bounds of the index.</param>
         /// <param name="key">The name of this dropdown.</param>
-        public static GuiComposer AddTinyDropDown(this GuiComposer composer, string[] values, string[] names, int selectedIndex, SelectionChangedDelegate onSelectionChanged, ElementBounds bounds, string key = null)
+        public static GuiComposer AddTinyDropDown(this GuiComposer composer, string[] values, string[] names, int selectedIndex, DynamicSelectionChangedDelegate onSelectionChanged, ElementBounds bounds, string key = null)
         {
             composer.AddInteractiveElement(new GuiTinyDropdown(composer.Api, values, names, selectedIndex, onSelectionChanged, bounds, CairoFont.WhiteSmallText()), key);
             return composer;
@@ -376,7 +427,7 @@
         /// <param name="onSelectionChanged">The event fired when the index is changed.</param>
         /// <param name="bounds">The bounds of the index.</param>
         /// <param name="key">The name of this dropdown.</param>
-        public static GuiComposer AddTinyDropDown(this GuiComposer composer, string[] values, string[] names, int selectedIndex, SelectionChangedDelegate onSelectionChanged, ElementBounds bounds, CairoFont font, string key = null)
+        public static GuiComposer AddTinyDropDown(this GuiComposer composer, string[] values, string[] names, int selectedIndex, DynamicSelectionChangedDelegate onSelectionChanged, ElementBounds bounds, CairoFont font, string key = null)
         {
             composer.AddInteractiveElement(new GuiTinyDropdown(composer.Api, values, names, selectedIndex, onSelectionChanged, bounds, font), key);
             return composer;
