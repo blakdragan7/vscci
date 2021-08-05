@@ -4,17 +4,12 @@
     using Vintagestory.API.Client;
     using Vintagestory.API.Server;
     using VSCCI.GUI.Nodes.Attributes;
+    using VSCCI.Data;
 
     public class ServerSideCommandExecutable : ServerSideExecutable
     {
         public override void RunServerSide(IServerPlayer player, ICoreServerAPI api, string data)
         {
-            var command = data;
-            if(command.StartsWith("/") == false)
-            {
-                command = "/" + data;
-            }
-            api.InjectConsole(command);
         }
     }
 
@@ -29,7 +24,18 @@
 
         protected override void OnExecute()
         {
-            data = inputs[1].GetInput();
+            data = "null";
+            var command = inputs[1].GetInput();
+
+            if (ConfigData.clientData.PlayerIsAllowedServerEvents)
+            {
+                if (command.StartsWith("/") == false)
+                {
+                    command = "/" + data;
+                }
+
+                api.SendChatMessage(command);
+            }
 
             base.OnExecute();
         }
