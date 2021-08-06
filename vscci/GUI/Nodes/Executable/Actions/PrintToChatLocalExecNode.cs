@@ -1,7 +1,7 @@
 ﻿namespace VSCCI.GUI.Nodes
 {
-    using Cairo;
     using Vintagestory.API.Client;
+    using VSCCI.GUI.Elements;
     using VSCCI.GUI.Nodes.Attributes;
 
     [NodeData("Actions", "Show Chat Local")]
@@ -11,7 +11,7 @@
     class PrintToChatLocalExecNode : ExecutableScriptNode
     {
         public static int MESSAGE_INPUT_INDEX = 1;
-        public PrintToChatLocalExecNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("Print To Local Chat", api, nodeTransform, bounds)
+        public PrintToChatLocalExecNode(ICoreClientAPI api, MatrixElementBounds bounds) : base("Print To Local Chat", api, bounds)
         {
             inputs.Add(new ScriptNodeInput(this, "Message", typeof(string)));
         }

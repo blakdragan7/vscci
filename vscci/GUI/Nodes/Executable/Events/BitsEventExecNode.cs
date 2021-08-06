@@ -5,6 +5,7 @@
     using Vintagestory.API.Common;
     using Vintagestory.API.Datastructures;
     using VSCCI.Data;
+    using VSCCI.GUI.Elements;
     using VSCCI.GUI.Nodes.Attributes;
 
     [NodeData("Events", "Bit Event")]
@@ -22,7 +23,7 @@
         private string message;
         private string from;
 
-        public BitsEventExecNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("Bit Event", api, nodeTransform, bounds)
+        public BitsEventExecNode(ICoreClientAPI api, MatrixElementBounds bounds) : base("Bit Event", api, bounds)
         {
             outputs.Add(new ScriptNodeOutput(this, "Amount", typeof(Number)));
             outputs.Add(new ScriptNodeOutput(this, "From", typeof(string)));

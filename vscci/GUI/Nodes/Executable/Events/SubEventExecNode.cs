@@ -5,6 +5,7 @@
     using Vintagestory.API.Common;
     using Vintagestory.API.Datastructures;
     using VSCCI.Data;
+    using VSCCI.GUI.Elements;
     using VSCCI.GUI.Nodes.Attributes;
 
     [NodeData("Events", "Sub Event")]
@@ -25,7 +26,7 @@
         private string to;
         private bool isGift;
 
-        public SubEventExecNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("Sub Event", api, nodeTransform, bounds)
+        public SubEventExecNode(ICoreClientAPI api, MatrixElementBounds bounds) : base("Sub Event", api, bounds)
         {
             outputs.Add(new ScriptNodeOutput(this, "From", typeof(string)));
             outputs.Add(new ScriptNodeOutput(this, "To", typeof(string)));

@@ -2,6 +2,7 @@
 {
     using Cairo;
     using Vintagestory.API.Client;
+    using VSCCI.GUI.Elements;
     using VSCCI.GUI.Nodes.Attributes;
 
     [NodeData("Basic", "-")]
@@ -13,7 +14,7 @@
         public static int INPUT_ONE_INDEX = 0;
         public static int INPUT_TWO_INDEX = 1;
         public static int OUTPUT_INDEX = 0;
-        public SubtractPureNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("-", api, nodeTransform, bounds, true)
+        public SubtractPureNode(ICoreClientAPI api, MatrixElementBounds bounds) : base("-", api, bounds, true)
         {
             inputs.Add(new ScriptNodeInput(this, "First", typeof(Number)));
             inputs.Add(new ScriptNodeInput(this, "Second", typeof(Number)));

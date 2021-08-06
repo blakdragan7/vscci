@@ -5,6 +5,7 @@
     using Vintagestory.API.Common;
     using Vintagestory.API.Datastructures;
     using VSCCI.Data;
+    using VSCCI.GUI.Elements;
     using VSCCI.GUI.Nodes.Attributes;
 
     [NodeData("Events", "Follow Event")]
@@ -22,7 +23,7 @@
         private string channel;
         private string platform;
 
-        public FollowEventExecNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("Follow Event", api, nodeTransform, bounds)
+        public FollowEventExecNode(ICoreClientAPI api, MatrixElementBounds bounds) : base("Follow Event", api, bounds)
         {
             outputs.Add(new ScriptNodeOutput(this, "Who", typeof(string)));
             outputs.Add(new ScriptNodeOutput(this, "Channel", typeof(string)));

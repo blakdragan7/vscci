@@ -3,6 +3,7 @@
     using Cairo;
     using Vintagestory.API.Client;
     using Vintagestory.API.MathTools;
+    using VSCCI.GUI.Elements;
     using VSCCI.GUI.Nodes.Attributes;
 
     [NodeData("Util", "Current Player Position")]
@@ -12,7 +13,7 @@
     class CurrentPlayerPosition : ExecutableScriptNode
     {
         public static int OUTPUT_INDEX = 0;
-        public CurrentPlayerPosition(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("+", api, nodeTransform, bounds, true)
+        public CurrentPlayerPosition(ICoreClientAPI api, MatrixElementBounds bounds) : base("+", api, bounds, true)
         {
             outputs.Add(new ScriptNodeOutput(this, "Result", typeof(Vec3d)));
 

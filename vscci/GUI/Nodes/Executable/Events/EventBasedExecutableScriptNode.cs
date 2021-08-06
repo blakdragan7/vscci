@@ -2,14 +2,14 @@
 {
     using Cairo;
     using Vintagestory.API.Client;
-    using Vintagestory.API.Common;
+    using VSCCI.GUI.Elements;
     using Vintagestory.API.Datastructures;
 
     using VSCCI.ModSystem;
 
     public abstract class EventBasedExecutableScriptNode : ExecutableScriptNode
     {
-        public EventBasedExecutableScriptNode(string title, ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base(title, api, nodeTransform, bounds, true, false)
+        public EventBasedExecutableScriptNode(string title, ICoreClientAPI api, MatrixElementBounds bounds) : base(title, api, bounds, true, false)
         {
             CCINodeSystem.NodeSystem.RegisterNode(this);
         }

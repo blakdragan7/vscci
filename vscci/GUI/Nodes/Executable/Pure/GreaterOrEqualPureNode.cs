@@ -4,6 +4,7 @@ namespace VSCCI.GUI.Nodes
     using Cairo;
     using System;
     using Vintagestory.API.Client;
+    using VSCCI.GUI.Elements;
     using VSCCI.GUI.Nodes.Attributes;
 
     [NodeData("Basic", ">=")]
@@ -12,7 +13,7 @@ namespace VSCCI.GUI.Nodes
     [OutputPin(typeof(bool), 0)]
     class GreaterOrEqualPureNode : ExecutableScriptNode
     {
-        public GreaterOrEqualPureNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base(">=", api, nodeTransform, bounds, true)
+        public GreaterOrEqualPureNode(ICoreClientAPI api, MatrixElementBounds bounds) : base(">=", api, bounds, true)
         {
             inputs.Add(new ScriptNodeInput(this, "First", typeof(Number)));
             inputs.Add(new ScriptNodeInput(this, "Second", typeof(Number)));

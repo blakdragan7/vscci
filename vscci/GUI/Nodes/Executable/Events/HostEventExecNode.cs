@@ -5,6 +5,7 @@
     using Vintagestory.API.Common;
     using Vintagestory.API.Datastructures;
     using VSCCI.Data;
+    using VSCCI.GUI.Elements;
     using VSCCI.GUI.Nodes.Attributes;
 
     [NodeData("Events", "Host Event")]
@@ -19,7 +20,7 @@
         private int viewers;
         private string who;
 
-        public HostEventExecNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("Host Event", api, nodeTransform, bounds)
+        public HostEventExecNode(ICoreClientAPI api, MatrixElementBounds bounds) : base("Host Event", api, bounds)
         {
             outputs.Add(new ScriptNodeOutput(this, "Who", typeof(string)));
             outputs.Add(new ScriptNodeOutput(this, "Viewer Count", typeof(Number)));

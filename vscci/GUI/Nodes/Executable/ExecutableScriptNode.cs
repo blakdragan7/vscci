@@ -2,6 +2,8 @@
 {
     using Cairo;
     using Vintagestory.API.Client;
+    using VSCCI.GUI.Elements;
+
     public abstract class ExecutableScriptNode : ScriptNode
     {
         private bool isPure;
@@ -14,7 +16,7 @@
 
         public static int INPUT_EXEC_INDEX = 0;
         public static int OUTPUT_EXEC_INDEX = 0;
-        public ExecutableScriptNode(string title, ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds, bool isPure = false) : base(title, api, nodeTransform, bounds)
+        public ExecutableScriptNode(string title, ICoreClientAPI api, MatrixElementBounds bounds, bool isPure = false) : base(title, api, bounds)
         {
             this.isPure = isPure;
             if (isPure == false)
@@ -27,7 +29,7 @@
             nextExecutableIndex = OUTPUT_EXEC_INDEX;
         }
 
-        public ExecutableScriptNode(string title, ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds, bool skipInputExcec, bool isPure) : base(title, api, nodeTransform, bounds)
+        public ExecutableScriptNode(string title, ICoreClientAPI api, MatrixElementBounds bounds, bool skipInputExcec, bool isPure) : base(title, api, bounds)
         {
             this.isPure = isPure;
             if (isPure == false)
@@ -43,7 +45,7 @@
             nextExecutableIndex = OUTPUT_EXEC_INDEX;
         }
 
-        public ExecutableScriptNode(string title, string outputName, ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds, bool isPure = false) : base(title, api, nodeTransform, bounds)
+        public ExecutableScriptNode(string title, string outputName, ICoreClientAPI api, MatrixElementBounds bounds, bool isPure = false) : base(title, api, bounds)
         {
             this.isPure = isPure;
             if (isPure == false)
@@ -56,7 +58,7 @@
             nextExecutableIndex = OUTPUT_EXEC_INDEX;
         }
 
-        public ExecutableScriptNode(string title, string outputName, string inputName, ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds, bool isPure = false) : base(title, api, nodeTransform, bounds)
+        public ExecutableScriptNode(string title, string outputName, string inputName, ICoreClientAPI api, MatrixElementBounds bounds, bool isPure = false) : base(title, api, bounds)
         {
             this.isPure = isPure;
             if (isPure == false)

@@ -5,6 +5,7 @@
     using Vintagestory.API.Common;
     using Vintagestory.API.Datastructures;
     using VSCCI.Data;
+    using VSCCI.GUI.Elements;
     using VSCCI.GUI.Nodes.Attributes;
 
     [NodeData("Events", "Super Chat Event")]
@@ -23,7 +24,7 @@
         private string message;
         private string from;
 
-        public SuperChatEventExecNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("Super Chat Event", api, nodeTransform, bounds)
+        public SuperChatEventExecNode(ICoreClientAPI api, MatrixElementBounds bounds) : base("Super Chat Event", api, bounds)
         {
             outputs.Add(new ScriptNodeOutput(this, "From", typeof(string)));
             outputs.Add(new ScriptNodeOutput(this, "Message", typeof(string)));

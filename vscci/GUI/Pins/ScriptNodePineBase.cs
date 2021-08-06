@@ -233,28 +233,28 @@ namespace VSCCI.GUI.Nodes
             this.Guid = Guid.NewGuid();
         }
         /*
-         * Rendered before Pin but after "RenderOther
+         * Rendered before Pin but after "RenderBackground
          * All text rendering should be done here
          */
-        public abstract void RenderText(TextDrawUtil textUtil, CairoFont font, Context ctx, ImageSurface surface, double deltaTime);
+        public abstract void RenderText(TextDrawUtil textUtil, CairoFont font, Context ctx, ImageSurface surface);
         /*
          *  Renders after RenderText, used to render the connection pin
          */
-        public abstract void RenderPin(Context ctx, ImageSurface surface, double deltaTime);
+        public abstract void RenderPin(Context ctx, ImageSurface surface);
         /*
          *  Renders Before text, used for rendering backgrounds and other misc things that should be
          *  behind the text
          */
-        public virtual void RenderOther(Context ctx, ImageSurface surface, double deltaTime) { }
+        public virtual void RenderBackground(Context ctx, ImageSurface surface) { }
         /*
-         *  Used to render any interactive element that apart of the default api
+         *  Used to render any interactive element
          */
-        public virtual void RenderInteractive(double deltaTime) { }
+        public virtual void RenderInteractive(float deltaTime) { }
 
         /*
          *  Used to setup size and position
          */
-        public abstract void Compose(double colx, double coly, double drawx, double drawy, Context ctx, CairoFont font);
+        public abstract void SetupSizeAndOffsets(double x, double y, Context ctx, CairoFont font);
 
         public virtual void OnPinConneced(ScriptNodePinConnection connection) { }
         public virtual void OnPinDisconnected(ScriptNodePinConnection connection) { }
@@ -433,14 +433,14 @@ namespace VSCCI.GUI.Nodes
             return "This pin excepts " + typeString + " Pin Connections"; 
         }
 
-        public virtual bool OnMouseDown(ICoreClientAPI api, double x, double y, EnumMouseButton button)
-        { return PointIsWithinSelectionBounds(x, y); }
+        public virtual bool OnMouseDown(ICoreClientAPI api, MouseEvent mouse)
+        { return PointIsWithinSelectionBounds(mouse.X, mouse.Y); }
 
-        public virtual void OnMouseMove(ICoreClientAPI api, double x, double y, double deltaX, double deltaY)
+        public virtual void OnMouseMove(ICoreClientAPI api, MouseEvent mouse)
         {}
 
-        public virtual bool OnMouseUp(ICoreClientAPI api, double x, double y, EnumMouseButton button)
-        { return PointIsWithinSelectionBounds(x, y); }
+        public virtual bool OnMouseUp(ICoreClientAPI api, MouseEvent mouse)
+        { return PointIsWithinSelectionBounds(mouse.X, mouse.Y); }
 
         public virtual void OnKeyPress(ICoreClientAPI api, KeyEvent args)
         {}

@@ -43,27 +43,18 @@
             OnItemSelection?.Invoke(this, selection);
         }
 
-        public override void RenderOther(Context ctx, ImageSurface surface, double deltaTime)
+        public override void RenderBackground(Context ctx, ImageSurface surface)
         {
-            if (hasConnection == false)
-            {
-                var bounds = dropElement.Bounds;
-                ctx.SetSourceRGBA(0.0, 0.0, 0.0, 0.2);
-                RoundRectangle(ctx, bounds.drawX, bounds.drawY, bounds.InnerWidth, bounds.InnerHeight, 1.0);
-                ctx.Fill();
-            }
+            dropElement.ComposeElements(ctx, null);
+            dropdownNeedsCompose = false;
         }
 
-        public override void RenderText(TextDrawUtil textUtil, CairoFont font, Context ctx, ImageSurface surface, double deltaTime)
+        public override void RenderText(TextDrawUtil textUtil, CairoFont font, Context ctx, ImageSurface surface)
         {
-            if(dropdownNeedsCompose)
-            {
-                dropdownNeedsCompose = false;
-                dropElement.ComposeElements(ctx, null);
-            }
+            
         }
 
-        public override void RenderInteractive(double deltaTime)
+        public override void RenderInteractive(float deltaTime)
         {
             if (hasConnection == false && dropdownNeedsCompose == false)
             {
@@ -71,7 +62,7 @@
             }
         }
 
-        public override void RenderPin(Context ctx, ImageSurface surface, double deltaTime)
+        public override void RenderPin(Context ctx, ImageSurface surface)
         {
             if (hasConnection)
             {
@@ -94,15 +85,17 @@
             dropdownNeedsCompose = true;
         }
 
-        public override void Compose(double colx, double coly, double drawx, double drawy, Context ctx, CairoFont font)
+        public override void SetupSizeAndOffsets(double x, double y, Context ctx, CairoFont font)
         {
-            X = drawx;
-            Y = drawy;
+            X = x;
+            Y = y;
 
             owner.Bounds.ParentBounds.ChildBounds.Remove(dropElement.Bounds);
             dropElement.Bounds = ElementBounds.Fixed(X, Y, 100, 30);
             owner.Bounds.ParentBounds.WithChild(dropElement.Bounds);
             dropElement.Bounds.CalcWorldBounds();
+
+            dropElement.UpdateArrowPos();
 
             extents.Width = dropElement.Bounds.OuterWidth;
             extents.Height = dropElement.Bounds.OuterHeight;
@@ -114,7 +107,7 @@
                 owner.Bounds.ParentBounds.ChildBounds.Remove(pinSelectBounds);
             }
 
-            pinSelectBounds = ElementBounds.Fixed(colx, coly, extents.Width, extents.Height);
+            pinSelectBounds = ElementBounds.Fixed(x, y, extents.Width, extents.Height);
             owner.Bounds.ParentBounds.WithChild(pinSelectBounds);
             pinSelectBounds.CalcWorldBounds();
 
@@ -123,7 +116,7 @@
                 owner.Bounds.ParentBounds.ChildBounds.Remove(hoverBounds);
             }
 
-            hoverBounds = ElementBounds.Fixed(colx, coly, extents.Width, extents.Height);
+            hoverBounds = ElementBounds.Fixed(x, y, extents.Width, extents.Height);
             owner.Bounds.ParentBounds.WithChild(hoverBounds);
             hoverBounds.CalcWorldBounds();
 
@@ -166,26 +159,23 @@
             writer.Write(currentSelectionIndex);
         }
 
-        public override bool OnMouseDown(ICoreClientAPI api, double x, double y, EnumMouseButton button)
+        public override bool OnMouseDown(ICoreClientAPI api, MouseEvent mouse)
         {
-            var mevent = new MouseEvent((int)x, (int)y, button);
-            dropElement.OnMouseDown(api, mevent);
+            dropElement.OnMouseDown(api, mouse);
 
-            return mevent.Handled;
+            return mouse.Handled;
         }
 
-        public override void OnMouseMove(ICoreClientAPI api, double x, double y, double deltaX, double deltaY)
+        public override void OnMouseMove(ICoreClientAPI api, MouseEvent mouse)
         {
-            var mevent = new MouseEvent((int)x, (int)y, (int)deltaX, (int)deltaY);
-            dropElement.OnMouseMove(api, mevent);
+            dropElement.OnMouseMove(api, mouse);
         }
 
-        public override bool OnMouseUp(ICoreClientAPI api, double x, double y, EnumMouseButton button)
+        public override bool OnMouseUp(ICoreClientAPI api, MouseEvent mouse)
         {
-            var mevent = new MouseEvent((int)x, (int)y, button);
-            dropElement.OnMouseUp(api, mevent);
+            dropElement.OnMouseUp(api, mouse);
 
-            return mevent.Handled;
+            return mouse.Handled;
         }
 
         public override void Dispose()

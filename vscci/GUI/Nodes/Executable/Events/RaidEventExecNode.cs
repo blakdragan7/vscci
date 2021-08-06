@@ -5,6 +5,7 @@
     using Vintagestory.API.Common;
     using Vintagestory.API.Datastructures;
     using VSCCI.Data;
+    using VSCCI.GUI.Elements;
     using VSCCI.GUI.Nodes.Attributes;
 
     [NodeData("Events", "Raid Event")]
@@ -19,7 +20,7 @@
         private int viewerCount;
         private string channel;
 
-        public RaidEventExecNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("Raid Event", api, nodeTransform, bounds)
+        public RaidEventExecNode(ICoreClientAPI api, MatrixElementBounds bounds) : base("Raid Event", api, bounds)
         {
             outputs.Add(new ScriptNodeOutput(this, "Channel", typeof(string)));
             outputs.Add(new ScriptNodeOutput(this, "Viewer Count", typeof(Number)));

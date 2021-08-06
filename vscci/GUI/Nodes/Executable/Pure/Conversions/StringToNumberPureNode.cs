@@ -3,6 +3,7 @@
     using Cairo;
     using System;
     using Vintagestory.API.Client;
+    using VSCCI.GUI.Elements;
     using VSCCI.GUI.Nodes.Attributes;
 
     [NodeData("Conversions", "String To Int")]
@@ -10,7 +11,7 @@
     [OutputPin(typeof(Number), 0)]
     public class StringToNumberPureNode : ExecutableScriptNode
     {
-        public StringToNumberPureNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("String => Number", api, nodeTransform, bounds, true)
+        public StringToNumberPureNode(ICoreClientAPI api, MatrixElementBounds bounds) : base("String => Number", api, bounds, true)
         {
             inputs.Add(new ScriptNodeInput(this, "String", typeof(string)));
             outputs.Add(new ScriptNodeOutput(this, "Number", typeof(Number)));

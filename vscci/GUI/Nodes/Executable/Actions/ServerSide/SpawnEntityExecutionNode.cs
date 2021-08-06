@@ -10,6 +10,7 @@
     using Vintagestory.API.Common.Entities;
     using Vintagestory.API.MathTools;
     using Vintagestory.API.Server;
+    using VSCCI.GUI.Elements;
     using VSCCI.GUI.Nodes.Attributes;
     using VSCCI.Extensions;
 
@@ -81,7 +82,7 @@
             }
         }
 
-        public ServerSideSpawnEntityNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("Run Server Command", api, nodeTransform, bounds)
+        public ServerSideSpawnEntityNode(ICoreClientAPI api, MatrixElementBounds bounds) : base("Run Server Command", api, bounds)
         {
             inputs.Add(new ScriptNodeDropdownInput(this, api, entityTypeNames, entityTypes, typeof(Entity)));
             inputs.Add(new ScriptNodeInput(this, "Location", typeof(Vec3d)));

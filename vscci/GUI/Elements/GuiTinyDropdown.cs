@@ -110,6 +110,12 @@
             return this.font == font;
         }
 
+        public void UpdateArrowPos()
+        {
+            arrowBounds = ElementBounds.Fixed(Bounds.fixedWidth - Bounds.fixedHeight, 0, Bounds.fixedHeight, Bounds.fixedHeight);
+            Bounds.WithChild(arrowBounds);
+        }
+
         public override void ComposeElements(Context ctx, ImageSurface surface)
         {
             Bounds.CalcWorldBounds();

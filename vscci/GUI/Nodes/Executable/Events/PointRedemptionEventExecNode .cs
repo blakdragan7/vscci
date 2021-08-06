@@ -4,6 +4,7 @@
     using Vintagestory.API.Client;
     using Vintagestory.API.Datastructures;
     using VSCCI.Data;
+    using VSCCI.GUI.Elements;
     using VSCCI.GUI.Nodes.Attributes;
 
     [NodeData("Events", "Redemption Event")]
@@ -24,7 +25,7 @@
         private string message;
         private string who;
 
-        public PointRedemptionEventExecNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("Point Redemption Event", api, nodeTransform, bounds)
+        public PointRedemptionEventExecNode(ICoreClientAPI api, MatrixElementBounds bounds) : base("Point Redemption Event", api, bounds)
         {
             outputs.Add(new ScriptNodeOutput(this, "Who", typeof(string)));
             outputs.Add(new ScriptNodeOutput(this, "Name", typeof(string)));

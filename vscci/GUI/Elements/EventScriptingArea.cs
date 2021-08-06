@@ -103,9 +103,9 @@ namespace VSCCI.GUI.Elements
             PopulateNodeSelectionList();
         }
 
-        public ElementBounds MakeBoundsAtPoint(int x, int y)
+        public MatrixElementBounds MakeBoundsAtPoint(int x, int y)
         {
-            var b = ElementBounds.Fixed(x, y);
+            var b = MatrixElementBounds.Fixed(x, y, nodeTransform);
             Bounds.WithChild(b);
             b.CalcWorldBounds();
 
@@ -118,11 +118,6 @@ namespace VSCCI.GUI.Elements
 
             var surface = new ImageSurface(Format.Argb32, Bounds.OuterWidthInt, Bounds.OuterHeightInt);
             var ctx = new Context(surface);
-
-            foreach (var node in allNodes)
-            {
-                node.OnRender(ctx, surface, deltaTime);
-            }
 
             if (activeList != null)
             {
@@ -153,6 +148,11 @@ namespace VSCCI.GUI.Elements
             base.ComposeElements(ctxStatic, surface);
 
             DrawBackground(ctxStatic);
+
+            foreach (var node in allNodes)
+            {
+                node.ComposeElements(ctxStatic, surface);
+            }
         }
 
         public void ToBytes(BinaryWriter writer)
@@ -221,7 +221,7 @@ namespace VSCCI.GUI.Elements
                 var type = System.Type.GetType(typeName);
                 if(type != null && type.IsSubclassOf(typeof(ScriptNode)))
                 {
-                    ScriptNode node = (ScriptNode)System.Activator.CreateInstance(type, api, nodeTransform, MakeBoundsAtPoint((int)x, (int)y));
+                    ScriptNode node = (ScriptNode)System.Activator.CreateInstance(type, api, MakeBoundsAtPoint((int)x, (int)y));
                     node.Guid = System.Guid.Parse(guidString);
                     node.ReadPinsFromBytes(reader);
 
@@ -253,10 +253,14 @@ namespace VSCCI.GUI.Elements
         {
             base.OnMouseDownOnElement(api, args);
 
+            args.Handled = false;
+
             double transformedX = args.X;
             double transformedY = args.Y;
 
             inverseNodeTransform.TransformPoint(ref transformedX, ref transformedY);
+
+            MouseEvent transformedEvent = new MouseEvent((int)transformedX, (int)transformedY, args.DeltaX, args.DeltaY, args.Button);
 
             if (activeList != null)
             {
@@ -265,17 +269,13 @@ namespace VSCCI.GUI.Elements
 
             foreach (var node in allNodes)
             {
-                if (node.MouseDown(args.X, args.Y, transformedX, transformedY, args.Button))
-                {
-                    if(selectedNode != null && selectedNode != node)
-                    {
-                        selectedNode.MouseDown(args.X, args.Y, transformedX, transformedY, args.Button);
-                    }
+                node.OnMouseDown(api, transformedEvent);
 
+                if (args.Handled)
+                {
                     selectedNode = node;
                     lastMouseX = args.X;
                     lastMouseY = args.Y;
-                    return;
                 }
             }
 
@@ -299,11 +299,13 @@ namespace VSCCI.GUI.Elements
                     break;
             }
 
+            args.Handled = true;
         }
 
         public override void OnMouseMove(ICoreClientAPI api, MouseEvent args)
         {
             base.OnMouseMove(api, args);
+            args.Handled = false;
 
             if(activeList != null)
             {
@@ -326,19 +328,24 @@ namespace VSCCI.GUI.Elements
 
                 inverseNodeTransform.TransformPoint(ref transformedX, ref transformedY);
 
+                MouseEvent transformedEvent = new MouseEvent((int)transformedX, (int)transformedY, args.DeltaX, args.DeltaY, args.Button);
+                
                 foreach (var node in allNodes)
                 {
-                    node.MouseMove(args.X, args.Y, transformedX, transformedY, args.X - lastMouseX, args.Y - lastMouseY);
+                    node.OnMouseMove(api, transformedEvent);
                 }
             }
 
             lastMouseX = args.X;
             lastMouseY = args.Y;
+
+            args.Handled = true;
         }
 
         public override void OnMouseUpOnElement(ICoreClientAPI api, MouseEvent args)
         {
             base.OnMouseUpOnElement(api, args);
+            args.Handled = false;
 
             if (activeList != null)
             {
@@ -368,6 +375,7 @@ namespace VSCCI.GUI.Elements
 
                 inverseNodeTransform.TransformPoint(ref transformedX, ref transformedY);
 
+                MouseEvent transformedEvent = new MouseEvent((int)transformedX, (int)transformedY, args.DeltaX, args.DeltaY, args.Button);
                 var foundConnection = false;
                 if (selectedNode.ActiveConnection != null)
                 {
@@ -397,8 +405,11 @@ namespace VSCCI.GUI.Elements
                     }
                 }
 
-                selectedNode = selectedNode.MouseUp(args.X, args.Y, transformedX, transformedY, args.Button) ? selectedNode : null;
+                selectedNode.OnMouseUp(api, transformedEvent);
+                selectedNode = args .Handled ? selectedNode : null;
             }
+
+            args.Handled = true;
         }
 
         public override void OnKeyDown(ICoreClientAPI api, KeyEvent args)
@@ -458,7 +469,7 @@ namespace VSCCI.GUI.Elements
                 {
                     api.Event.EnqueueMainThreadTask(() =>
                     {
-                        ScriptNode newNode = (ScriptNode)Activator.CreateInstance(type, api, nodeTransform, bounds);
+                        ScriptNode newNode = (ScriptNode)Activator.CreateInstance(type, api, bounds);
 
                         allNodes.Add(newNode);
                     }, "Spawn Node");
@@ -489,7 +500,7 @@ namespace VSCCI.GUI.Elements
                 {
                     api.Event.EnqueueMainThreadTask(() =>
                     {
-                        ScriptNode newNode = (ScriptNode)Activator.CreateInstance(nodeType, api, nodeTransform, bounds);
+                        ScriptNode newNode = (ScriptNode)Activator.CreateInstance(nodeType, api, bounds);
                         if(contextOutput != null)
                         {
                             var input = newNode.InputForIndex(pinIndex);

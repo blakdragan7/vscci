@@ -2,6 +2,7 @@
 {
     using Cairo;
     using Vintagestory.API.Client;
+    using VSCCI.GUI.Elements;
     using VSCCI.GUI.Nodes.Attributes;
 
     [NodeData("Flow", "Delay")]
@@ -11,7 +12,7 @@
     class DelayExecutableNode : ExecutableScriptNode
     {
         public static int MILISECONDS_INPUT_INDEX = 1;
-        public DelayExecutableNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("Delay", api, nodeTransform, bounds)
+        public DelayExecutableNode(ICoreClientAPI api, MatrixElementBounds bounds) : base("Delay", api, bounds)
         {
             inputs.Add(new ScriptNodeInput(this, "miliSeconds", typeof(Number)));
         }

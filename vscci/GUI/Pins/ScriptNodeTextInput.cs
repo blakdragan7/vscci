@@ -25,32 +25,25 @@
             textInputNeedsCompose = false;
         }
 
-        public override void RenderOther(Context ctx, ImageSurface surface, double deltaTime)
+        public override void RenderBackground(Context ctx, ImageSurface surface)
         {
-            if (hasConnection == false)
-            {
-                var bounds = textInput.Bounds;
-                ctx.SetSourceRGBA(0.1, 0.1, 0.1, 0.5);
-                RoundRectangle(ctx, bounds.drawX, bounds.drawY, bounds.InnerWidth, bounds.InnerHeight, 1.0);
-                ctx.Fill();
-            }
-        }
-
-        public override void RenderText(TextDrawUtil textUtil, CairoFont font, Context ctx, ImageSurface surface, double deltaTime)
-        {
-            if(textInputNeedsCompose)
+            if (textInputNeedsCompose)
             {
                 textInput.ComposeElements(ctx, surface);
                 textInputNeedsCompose = false;
             }
         }
 
-        public override void RenderInteractive(double deltaTime)
+        public override void RenderText(TextDrawUtil textUtil, CairoFont font, Context ctx, ImageSurface surface)
+        {
+        }
+
+        public override void RenderInteractive(float deltaTime)
         {
             if (hasConnection == false && textInputNeedsCompose == false)
             {
                 textInput.Enabled = true;
-                textInput.RenderInteractiveElements((float)deltaTime);
+                textInput.RenderInteractiveElements(deltaTime);
             }
             else
             {
@@ -58,7 +51,7 @@
             }
         }
 
-        public override void RenderPin(Context ctx, ImageSurface surface, double deltaTime)
+        public override void RenderPin(Context ctx, ImageSurface surface)
         {
             if(hasConnection)
             {
@@ -83,10 +76,10 @@
             textInput.Dispose();
         }
 
-        public override void Compose(double colx, double coly, double drawx, double drawy, Context ctx, CairoFont font)
+        public override void SetupSizeAndOffsets(double x, double y, Context ctx, CairoFont font)
         {
-            X = drawx;
-            Y = drawy;
+            X = x;
+            Y = y;
 
             owner.Bounds.ParentBounds.ChildBounds.Remove(textInput.Bounds);
             textInput.Bounds = ElementBounds.Fixed(X, Y, 100, 30);
@@ -103,7 +96,7 @@
                 owner.Bounds.ParentBounds.ChildBounds.Remove(pinSelectBounds);
             }
 
-            pinSelectBounds = ElementBounds.Fixed(colx, coly, extents.Width, extents.Height);
+            pinSelectBounds = ElementBounds.Fixed(x, y, extents.Width, extents.Height);
             owner.Bounds.ParentBounds.WithChild(pinSelectBounds);
             pinSelectBounds.CalcWorldBounds();
 
@@ -112,7 +105,7 @@
                 owner.Bounds.ParentBounds.ChildBounds.Remove(hoverBounds);
             }
 
-            hoverBounds = ElementBounds.Fixed(colx, coly, extents.Width, extents.Height);
+            hoverBounds = ElementBounds.Fixed(x, y, extents.Width, extents.Height);
             owner.Bounds.ParentBounds.WithChild(hoverBounds);
             hoverBounds.CalcWorldBounds();
 
@@ -182,13 +175,12 @@
             }
         }
 
-        public override bool OnMouseDown(ICoreClientAPI api, double x, double y, EnumMouseButton button)
+        public override bool OnMouseDown(ICoreClientAPI api, MouseEvent mouse)
         {
-            if (PointIsWithinSelectionBounds(x, y))
+            if (PointIsWithinSelectionBounds(mouse.X, mouse.Y))
             {
                 textInput.OnFocusGained();
-                var mevent = new MouseEvent((int)x, (int)y, button);
-                textInput.OnMouseDownOnElement(api, mevent);
+                textInput.OnMouseDownOnElement(api, mouse);
                 return true;
             }
             else
@@ -198,16 +190,15 @@
             }
         }
 
-        public override void OnMouseMove(ICoreClientAPI api, double x, double y, double deltaX, double deltaY)
+        public override void OnMouseMove(ICoreClientAPI api, MouseEvent mouse)
         {
-            var mevent = new MouseEvent((int)x, (int)y, (int)deltaX, (int)deltaY);
-            textInput.OnMouseMove(api, mevent);
+            textInput.OnMouseMove(api, mouse);
+
         }
-        public override bool OnMouseUp(ICoreClientAPI api, double x, double y, EnumMouseButton button)
+        public override bool OnMouseUp(ICoreClientAPI api, MouseEvent mouse)
         {
-            var mevent = new MouseEvent((int)x, (int)y, button);
-            textInput.OnMouseUp(api, mevent);
-            if (PointIsWithinSelectionBounds(x, y) == false)
+            textInput.OnMouseUp(api, mouse);
+            if (PointIsWithinSelectionBounds(mouse.X, mouse.Y) == false)
             {
                 textInput.OnFocusLost();
                 return false;

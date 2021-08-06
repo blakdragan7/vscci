@@ -2,6 +2,7 @@
 {
     using Cairo;
     using Vintagestory.API.Client;
+    using VSCCI.GUI.Elements;
     using VSCCI.GUI.Nodes.Attributes;
 
     [NodeData("Constants", "Constant String")]
@@ -9,7 +10,7 @@
     [OutputPin(typeof(string), 0)]
     class ConstantStringScriptNode : ConstantTextInputScriptNode<string>
     {
-        public ConstantStringScriptNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base(api, nodeTransform, bounds)
+        public ConstantStringScriptNode(ICoreClientAPI api, MatrixElementBounds bounds) : base(api, bounds)
         {
         }
 

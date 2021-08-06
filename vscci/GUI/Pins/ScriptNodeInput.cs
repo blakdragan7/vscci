@@ -13,14 +13,14 @@ namespace VSCCI.GUI.Nodes
         {
 
         }
-        public override void RenderText(TextDrawUtil textUtil, CairoFont font, Context ctx, ImageSurface surface, double deltaTime)
+        public override void RenderText(TextDrawUtil textUtil, CairoFont font, Context ctx, ImageSurface surface)
         {
             ctx.SetSourceRGBA(1, 1, 1, 1.0);
 
             textUtil.DrawTextLine(ctx, font, name, X + DefaultPinSize + Constants.NODE_SCIPRT_TEXT_PADDING, Y);
         }
 
-        public override void RenderPin(Context ctx, ImageSurface surface, double deltaTime)
+        public override void RenderPin(Context ctx, ImageSurface surface)
         {
             ctx.SetSourceColor(PinColor);
             ctx.LineWidth = 2;
@@ -57,10 +57,10 @@ namespace VSCCI.GUI.Nodes
             return base.Connect(connection);
         }
 
-        public override void Compose(double colx, double coly, double drawx, double drawy, Context ctx, CairoFont font)
+        public override void SetupSizeAndOffsets(double x, double y, Context ctx, CairoFont font)
         {
-            X = drawx;
-            Y = drawy;
+            X = x;
+            Y = y;
 
             extents = ctx.TextExtents(name);
             extents.Width += DefaultPinSize + Constants.NODE_SCIPRT_TEXT_PADDING;
@@ -70,7 +70,7 @@ namespace VSCCI.GUI.Nodes
                 owner.Bounds.ParentBounds.ChildBounds.Remove(pinSelectBounds);
             }
 
-            pinSelectBounds = ElementBounds.Fixed(colx, (coly + (extents.Height / 2.0)), DefaultPinSize, DefaultPinSize);
+            pinSelectBounds = ElementBounds.Fixed(x, (y + (extents.Height / 2.0)), DefaultPinSize, DefaultPinSize);
             owner.Bounds.ParentBounds.WithChild(pinSelectBounds);
             pinSelectBounds.CalcWorldBounds();
 
@@ -79,7 +79,7 @@ namespace VSCCI.GUI.Nodes
                 owner.Bounds.ParentBounds.ChildBounds.Remove(hoverBounds);
             }
 
-            hoverBounds = ElementBounds.Fixed(colx, coly, extents.Width, extents.Height);
+            hoverBounds = ElementBounds.Fixed(x, y, extents.Width, extents.Height);
             owner.Bounds.ParentBounds.WithChild(hoverBounds);
             hoverBounds.CalcWorldBounds();
 

@@ -4,6 +4,7 @@
     using Vintagestory.API.Client;
     using System.Collections.Generic;
     using System;
+    using VSCCI.GUI.Elements;
     using VSCCI.GUI.Nodes.Attributes;
 
     [NodeData("Constants", "Constant Number")]
@@ -25,7 +26,7 @@
             '9',
             '.'
         };
-        public ConstantNumberScriptNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base(api, nodeTransform, bounds)
+        public ConstantNumberScriptNode(ICoreClientAPI api, MatrixElementBounds bounds) : base(api, bounds)
         {
         }
 

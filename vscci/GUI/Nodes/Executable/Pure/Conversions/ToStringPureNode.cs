@@ -3,6 +3,7 @@
     using Cairo;
     using System;
     using Vintagestory.API.Client;
+    using VSCCI.GUI.Elements;
     using VSCCI.GUI.Nodes.Attributes;
 
     [NodeData("Conversions", "To String")]
@@ -13,7 +14,7 @@
         ScriptNodeInput input;
         ScriptNodeOutput output;
 
-        public ToStringPureNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("To String", api, nodeTransform, bounds, true)
+        public ToStringPureNode(ICoreClientAPI api, MatrixElementBounds bounds) : base("To String", api, bounds, true)
         {
             input = new ScriptNodeInput(this, "Value", typeof(DynamicType));
             output = new ScriptNodeOutput(this, "String", typeof(string));

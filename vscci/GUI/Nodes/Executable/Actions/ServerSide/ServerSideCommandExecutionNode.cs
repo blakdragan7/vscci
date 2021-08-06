@@ -3,6 +3,7 @@
     using Cairo;
     using Vintagestory.API.Client;
     using Vintagestory.API.Server;
+    using VSCCI.GUI.Elements;
     using VSCCI.GUI.Nodes.Attributes;
     using VSCCI.Data;
 
@@ -17,7 +18,7 @@
     [InputPin(typeof(string), 1)]
     public class ServerSideCommandExecutionNode : ServerSideExecutableNode<ServerSideCommandExecutable>
     {
-        public ServerSideCommandExecutionNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("Run Server Command", api, nodeTransform, bounds)
+        public ServerSideCommandExecutionNode(ICoreClientAPI api, MatrixElementBounds bounds) : base("Run Server Command", api, bounds)
         {
             inputs.Add(new ScriptNodeTextInput(this, api, typeof(string)));
         }

@@ -5,6 +5,7 @@
     using Vintagestory.API.Common;
     using Vintagestory.API.Datastructures;
     using VSCCI.Data;
+    using VSCCI.GUI.Elements;
     using VSCCI.GUI.Nodes.Attributes;
 
     [NodeData("Events", "Donation Event")]
@@ -22,7 +23,7 @@
         private float amount;
         private string message;
 
-        public DonationEventExecNode(ICoreClientAPI api, Matrix nodeTransform, ElementBounds bounds) : base("Donation Event", api, nodeTransform, bounds)
+        public DonationEventExecNode(ICoreClientAPI api, MatrixElementBounds bounds) : base("Donation Event", api, bounds)
         {
             outputs.Add(new ScriptNodeOutput(this, "Who", typeof(string)));
             outputs.Add(new ScriptNodeOutput(this, "Amount", typeof(Number)));
