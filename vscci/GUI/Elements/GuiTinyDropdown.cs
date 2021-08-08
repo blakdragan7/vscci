@@ -9,6 +9,13 @@
 
     public delegate void DynamicSelectionChangedDelegate(dynamic code, bool selected);
 
+    public enum EnumHorizontalAlign
+    {
+        Left    = 0,
+        Middle  = 1,
+        Right   = 2
+    }
+
     public class GuiTinyDropdown : GuiElement
     {
         dynamic[] values;
@@ -20,6 +27,9 @@
         private CairoFont font;
         private int hoverIndex;
         private int selectedIndex;
+
+        private EnumVerticalAlign verticalAlign;
+        private EnumHorizontalAlign horizontalAlign;
 
         private LoadedTexture listTexture;
         private LoadedTexture arrowTexture;
@@ -33,6 +43,9 @@
 
         private DynamicSelectionChangedDelegate onSelectionChanged;
         private event EventHandler<int> onSelectionIndexChanged;
+
+        public EnumVerticalAlign VerticalAlign { get => verticalAlign; set => SetVerticalAlign(value); }
+        public EnumHorizontalAlign HorizontalAlign { get => horizontalAlign; set => SetHorizontalAlign(value); }
 
         public int Selection => selectedIndex;
         public string SelectionValue => values[selectedIndex];
@@ -59,6 +72,37 @@
             listBounds = null;
             arrowDown = false;
 
+            verticalAlign = EnumVerticalAlign.Middle;
+            horizontalAlign = EnumHorizontalAlign.Middle;
+
+            hoverIndex = -1;
+
+            arrowBounds = ElementBounds.Fixed(bounds.fixedWidth - bounds.fixedHeight, 0, bounds.fixedHeight, bounds.fixedHeight);
+            bounds.WithChild(arrowBounds);
+        }
+
+        public GuiTinyDropdown(ICoreClientAPI capi, EnumVerticalAlign verticalAlign, EnumHorizontalAlign horizontalAlign, DynamicSelectionChangedDelegate onSelectionChanged, ElementBounds bounds, CairoFont font) : base(capi, bounds)
+        {
+            this.values = null;
+            this.names = null;
+            this.font = font;
+            this.selectedIndex = -1;
+            this.onSelectionChanged = onSelectionChanged;
+
+            util = new TextDrawUtil();
+            listTexture = new LoadedTexture(capi);
+            currentSelectionTexture = new LoadedTexture(capi);
+            listHoverTexture = new LoadedTexture(capi);
+            arrowTexture = new LoadedTexture(capi);
+            arrowDownTexture = new LoadedTexture(capi);
+
+            listOpen = false;
+            listBounds = null;
+            arrowDown = false;
+
+            this.verticalAlign = verticalAlign;
+            this.horizontalAlign = horizontalAlign;
+
             hoverIndex = -1;
 
             arrowBounds = ElementBounds.Fixed(bounds.fixedWidth - bounds.fixedHeight, 0, bounds.fixedHeight, bounds.fixedHeight);
@@ -83,6 +127,37 @@
             listOpen = false;
             listBounds = null;
             arrowDown = false;
+
+            verticalAlign = EnumVerticalAlign.Middle;
+            horizontalAlign = EnumHorizontalAlign.Middle;
+
+            hoverIndex = -1;
+
+            arrowBounds = ElementBounds.Fixed(bounds.fixedWidth - bounds.fixedHeight, 0, bounds.fixedHeight, bounds.fixedHeight);
+            bounds.WithChild(arrowBounds);
+        }
+
+        public GuiTinyDropdown(ICoreClientAPI capi, dynamic[] values, string[] names, int selectedIndex, EnumVerticalAlign verticalAlign, EnumHorizontalAlign horizontalAlign, DynamicSelectionChangedDelegate onSelectionChanged, ElementBounds bounds, CairoFont font) : base(capi, bounds)
+        {
+            this.values = values;
+            this.names = names;
+            this.font = font;
+            this.selectedIndex = selectedIndex;
+            this.onSelectionChanged = onSelectionChanged;
+
+            util = new TextDrawUtil();
+            listTexture = new LoadedTexture(capi);
+            currentSelectionTexture = new LoadedTexture(capi);
+            listHoverTexture = new LoadedTexture(capi);
+            arrowTexture = new LoadedTexture(capi);
+            arrowDownTexture = new LoadedTexture(capi);
+
+            listOpen = false;
+            listBounds = null;
+            arrowDown = false;
+
+            this.verticalAlign = verticalAlign;
+            this.horizontalAlign = horizontalAlign;
 
             hoverIndex = -1;
 
@@ -153,6 +228,24 @@
                 {
                     api.Render.Render2DTexturePremultipliedAlpha(listHoverTexture.TextureId, listBounds.renderX + 1, listBounds.renderY + 1 + (hoverIndex * Bounds.OuterHeight), Bounds.OuterWidth - 2, Bounds.OuterHeight - 2, 111);
                 }
+            }
+        }
+
+        private void SetVerticalAlign(EnumVerticalAlign align)
+        {
+            if (verticalAlign != align)
+            {
+                verticalAlign = align;
+                ComposeSelection();
+            }
+        }
+
+        private void SetHorizontalAlign(EnumHorizontalAlign align)
+        {
+            if (horizontalAlign != align)
+            {
+                horizontalAlign = align;
+                ComposeSelection();
             }
         }
 
@@ -251,8 +344,34 @@
             {
                 var extents = ctx.TextExtents(names[selectedIndex]);
 
-                var drawX = Bounds.InnerWidth - arrowBounds.InnerWidth - extents.Width;
-                var drawY = (Bounds.InnerHeight / 2.0) - (extents.Height / 2.0); ;
+                var drawX = 0.0;
+                var drawY = 0.0;
+
+                switch(HorizontalAlign)
+                {
+                    case EnumHorizontalAlign.Middle:
+                        drawX = ((Bounds.InnerWidth - arrowBounds.InnerWidth) / 2.0) - (extents.Width / 2.0);
+                        break;
+                    case EnumHorizontalAlign.Right:
+                        drawX = Bounds.InnerWidth - arrowBounds.InnerWidth - extents.Width;
+                        break;
+                    case EnumHorizontalAlign.Left:
+                    default:
+                        break;
+                }
+
+                switch (VerticalAlign)
+                {
+                    case EnumVerticalAlign.Bottom:
+                        drawY = Bounds.InnerHeight  - extents.Height;
+                        break;
+                    case EnumVerticalAlign.Middle:
+                        drawY = (Bounds.InnerHeight / 2.0) - (extents.Height / 2.0);
+                        break;
+                    case EnumVerticalAlign.Top:
+                    default:
+                        break;
+                }
 
                 ctx.Antialias = Antialias.Best;
                 util.DrawTextLine(ctx, font, names[selectedIndex], drawX, drawY);
@@ -440,7 +559,11 @@
             return composer;
         }
 
-
+        public static GuiComposer AddTinyDropDown(this GuiComposer composer, string[] values, string[] names, int selectedIndex, EnumVerticalAlign verticalAlign, EnumHorizontalAlign horizontalAlign, DynamicSelectionChangedDelegate onSelectionChanged, ElementBounds bounds, CairoFont font, string key = null)
+        {
+            composer.AddInteractiveElement(new GuiTinyDropdown(composer.Api, values, names, selectedIndex, verticalAlign, horizontalAlign, onSelectionChanged, bounds, font), key);
+            return composer;
+        }
 
         /// <summary>
         /// Gets the Drop Down element from the GUIComposer by their key.

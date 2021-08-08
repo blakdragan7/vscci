@@ -15,11 +15,11 @@ namespace VSCCI.Data
         public const int    HOVER_DELAY                     = 1000;
         public const int    HOVER_DISPLAY_X_OFFSET          = 15;
         public const int    HOVER_DISPLAY_Y_OFFSET          = 10;
-        public const int    SCRIPT_NODE_Z_POS               = 51;
-        public const int    SCRIPT_NODE_PIN_Z_POS           = 52;
-        public const int    SCRIPT_NODE_SELECTED_Z_POS      = 53;
-        public const int    SCRIPT_NODE_CONNECTION_Z_POS    = 54;
-        public const int    SCRIPT_NODE_HOVER_TEXT_Z_POS    = 55;
+        public const int    SCRIPT_NODE_Z_POS               = 50;
+        public const int    SCRIPT_NODE_PIN_Z_POS           = 50;
+        public const int    SCRIPT_NODE_SELECTED_Z_POS      = 51;
+        public const int    SCRIPT_NODE_CONNECTION_Z_POS    = 52;
+        public const int    SCRIPT_NODE_HOVER_TEXT_Z_POS    = 52;
 
         // GUI EVENT CONSTANTS
         public const string CCI_EVENT_SERVER_UPDATE         = "ccisu";

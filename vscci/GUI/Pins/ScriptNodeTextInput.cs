@@ -21,6 +21,7 @@
             // default to true
             IsKeyAllowed = (char c) => { return true; };
             textInputNeedsCompose = false;
+            isDirty = false;
         }
 
         public override void RenderBackground(Context ctx, ImageSurface surface)
@@ -29,6 +30,7 @@
             {
                 textInput.ComposeElements(ctx, surface);
                 textInputNeedsCompose = false;
+                isDirty = false;
             }
         }
 
@@ -40,12 +42,7 @@
         {
             if (hasConnection == false && textInputNeedsCompose == false)
             {
-                textInput.Enabled = true;
                 textInput.RenderInteractiveElements(deltaTime);
-            }
-            else
-            {
-                textInput.Enabled = false;
             }
         }
 
@@ -53,10 +50,7 @@
         {
             if(hasConnection)
             {
-                ctx.SetSourceColor(PinColor);
-                ctx.LineWidth = 2;
-                RoundRectangle(ctx, textInput.Bounds.drawX, textInput.Bounds.drawY, textInput.Bounds.InnerHeight, textInput.Bounds.InnerHeight, GuiStyle.ElementBGRadius);
-                ctx.Fill();
+                base.RenderPin(ctx, surface);
             }
         }
 
@@ -88,13 +82,14 @@
             extents.Height = textInput.Bounds.OuterHeight;
 
             isDirty = true;
+            textInputNeedsCompose = true;
 
             if (pinSelectBounds != null)
             {
                 owner.Bounds.ChildBounds.Remove(pinSelectBounds);
             }
 
-            pinSelectBounds = ElementBounds.Fixed(x, y, extents.Width, extents.Height);
+            pinSelectBounds = ElementBounds.Fixed(x, y, textInput.Bounds.OuterWidth, textInput.Bounds.OuterHeight);
             owner.Bounds.WithChild(pinSelectBounds);
             pinSelectBounds.CalcWorldBounds();
 
@@ -103,15 +98,14 @@
                 owner.Bounds.ChildBounds.Remove(hoverBounds);
             }
 
-            hoverBounds = ElementBounds.Fixed(x, y, extents.Width, extents.Height);
+            hoverBounds = ElementBounds.Fixed(x, y, textInput.Bounds.OuterWidth, textInput.Bounds.OuterHeight);
             owner.Bounds.WithChild(hoverBounds);
             hoverBounds.CalcWorldBounds();
 
-            pinConnectionPoint.X = textInput.Bounds.drawX + (textInput.Bounds.InnerHeight / 2.0);
-            pinConnectionPoint.Y = textInput.Bounds.drawY + (textInput.Bounds.InnerHeight / 2.0);
+            pinConnectionPoint.X = owner.Bounds.drawX + X + (textInput.Bounds.OuterWidth / 2.0);
+            pinConnectionPoint.Y = owner.Bounds.drawY + Y + (textInput.Bounds.OuterHeight / 2.0);
 
             //textInput.Font = font;
-            textInput.ComposeElements(ctx, null);
         }
 
         public override ScriptNodePinConnection CreateConnection()

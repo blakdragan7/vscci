@@ -87,7 +87,7 @@ namespace VSCCI.GUI
                 .AddStaticText("Twitch Status: ", CairoFont.WhiteSmallText().WithFontSize(10), twitchStatusBounds)
                 .AddDynamicText(status, CairoFont.WhiteSmallText().WithFontSize(10), EnumTextOrientation.Left, twitchStatusBoundsDyn, TWITCH_STATUS_KEY)
                 .AddStaticText("Stream Platform Type: ", CairoFont.WhiteSmallText().WithFontSize(10), streamPlatformTypeBounds)
-                .AddTinyDropDown(Platforms, Platforms, selectedPlatformIndex, PlatfformSelectionChanged, streamPlatformDropdownBounds, CairoFont.WhiteSmallText().WithFontSize(10), "platform_dropdown")
+                .AddTinyDropDown(Platforms, Platforms, selectedPlatformIndex, EnumVerticalAlign.Top, EnumHorizontalAlign.Middle,PlatfformSelectionChanged, streamPlatformDropdownBounds, CairoFont.WhiteSmallText().WithFontSize(10), "platform_dropdown")
                 .AddStaticText("Stream Platform Key: ", CairoFont.WhiteSmallText().WithFontSize(10), streamPlatformKeyBounds)
                 .AddTextInput(streamPlatformTextInputBounds, null, CairoFont.WhiteSmallText().WithFontSize(10), PLATFORM_TEXT_INPUT)
                 .AddStaticText("Stream Platform Status: ", CairoFont.WhiteSmallText().WithFontSize(10), streamPlatformStatusBounds)

@@ -20,7 +20,7 @@
 
         public ScriptNodeDropdownInput(ScriptNode owner, Type pinType) : base(owner, "", pinType)
         {
-            dropElement = new GuiTinyDropdown(api, OnItemSelected, ElementBounds.Fixed(0, 0).WithEmptyParent(), CairoFont.WhiteDetailText().WithFontSize(10));
+            dropElement = new GuiTinyDropdown(api, EnumVerticalAlign.Middle, EnumHorizontalAlign.Right, OnItemSelected, ElementBounds.Fixed(0, 0).WithEmptyParent(), CairoFont.WhiteDetailText().WithFontSize(10));
             dropdownNeedsCompose = true;
             currentSelectionIndex = 0;
             currentSelection = null;
@@ -28,7 +28,7 @@
 
         public ScriptNodeDropdownInput(ScriptNode owner, ICoreClientAPI api, string[] names, dynamic[] values, Type pinType) : base(owner, "", pinType)
         {
-            dropElement = new GuiTinyDropdown(api, values, names, 0, OnItemSelected, ElementBounds.Fixed(0, 0).WithEmptyParent(), CairoFont.WhiteDetailText().WithFontSize(10));
+            dropElement = new GuiTinyDropdown(api, values, names, 0, EnumVerticalAlign.Middle, EnumHorizontalAlign.Right, OnItemSelected, ElementBounds.Fixed(0, 0).WithEmptyParent(), CairoFont.WhiteDetailText().WithFontSize(10));
             dropdownNeedsCompose = true;
             currentSelectionIndex = 0;
             currentSelection = null;
