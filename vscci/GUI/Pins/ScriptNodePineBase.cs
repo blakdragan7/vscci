@@ -177,7 +177,8 @@ namespace VSCCI.GUI.Pins
 
         protected ICoreClientAPI api;
 
-        protected TextExtents extents;
+        protected TextExtents textExtents;
+        protected TextExtents pinExtents;
         protected bool hasConnection;
         protected ElementBounds pinSelectBounds;
         protected ElementBounds hoverBounds;
@@ -206,7 +207,7 @@ namespace VSCCI.GUI.Pins
          *  @Extents represents the rendered size of this pin
          *  This only returns a valid size after a call to Render
          */
-        public TextExtents Extents => extents;
+        public TextExtents Extents => pinExtents;
         /*
          *  @PinColor represents the color of this pin based on the value type
          */

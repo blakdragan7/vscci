@@ -74,12 +74,12 @@
             Y = y;
 
             owner.Bounds.ChildBounds.Remove(textInput.Bounds);
-            textInput.Bounds = ElementBounds.Fixed(X, Y, 100, 30);
+            textInput.Bounds = ElementBounds.Fixed(X, Y + 4, 100, 30);
             owner.Bounds.WithChild(textInput.Bounds);
             textInput.Bounds.CalcWorldBounds();
 
-            extents.Width = textInput.Bounds.OuterWidth;
-            extents.Height = textInput.Bounds.OuterHeight;
+            pinExtents.Width = textInput.Bounds.OuterWidth;
+            pinExtents.Height = textInput.Bounds.OuterHeight;
 
             isDirty = true;
             textInputNeedsCompose = true;

@@ -92,8 +92,8 @@
 
             dropElement.UpdateArrowPos();
 
-            extents.Width = dropElement.Bounds.OuterWidth;
-            extents.Height = dropElement.Bounds.OuterHeight;
+            pinExtents.Width = dropElement.Bounds.OuterWidth;
+            pinExtents.Height = dropElement.Bounds.OuterHeight;
 
             isDirty = true;
 
@@ -102,7 +102,7 @@
                 owner.Bounds.ChildBounds.Remove(pinSelectBounds);
             }
 
-            pinSelectBounds = ElementBounds.Fixed(x, y, extents.Width, extents.Height);
+            pinSelectBounds = ElementBounds.Fixed(x, y, pinExtents.Width, pinExtents.Height);
             owner.Bounds.WithChild(pinSelectBounds);
             pinSelectBounds.CalcWorldBounds();
 
@@ -111,7 +111,7 @@
                 owner.Bounds.ChildBounds.Remove(hoverBounds);
             }
 
-            hoverBounds = ElementBounds.Fixed(x, y, extents.Width, extents.Height);
+            hoverBounds = ElementBounds.Fixed(x, y, pinExtents.Width, pinExtents.Height);
             owner.Bounds.WithChild(hoverBounds);
             hoverBounds.CalcWorldBounds();
 

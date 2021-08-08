@@ -319,7 +319,7 @@ namespace VSCCI.GUI.Nodes
             }
 
             var startDrawX = x + (Constants.NODE_SCIPRT_DRAW_PADDING / 2.0);
-            var startDrawY = y + titleExtents.Height + (Constants.NODE_SCIPRT_DRAW_PADDING / 2.0);
+            var startDrawY = y + titleExtents.Height + Constants.NODE_SCIPRT_DRAW_PADDING;
             var bigestWidth = 0.0d;
             var bigestHeight = 0.0d;
 
@@ -347,7 +347,7 @@ namespace VSCCI.GUI.Nodes
 
             bigestWidth = Math.Max(titleExtents.Width, bigestWidth);
 
-            Bounds = Bounds.WithFixedSize(bigestWidth + (Constants.NODE_SCIPRT_DRAW_PADDING / 2.0), bigestHeight + titleExtents.Height + (Constants.NODE_SCIPRT_DRAW_PADDING / 2.0));
+            Bounds = Bounds.WithFixedSize(bigestWidth + (Constants.NODE_SCIPRT_DRAW_PADDING / 2.0), bigestHeight + titleExtents.Height + Constants.NODE_SCIPRT_DRAW_PADDING);
             Bounds.CalcWorldBounds();
 
             // re-compose to right align outputs.

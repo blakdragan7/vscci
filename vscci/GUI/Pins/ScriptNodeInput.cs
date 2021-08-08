@@ -14,11 +14,23 @@ namespace VSCCI.GUI.Pins
         {
 
         }
+
+        //public override void RenderBackground(Context ctx, ImageSurface surface)
+        //{
+        //    ctx.SetSourceRGBA(0.4,0.4,0.4, 1.0);
+        //    RoundRectangle(ctx, X, Y, pinExtents.Width, pinExtents.Height, 1);
+        //    ctx.Fill();
+        //}
+
         public override void RenderText(TextDrawUtil textUtil, CairoFont font, Context ctx, ImageSurface surface)
         {
             ctx.SetSourceRGBA(1, 1, 1, 1.0);
+            ctx.Save();
+            ctx.MoveTo(X + DefaultPinSize + Constants.NODE_SCIPRT_TEXT_PADDING, (Y + (pinExtents.Height / 2.0)) + (textExtents.Height / 2.0));
+            ctx.ShowText(name);
+            ctx.Restore();
 
-            textUtil.DrawTextLine(ctx, font, name, X + DefaultPinSize + Constants.NODE_SCIPRT_TEXT_PADDING, Y);
+            //textUtil.DrawTextLine(ctx, font, name, X + DefaultPinSize + Constants.NODE_SCIPRT_TEXT_PADDING, Y + extents.YBearing);
         }
 
         public override void RenderPin(Context ctx, ImageSurface surface)
@@ -68,15 +80,17 @@ namespace VSCCI.GUI.Pins
             X = x;
             Y = y;
 
-            extents = ctx.TextExtents(name);
-            extents.Width += DefaultPinSize + Constants.NODE_SCIPRT_TEXT_PADDING;
+            textExtents = ctx.TextExtents(name);
+            pinExtents = textExtents;
+            pinExtents.Width += DefaultPinSize + Constants.NODE_SCIPRT_TEXT_PADDING;
+            pinExtents.Height = Math.Max(pinExtents.Height, DefaultPinSize);
 
             if (pinSelectBounds != null)
             {
                 owner.Bounds.ParentBounds.ChildBounds.Remove(pinSelectBounds);
             }
 
-            pinSelectBounds = ElementBounds.Fixed(x, (y + (extents.Height / 2.0)), DefaultPinSize, DefaultPinSize);
+            pinSelectBounds = ElementBounds.Fixed(x, y, DefaultPinSize, DefaultPinSize);
             owner.Bounds.WithChild(pinSelectBounds);
             pinSelectBounds.CalcWorldBounds();
 
@@ -85,7 +99,7 @@ namespace VSCCI.GUI.Pins
                 owner.Bounds.ChildBounds.Remove(hoverBounds);
             }
 
-            hoverBounds = ElementBounds.Fixed(x, y, extents.Width, extents.Height);
+            hoverBounds = ElementBounds.Fixed(x, y, pinExtents.Width, pinExtents.Height);
             owner.Bounds.WithChild(hoverBounds);
             hoverBounds.CalcWorldBounds();
 

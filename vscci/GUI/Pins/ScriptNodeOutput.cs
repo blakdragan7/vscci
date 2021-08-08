@@ -45,8 +45,10 @@ namespace VSCCI.GUI.Pins
         public override void RenderText(TextDrawUtil textUtil, CairoFont font, Context ctx, ImageSurface surface)
         {
             ctx.SetSourceRGBA(1, 1, 1, 1.0);
-
-            textUtil.DrawTextLine(ctx, font, name, X, Y);
+            ctx.Save();
+            ctx.MoveTo(X, (Y + (pinExtents.Height / 2.0)) + (textExtents.Height / 2.0));
+            ctx.ShowText(name);
+            ctx.Restore();
         }
 
         public override void RenderPin(Context ctx, ImageSurface surface)
@@ -97,15 +99,17 @@ namespace VSCCI.GUI.Pins
             X = x;
             Y = y;
 
-            extents = ctx.TextExtents(name);
-            extents.Width += DefaultPinSize + Constants.NODE_SCIPRT_TEXT_PADDING;
+            textExtents = ctx.TextExtents(name);
+            pinExtents = textExtents;
+            pinExtents.Width += DefaultPinSize + Constants.NODE_SCIPRT_TEXT_PADDING;
+            pinExtents.Height = Math.Max(pinExtents.Height, DefaultPinSize);
 
             if (pinSelectBounds != null)
             {
                 owner.Bounds.ChildBounds.Remove(pinSelectBounds);
             }
 
-            pinSelectBounds = ElementBounds.Fixed(x + extents.Width - DefaultPinSize, y + (extents.Height / 2.0), DefaultPinSize, DefaultPinSize);
+            pinSelectBounds = ElementBounds.Fixed(x + pinExtents.Width - DefaultPinSize, y, DefaultPinSize, DefaultPinSize);
             owner.Bounds.WithChild(pinSelectBounds);
             pinSelectBounds.CalcWorldBounds();
 
@@ -114,13 +118,13 @@ namespace VSCCI.GUI.Pins
                 owner.Bounds.ChildBounds.Remove(hoverBounds);
             }
 
-            hoverBounds = ElementBounds.Fixed(x, y, extents.Width, extents.Height);
+            hoverBounds = ElementBounds.Fixed(x, y, pinExtents.Width, pinExtents.Height);
             owner.Bounds.WithChild(hoverBounds);
             hoverBounds.CalcWorldBounds();
 
 
-            pinConnectionPoint.X = owner.Bounds.drawX + X + extents.Width - extents.Height + (pinSelectBounds.OuterWidth / 2.0);
-            pinConnectionPoint.Y = owner.Bounds.drawY + Y + (extents.Height / 2.0) + (pinSelectBounds.OuterHeight / 2.0);
+            pinConnectionPoint.X = owner.Bounds.drawX + X + pinExtents.Width - (pinSelectBounds.OuterWidth / 2.0);
+            pinConnectionPoint.Y = owner.Bounds.drawY + Y + (pinSelectBounds.OuterHeight / 2.0);
             
             isDirty = true;
         }
