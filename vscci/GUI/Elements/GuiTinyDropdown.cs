@@ -5,6 +5,7 @@
     using Vintagestory.API.Client;
     using Vintagestory.API.Config;
     using Vintagestory.API.MathTools;
+    using VSCCI.Data;
 
     public delegate void DynamicSelectionChangedDelegate(dynamic code, bool selected);
 
@@ -133,7 +134,7 @@
         {
             base.RenderInteractiveElements(deltaTime);
 
-            api.Render.Render2DTexturePremultipliedAlpha(currentSelectionTexture.TextureId, Bounds);
+            api.Render.Render2DTexturePremultipliedAlpha(currentSelectionTexture.TextureId, Bounds, Constants.SCRIPT_NODE_PIN_Z_POS);
 
             if(arrowDown)
             {
@@ -250,7 +251,7 @@
             {
                 var extents = ctx.TextExtents(names[selectedIndex]);
 
-                var drawX = (Bounds.InnerWidth / 2.0) - (extents.Width / 2.0);
+                var drawX = Bounds.InnerWidth - arrowBounds.InnerWidth - extents.Width;
                 var drawY = (Bounds.InnerHeight / 2.0) - (extents.Height / 2.0); ;
 
                 ctx.Antialias = Antialias.Best;
