@@ -1,4 +1,4 @@
-﻿namespace VSCCI.GUI.Nodes
+﻿namespace VSCCI.GUI.Pins
 {
     using Cairo;
     using System;
@@ -6,6 +6,7 @@
     using Vintagestory.API.Client;
     using Vintagestory.API.Common;
     using VSCCI.GUI.Elements;
+    using VSCCI.GUI.Nodes;
 
     class ScriptNodeDropdownInput : ScriptNodeInput
     {
@@ -15,17 +16,14 @@
         private int currentSelectionIndex;
         private dynamic currentSelection;
 
-        private ICoreClientAPI api;
-
         public event EventHandler<dynamic> OnItemSelection;
 
-        public ScriptNodeDropdownInput(ScriptNode owner, ICoreClientAPI api, Type pinType) : base(owner, "", pinType)
+        public ScriptNodeDropdownInput(ScriptNode owner, Type pinType) : base(owner, "", pinType)
         {
             dropElement = new GuiTinyDropdown(api, OnItemSelected, ElementBounds.Fixed(0, 0).WithEmptyParent(), CairoFont.WhiteDetailText().WithFontSize(10));
             dropdownNeedsCompose = true;
             currentSelectionIndex = 0;
             currentSelection = null;
-            this.api = api;
         }
 
         public ScriptNodeDropdownInput(ScriptNode owner, ICoreClientAPI api, string[] names, dynamic[] values, Type pinType) : base(owner, "", pinType)
@@ -66,10 +64,7 @@
         {
             if (hasConnection)
             {
-                ctx.SetSourceColor(PinColor);
-                ctx.LineWidth = 2;
-                RoundRectangle(ctx, dropElement.Bounds.drawX, dropElement.Bounds.drawY, dropElement.Bounds.InnerHeight, dropElement.Bounds.InnerHeight, GuiStyle.ElementBGRadius);
-                ctx.Fill();
+                base.RenderPin(ctx, surface);
             }
         }
 
@@ -90,9 +85,9 @@
             X = x;
             Y = y;
 
-            owner.Bounds.ParentBounds.ChildBounds.Remove(dropElement.Bounds);
+            owner.Bounds.ChildBounds.Remove(dropElement.Bounds);
             dropElement.Bounds = ElementBounds.Fixed(X, Y, 100, 30);
-            owner.Bounds.ParentBounds.WithChild(dropElement.Bounds);
+            owner.Bounds.WithChild(dropElement.Bounds);
             dropElement.Bounds.CalcWorldBounds();
 
             dropElement.UpdateArrowPos();
@@ -100,15 +95,15 @@
             extents.Width = dropElement.Bounds.OuterWidth;
             extents.Height = dropElement.Bounds.OuterHeight;
 
-            isDirty = false;
+            isDirty = true;
 
             if (pinSelectBounds != null)
             {
-                owner.Bounds.ParentBounds.ChildBounds.Remove(pinSelectBounds);
+                owner.Bounds.ChildBounds.Remove(pinSelectBounds);
             }
 
             pinSelectBounds = ElementBounds.Fixed(x, y, extents.Width, extents.Height);
-            owner.Bounds.ParentBounds.WithChild(pinSelectBounds);
+            owner.Bounds.WithChild(pinSelectBounds);
             pinSelectBounds.CalcWorldBounds();
 
             if (hoverBounds != null)
@@ -150,7 +145,6 @@
 
             api.Event.EnqueueMainThreadTask(() => dropElement.SetSelectedIndex(currentSelectionIndex),
                 "update dropdown pin selection");
-
         }
 
         public override void ToBytes(BinaryWriter writer)

@@ -4,13 +4,13 @@ namespace VSCCI.GUI.Elements
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
     using Vintagestory.API.Client;
     using Vintagestory.API.Common;
 
     using VSCCI.GUI.Interfaces;
     using VSCCI.GUI.Nodes;
     using VSCCI.GUI.Nodes.Attributes;
+    using VSCCI.GUI.Pins;
 
     internal class ContextValue
     {
@@ -59,8 +59,9 @@ namespace VSCCI.GUI.Elements
         private readonly Dictionary<Type, ISelectableList> contextSelectionLists;
         private readonly List<ScriptNode> allNodes;
 
+        private readonly List<ScriptNode> selectedNodes;
+
         private int texId;
-        private ScriptNode selectedNode;
         private ScriptNodeOutput contextOutput;
 
         private int lastMouseX;
@@ -74,15 +75,20 @@ namespace VSCCI.GUI.Elements
         private MouseEvent selectListActiveDownEvent;
         private ISelectableList activeList;
 
+        private ScriptNodePinConnectionManager connectionManager;
+
         public EventScriptingArea(ICoreClientAPI api, ElementBounds bounds) : base(api, bounds)
         {
             bounds.IsDrawingSurface = true;
             isPanningView = false;
 
+            connectionManager = ScriptNodePinConnectionManager.TheManage;
+            connectionManager.SetupManager(api, bounds);
+
             activeList = null;
-            selectedNode = null;
             contextOutput = null;
             allNodes = new List<ScriptNode>();
+            selectedNodes = new List<ScriptNode>();
 
             nodeTransform = new Matrix();
             inverseNodeTransform = new Matrix();
@@ -136,6 +142,8 @@ namespace VSCCI.GUI.Elements
             {
                 node.RenderInteractiveElements(deltaTime);
             }
+
+            connectionManager.RenderConnections(deltaTime);
         }
 
         public void AddNode(ScriptNode node)
@@ -167,8 +175,6 @@ namespace VSCCI.GUI.Elements
 
             writer.Write(allNodes.Count);
 
-            var connections = new List<ScriptNodePinConnection>();
-
             foreach (var node in allNodes)
             {
                 var typeName = node.GetType().AssemblyQualifiedName;
@@ -182,16 +188,9 @@ namespace VSCCI.GUI.Elements
                 writer.Write(y);
 
                 node.WrtiePinsToBytes(writer);
-
-                node.AddConnectionsToList(connections);
             }
 
-            writer.Write(connections.Count);
-
-            foreach(var connection in connections)
-            {
-                connection.WriteToBytes(writer);
-            }
+            connectionManager.ToBytes(writer);
         }
 
         public void FromBytes(BinaryReader reader, IWorldAccessor resolver)
@@ -233,11 +232,7 @@ namespace VSCCI.GUI.Elements
                 }
             }
 
-            var numConnections = reader.ReadInt32();
-            for (var i = 0; i < numConnections; i++)
-            {
-                ScriptNodePinConnection.CreateConnectionFromBytes(reader, allNodes);
-            }
+            connectionManager.FromBytes(reader, allNodes);
         }
 
         public override void OnMouseWheel(ICoreClientAPI api, MouseWheelEventArgs args)
@@ -247,6 +242,11 @@ namespace VSCCI.GUI.Elements
             if(activeList != null)
             {
                 activeList.OnMouseWheel(api, args);
+            }
+
+            foreach (var node in allNodes)
+            {
+                node.OnMouseWheel(api, args);
             }
         }
         public override void OnMouseDownOnElement(ICoreClientAPI api, MouseEvent args)
@@ -267,15 +267,18 @@ namespace VSCCI.GUI.Elements
                 activeList.OnMouseDownOnElement(api, args);
             }
 
+            if(api.Input.KeyboardKeyStateRaw[(int)GlKeys.LControl] == false && 
+                api.Input.KeyboardKeyStateRaw[(int)GlKeys.RControl] == false)
+            {
+                selectedNodes.Clear();
+            }
+
             foreach (var node in allNodes)
             {
                 node.OnMouseDown(api, transformedEvent);
-
-                if (args.Handled)
+                if(node.IsSelected)
                 {
-                    selectedNode = node;
-                    lastMouseX = args.X;
-                    lastMouseY = args.Y;
+                    selectedNodes.Add(node);
                 }
             }
 
@@ -290,7 +293,7 @@ namespace VSCCI.GUI.Elements
 
                 case EnumMouseButton.Right:
                     // open context window
-                    if(selectedNode == null)
+                    if (transformedEvent.Handled != true)
                     {
                         activeList = contextSelectionLists[typeof(DynamicType)];
                         activeList.SetPosition(args.X - (activeList.ListBounds.OuterWidth / 4.0), args.Y - (activeList.ListBounds.OuterHeight / 4.0));
@@ -300,6 +303,9 @@ namespace VSCCI.GUI.Elements
             }
 
             args.Handled = true;
+
+            lastMouseX = args.X;
+            lastMouseY = args.Y;
         }
 
         public override void OnMouseMove(ICoreClientAPI api, MouseEvent args)
@@ -321,6 +327,10 @@ namespace VSCCI.GUI.Elements
                     node.MarkDirty();
                 }
             }
+            else if(connectionManager.HasActiveConnection)
+            {
+                connectionManager.UpdateActiveConnection(args.X - Bounds.absX, args.Y - Bounds.absY);
+            }
             else
             {
                 double transformedX = args.X;
@@ -328,11 +338,16 @@ namespace VSCCI.GUI.Elements
 
                 inverseNodeTransform.TransformPoint(ref transformedX, ref transformedY);
 
-                MouseEvent transformedEvent = new MouseEvent((int)transformedX, (int)transformedY, args.DeltaX, args.DeltaY, args.Button);
+                MouseEvent transformedEvent = new MouseEvent((int)transformedX, (int)transformedY, args.X - lastMouseX, args.Y - lastMouseY, args.Button);
                 
                 foreach (var node in allNodes)
                 {
                     node.OnMouseMove(api, transformedEvent);
+                }
+
+                if(transformedEvent.Handled)
+                {
+                    connectionManager.MarkDirty();
                 }
             }
 
@@ -368,45 +383,47 @@ namespace VSCCI.GUI.Elements
                 inverseNodeTransform = (Matrix)nodeTransform.Clone();
                 inverseNodeTransform.Invert();
             }
-            else if (selectedNode != null)
+            
+            double transformedX = args.X;
+            double transformedY = args.Y;
+
+            inverseNodeTransform.TransformPoint(ref transformedX, ref transformedY);
+
+            MouseEvent transformedEvent = new MouseEvent((int)transformedX, (int)transformedY, args.DeltaX, args.DeltaY, args.Button);
+            var foundConnection = false;
+            if (connectionManager.HasActiveConnection)
             {
-                double transformedX = args.X;
-                double transformedY = args.Y;
-
-                inverseNodeTransform.TransformPoint(ref transformedX, ref transformedY);
-
-                MouseEvent transformedEvent = new MouseEvent((int)transformedX, (int)transformedY, args.DeltaX, args.DeltaY, args.Button);
-                var foundConnection = false;
-                if (selectedNode.ActiveConnection != null)
+                foreach (var node in allNodes)
                 {
-                    foreach (var node in allNodes)
+                    if (connectionManager.ConnectActiveConnectionToNodeAtPoint(node, transformedX, transformedY))
                     {
-                        if (node.ConnectionWillConnecttPoint(selectedNode.ActiveConnection, transformedX, transformedY))
-                        {
-                            foundConnection = true;
-                            break;
-                        }
-                    }
-
-                    if(foundConnection == false)
-                    {
-                        if(contextSelectionLists.TryGetValue(selectedNode.ActiveConnection.ConnectionType, out activeList))
-                        {
-                            activeList.SetPosition(args.X - (activeList.ListBounds.OuterWidth / 4.0), 
-                                args.Y - (activeList.ListBounds.OuterHeight / 4.0));
-                            selectListActiveDownEvent = args;
-                            contextOutput = selectedNode.ActiveConnection.Output;
-                        }
-                        else
-                        {
-                            activeList = null;
-                            contextOutput = null;
-                        }
+                        foundConnection = true;
+                        break;
                     }
                 }
 
-                selectedNode.OnMouseUp(api, transformedEvent);
-                selectedNode = args .Handled ? selectedNode : null;
+                if(foundConnection == false)
+                {
+                    if(contextSelectionLists.TryGetValue(connectionManager.ActiveType, out activeList))
+                    {
+                        activeList.SetPosition(args.X - (activeList.ListBounds.OuterWidth / 4.0), 
+                            args.Y - (activeList.ListBounds.OuterHeight / 4.0));
+                        selectListActiveDownEvent = args;
+                        contextOutput = connectionManager.ActiveOutput;
+                    }
+                    else
+                    {
+                        activeList = null;
+                        contextOutput = null;
+                    }
+
+                    connectionManager.RemoveActiveConnection();
+                }
+            }
+
+            foreach (var node in allNodes)
+            {
+                node.OnMouseUp(api, transformedEvent);
             }
 
             args.Handled = true;
@@ -416,41 +433,48 @@ namespace VSCCI.GUI.Elements
         {
             base.OnKeyDown(api, args);
 
-            if(selectedNode != null)
+            if (args.KeyCode == (int)GlKeys.Delete)
             {
-                if (args.KeyCode == (int)GlKeys.Delete)
+                foreach (var selectedNode in selectedNodes)
                 {
+
                     allNodes.Remove(selectedNode);
                     selectedNode.Dispose();
-                    selectedNode = null;
-                }
-                else
-                {
-                    selectedNode.OnKeyDown(api, args);
+
                     args.Handled = true;
                 }
+
+                selectedNodes.Clear();
             }
             if (activeList != null)
             {
                 activeList.OnKeyDown(api, args);
                 args.Handled = true;
             }
-
+            else
+            {
+                foreach (var node in allNodes)
+                {
+                    node.OnKeyDown(api, args);
+                }
+            }
         }
 
         public override void OnKeyPress(ICoreClientAPI api, KeyEvent args)
         {
             base.OnKeyPress(api, args);
 
-            if (selectedNode != null)
-            {
-                selectedNode.OnKeyPress(api, args);
-                args.Handled = true;
-            }
             if (activeList != null)
             {
                 activeList.OnKeyPress(api, args);
                 args.Handled = true;
+            }
+            else
+            {
+                foreach(var node in allNodes)
+                {
+                    node.OnKeyPress(api, args);
+                }
             }
         }
 
@@ -501,11 +525,12 @@ namespace VSCCI.GUI.Elements
                     api.Event.EnqueueMainThreadTask(() =>
                     {
                         ScriptNode newNode = (ScriptNode)Activator.CreateInstance(nodeType, api, bounds);
+
                         if(contextOutput != null)
                         {
                             var input = newNode.InputForIndex(pinIndex);
                             if(input != null)
-                                ScriptNodePinConnection.CreateConnectionBetween(contextOutput, input);
+                                connectionManager.CreateConnectionBetween(contextOutput, input);
                         }
 
                         allNodes.Add(newNode);

@@ -5,6 +5,7 @@
     using Vintagestory.API.Client;
     using VSCCI.GUI.Elements;
     using VSCCI.GUI.Nodes.Attributes;
+    using VSCCI.GUI.Pins;
 
     [NodeData("Conversions", "To String")]
     [InputPinAttribute(typeof(DynamicType), 0)]

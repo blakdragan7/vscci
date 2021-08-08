@@ -1,6 +1,7 @@
-﻿namespace VSCCI.GUI.Nodes
+﻿namespace VSCCI.GUI.Pins
 {
     using Cairo;
+    using VSCCI.GUI.Nodes;
     class ExecOutputNode : ScriptNodeOutput
     {
         public ExecutableScriptNode ExecOwner => this.owner as ExecutableScriptNode;

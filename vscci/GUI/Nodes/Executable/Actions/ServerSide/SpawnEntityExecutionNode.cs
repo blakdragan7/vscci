@@ -13,6 +13,7 @@
     using VSCCI.GUI.Elements;
     using VSCCI.GUI.Nodes.Attributes;
     using VSCCI.Extensions;
+    using VSCCI.GUI.Pins;
 
     public class ServerSideSpawnEntityExecutable : ServerSideExecutable
     {

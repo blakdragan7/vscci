@@ -2,6 +2,8 @@
 {
     using Cairo;
     using Vintagestory.API.Client;
+    using VSCCI.Data;
+    using VSCCI.GUI.Elements;
 
     public class HoverTextElement : GuiElement
     {
@@ -9,12 +11,17 @@
         private TextDrawUtil util;
         private string hoverText;
         private CairoFont font;
+        private LoadedTexture backgroundTexture;
+        private LoadedTexture textTexture;
         public string Text => hoverText;
         
 
-        public HoverTextElement(ICoreClientAPI api, ElementBounds bounds) : base(api, bounds)
+        public HoverTextElement(ICoreClientAPI api, MatrixElementBounds bounds) : base(api, bounds)
         {
             util = new TextDrawUtil();
+            backgroundTexture = new LoadedTexture(api);
+            textTexture = new LoadedTexture(api);
+            font = CairoFont.WhiteDetailText();
         }
 
         public void SetHoverText(string text)
@@ -23,21 +30,23 @@
             isDirty = true;
         }
 
-        public void OnRender(Context ctx, ImageSurface surface, float deltaTime)
+        public override void RenderInteractiveElements(float deltaTime)
         {
-            if(isDirty)
+            if (isDirty)
             {
-                OnCompose(ctx);
+                isDirty = false;
+                ComposeDynamics();
             }
+            var matBounds = (MatrixElementBounds)Bounds;
 
-            RenderBackground(ctx);
-            RenderText(ctx);
+            api.Render.Render2DTexture(backgroundTexture.TextureId, (int)matBounds.untransformedRenderX, (int)matBounds.untransformedRenderY, matBounds.OuterWidthInt, matBounds.OuterHeightInt, Constants.SCRIPT_NODE_HOVER_TEXT_Z_POS);
+            api.Render.Render2DTexturePremultipliedAlpha(textTexture.TextureId, (int)matBounds.untransformedRenderX, (int)matBounds.untransformedRenderY, matBounds.OuterWidthInt, matBounds.OuterHeightInt, Constants.SCRIPT_NODE_HOVER_TEXT_Z_POS);
         }
 
-        public virtual void OnCompose(Context ctx)
+        public void ComposeDynamics()
         {
-            isDirty = false;
-            font = CairoFont.WhiteDetailText();
+            RenderBackground();
+            RenderText();
         }
 
         public void SetPosition(double x, double y)
@@ -46,21 +55,45 @@
             Bounds.CalcWorldBounds();
         }
 
-        private void RenderBackground(Context ctx)
+        private void RenderBackground()
         {
+            ImageSurface surface = new ImageSurface(Format.ARGB32, Bounds.OuterWidthInt, Bounds.OuterHeightInt); ;
+            Context ctx = genContext(surface);
+
             ctx.SetSourceRGBA(0.1568627450980392, 0.0980392156862745, 0.0509803921568627, 0.7);
-            ElementRoundRectangle(ctx, Bounds, true);
+            RoundRectangle(ctx, 0, 0, Bounds.OuterWidth, Bounds.OuterHeight, 1);
             ctx.Fill();
+
+            generateTexture(surface, ref backgroundTexture);
+
+            ctx.Dispose();
+            surface.Dispose();
         }
 
-        private void RenderText(Context ctx)
+        private void RenderText()
         {
-            ctx.Save();
-            font.SetupContext(ctx);
-            double height = util.AutobreakAndDrawMultilineTextAt(ctx, font, hoverText, Bounds.drawX + 2, Bounds.drawY, Bounds.InnerWidth - 4);
-            if(height != Bounds.fixedHeight)Bounds.WithFixedHeight(height).CalcWorldBounds();
-            ctx.Restore();
+            ImageSurface surface = new ImageSurface(Format.ARGB32, Bounds.OuterWidthInt, Bounds.OuterHeightInt); ;
+            Context ctx = genContext(surface);
 
+            font.SetupContext(ctx);
+            double height = util.AutobreakAndDrawMultilineTextAt(ctx, font, hoverText, 2, 0, Bounds.InnerWidth - 4);
+            if (height != Bounds.fixedHeight)
+            {
+                isDirty = true;
+                Bounds.WithFixedHeight(height).CalcWorldBounds();
+            }
+            generateTexture(surface, ref textTexture);
+
+            ctx.Dispose();
+            surface.Dispose();
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+
+            backgroundTexture.Dispose();
+            textTexture.Dispose();
         }
     }
 }

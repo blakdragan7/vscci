@@ -8,6 +8,7 @@ namespace VSCCI.GUI.Nodes
     using Vintagestory.API.Common;
     using VSCCI.Data;
     using VSCCI.GUI.Elements;
+    using VSCCI.GUI.Pins;
 
     public enum ScriptNodeState
     {
@@ -40,7 +41,6 @@ namespace VSCCI.GUI.Nodes
         protected readonly CairoFont font;
 
         private ScriptNodePinBase activePin;
-        private ScriptNodePinConnection activeConnection;
 
         private string title;
         private HoverState hoverState;
@@ -51,17 +51,23 @@ namespace VSCCI.GUI.Nodes
         private TextExtents titleExtents;
 
         private LoadedTexture staticTexture;
+        private LoadedTexture selectedTexture;
 
         private HoverTextElement hoverTextElement;
         public bool IsDirty => isDirty;
 
         public Guid Guid;
 
-        public ScriptNodePinConnection ActiveConnection => activeConnection;
+        public bool IsSelected => state == ScriptNodeState.Selected;
+
+        public ICoreClientAPI API => api;
 
         public ScriptNode(string _title, ICoreClientAPI api, MatrixElementBounds bounds) : base(api, bounds)
         {
             staticTexture = new LoadedTexture(api);
+            selectedTexture = new LoadedTexture(api);
+
+            bounds.IsDrawingSurface = true;
 
             textUtil = new TextDrawUtil();
             font = CairoFont.WhiteDetailText().WithFontSize(20);
@@ -70,7 +76,6 @@ namespace VSCCI.GUI.Nodes
 
             hoveredObject = null;
             activePin = null;
-            activeConnection = null;
             title = _title;
 
             inputs = new List<ScriptNodeInput>();
@@ -82,8 +87,9 @@ namespace VSCCI.GUI.Nodes
 
             Guid = Guid.NewGuid();
 
-            var b = ElementBounds.Fixed(0, 0, 1, 1);
+            var b = MatrixElementBounds.Fixed(0, 0, 300, 150, null);
             bounds.ParentBounds.WithChild(b);
+            b.CalcWorldBounds();
             hoverTextElement = new HoverTextElement(api, b);
         }
 
@@ -93,6 +99,7 @@ namespace VSCCI.GUI.Nodes
             ComposeSizeAndOffsets(ctxStatic, font);
 
             ComposeStaticElements();
+            ComposeSelectedTexture();
         }
 
         protected virtual void ComposeStaticElements()
@@ -150,25 +157,23 @@ namespace VSCCI.GUI.Nodes
 
             ctx.Restore();
 
-            foreach (var input in inputs)
-            {
-                input.RenderPin(ctx, surface);
-            }
-
-            foreach (var output in outputs)
-            {
-                output.RenderPin(ctx, surface);
-            }
-
-            // Draw selected highlight
-            if (state == ScriptNodeState.Selected)
-            {
-                ctx.SetSourceRGBA(1.0, 1.0, 1.0, 0.3);
-                RoundRectangle(ctx, x, y, Bounds.OuterWidth, Bounds.OuterHeight, 1);
-                ctx.Fill();
-            }
 
             generateTexture(surface, ref staticTexture);
+
+            surface.Dispose();
+            ctx.Dispose();
+        }
+
+        void ComposeSelectedTexture()
+        {
+            ImageSurface surface = new ImageSurface(Format.ARGB32, Bounds.OuterWidthInt, Bounds.OuterHeightInt); ;
+            Context ctx = genContext(surface);
+
+            ctx.SetSourceRGBA(1.0, 1.0, 1.0, 0.3);
+            RoundRectangle(ctx, 0, 0, Bounds.OuterWidth, Bounds.OuterHeight, 1);
+            ctx.Fill();
+
+            generateTexture(surface, ref selectedTexture);
 
             surface.Dispose();
             ctx.Dispose();
@@ -189,7 +194,7 @@ namespace VSCCI.GUI.Nodes
                 surface.Dispose();
             }
 
-            api.Render.Render2DTexturePremultipliedAlpha(staticTexture.TextureId, Bounds, 51);
+            api.Render.Render2DTexturePremultipliedAlpha(staticTexture.TextureId, Bounds, Constants.SCRIPT_NODE_Z_POS);
 
             foreach (var input in inputs)
             {
@@ -201,12 +206,15 @@ namespace VSCCI.GUI.Nodes
                 output.RenderInteractive(deltaTime);
             }
 
-            //if (hoverState == HoverState.Hovered)
-            //{
-            //    hoverTextElement.OnRender(ctx, surface);
-            //}
+            if (state == ScriptNodeState.Selected)
+            {
+                api.Render.Render2DTexture(selectedTexture.TextureId, Bounds, Constants.SCRIPT_NODE_SELECTED_Z_POS);
+            }
 
-            //activeConnection?.Render(ctx, surface);
+            if (hoverState == HoverState.Hovered)
+            {
+                hoverTextElement.RenderInteractiveElements(deltaTime);
+            }
         }
 
         public void AddConnectionsToList(List<ScriptNodePinConnection> connections)
@@ -293,11 +301,6 @@ namespace VSCCI.GUI.Nodes
             var x = 0.0;
             var y = 0.0;
 
-            Bounds.ChildBounds.Remove(hoverTextElement.Bounds);
-            hoverTextElement.Bounds = ElementBounds.Fixed(x + 20, y - 20, 300, 150);
-            Bounds.WithChild(hoverTextElement.Bounds);
-            hoverTextElement.Bounds.CalcWorldBounds();
-
             hoverTextElement.SetHoverText(GetNodeDescription());
 
             ctx.Save();
@@ -377,12 +380,15 @@ namespace VSCCI.GUI.Nodes
             var x = mouse.X;
             var y = mouse.Y;
             var button = mouse.Button;
+            var previousHandled = mouse.Handled;
+            mouse.Handled = false;
 
             if (IsPositionInside((int)x, (int)y))
             {
                 if (button == EnumMouseButton.Left || button == EnumMouseButton.Right)
                 {
                     OnFocusGained();
+                    state = ScriptNodeState.Selected;
                 }
 
                 mouse.Handled = true;
@@ -402,10 +408,10 @@ namespace VSCCI.GUI.Nodes
                     }
                     else if (button == EnumMouseButton.Left)
                     {
-                        activeConnection = input.CreateConnection();
+                        var activeConnection = input.CreateConnection();
                         if (activeConnection != null)
                         {
-                            activeConnection.DrawPoint = input.PinConnectionPoint;
+                            mouse.Handled = true;
                         }
                         else
                         {
@@ -431,10 +437,10 @@ namespace VSCCI.GUI.Nodes
                     else if (button == EnumMouseButton.Left)
                     {
                         activePin = output;
-                        activeConnection = output.CreateConnection();
+                        var activeConnection = output.CreateConnection();
                         if (activeConnection != null)
                         {
-                            activeConnection.DrawPoint = output.PinConnectionPoint;
+                            mouse.Handled = true;
                         }
                         else
                         {
@@ -448,6 +454,11 @@ namespace VSCCI.GUI.Nodes
             {
                 OnFocusLost();
                 state = ScriptNodeState.None;
+            }
+
+            if(mouse.Handled == false)
+            {
+                mouse.Handled = previousHandled;
             }
         }
 
@@ -471,15 +482,6 @@ namespace VSCCI.GUI.Nodes
                 }
 
                 mouse.Handled = true;
-            }
-
-            if (activeConnection != null)
-            {
-                if (activeConnection.IsConnected == false)
-                {
-                    activeConnection.DisconnectAll();
-                }
-                activeConnection = null;
             }
 
             foreach (var input in inputs)
@@ -507,7 +509,7 @@ namespace VSCCI.GUI.Nodes
             var deltaX = mouse.DeltaX;
             var deltaY = mouse.DeltaY;
 
-            if (hasFocus && activeConnection == null && api.Input.MouseButton.Left && (Math.Abs(deltaX) > 0 || Math.Abs(deltaY) > 0))
+            if (hasFocus && api.Input.MouseButton.Left && (Math.Abs(deltaX) > 0 || Math.Abs(deltaY) > 0))
             {
                 Bounds = Bounds.WithFixedOffset(deltaX, deltaY);
                 Bounds.CalcWorldBounds();
@@ -515,14 +517,13 @@ namespace VSCCI.GUI.Nodes
                 state = ScriptNodeState.Dragged;
                 isDirty = true;
 
+                mouse.Handled = true;
+
                 if (hoverState == HoverState.PendingHover) api.Event.UnregisterCallback(hoverID);
                 hoverState = HoverState.NotHovered;
             }
-            else if (activeConnection != null && api.Input.MouseButton.Left)
+            else if (api.Input.MouseButton.Left)
             {
-                activeConnection.DrawPoint.X += deltaX;
-                activeConnection.DrawPoint.Y += deltaY;
-
                 if (hoverState == HoverState.PendingHover) api.Event.UnregisterCallback(hoverID);
                 hoverState = HoverState.NotHovered;
             }
@@ -650,9 +651,10 @@ namespace VSCCI.GUI.Nodes
             outputs.Clear();
 
             staticTexture.Dispose();
+            selectedTexture.Dispose();
         }
 
-        public bool ConnectionWillConnecttPoint(ScriptNodePinConnection connection, double x, double y)
+        public bool ConnectionWillConnectToPoint(ScriptNodePinConnection connection, double x, double y)
         {
             if (connection.NeedsInput)
             {

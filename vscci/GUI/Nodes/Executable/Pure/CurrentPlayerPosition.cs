@@ -5,6 +5,7 @@
     using Vintagestory.API.MathTools;
     using VSCCI.GUI.Elements;
     using VSCCI.GUI.Nodes.Attributes;
+    using VSCCI.GUI.Pins;
 
     [NodeData("Util", "Current Player Position")]
     [InputPin(typeof(Number), 0)]

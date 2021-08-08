@@ -1,9 +1,10 @@
-namespace VSCCI.GUI.Nodes
+namespace VSCCI.GUI.Pins
 {
     using Cairo;
     using System;
     using Vintagestory.API.Client;
     using VSCCI.Data;
+    using VSCCI.GUI.Nodes;
 
     public class ScriptNodeInput : ScriptNodePinBase
     {
@@ -24,7 +25,7 @@ namespace VSCCI.GUI.Nodes
         {
             ctx.SetSourceColor(PinColor);
             ctx.LineWidth = 2;
-            RoundRectangle(ctx, X, Y + (extents.Height / 2.0), DefaultPinSize, DefaultPinSize, GuiStyle.ElementBGRadius);
+            RoundRectangle(ctx, 0, 0, DefaultPinSize, DefaultPinSize, GuiStyle.ElementBGRadius);
             if (hasConnection)
             {
                 ctx.Fill();
@@ -38,7 +39,12 @@ namespace VSCCI.GUI.Nodes
         {
             if (CanCreateConnection)
             {
-                return new ScriptNodePinConnection(this);
+                isDirty = true;
+                var conn = ScriptNodePinConnectionManager.TheManage.CreateConnection();
+                if(conn.Connect(this))
+                    return conn;
+
+                return null;
             }
 
             if (connections.Count > 0)
@@ -71,7 +77,7 @@ namespace VSCCI.GUI.Nodes
             }
 
             pinSelectBounds = ElementBounds.Fixed(x, (y + (extents.Height / 2.0)), DefaultPinSize, DefaultPinSize);
-            owner.Bounds.ParentBounds.WithChild(pinSelectBounds);
+            owner.Bounds.WithChild(pinSelectBounds);
             pinSelectBounds.CalcWorldBounds();
 
             if (hoverBounds != null)
@@ -83,10 +89,10 @@ namespace VSCCI.GUI.Nodes
             owner.Bounds.ParentBounds.WithChild(hoverBounds);
             hoverBounds.CalcWorldBounds();
 
-            pinConnectionPoint.X = X + (pinSelectBounds.OuterWidth / 2.0);
-            pinConnectionPoint.Y = Y + (pinSelectBounds.OuterHeight / 2.0);
+            pinConnectionPoint.X = owner.Bounds.drawX + X + (pinSelectBounds.OuterWidth / 2.0);
+            pinConnectionPoint.Y = owner.Bounds.drawY + Y + (pinSelectBounds.OuterHeight / 2.0);
 
-            isDirty = false;
+            isDirty = true;
         }
 
         public virtual dynamic GetInput()

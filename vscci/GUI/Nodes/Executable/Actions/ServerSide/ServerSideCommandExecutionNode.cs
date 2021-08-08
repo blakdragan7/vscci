@@ -6,6 +6,7 @@
     using VSCCI.GUI.Elements;
     using VSCCI.GUI.Nodes.Attributes;
     using VSCCI.Data;
+    using VSCCI.GUI.Pins;
 
     public class ServerSideCommandExecutable : ServerSideExecutable
     {
@@ -20,7 +21,7 @@
     {
         public ServerSideCommandExecutionNode(ICoreClientAPI api, MatrixElementBounds bounds) : base("Run Server Command", api, bounds)
         {
-            inputs.Add(new ScriptNodeTextInput(this, api, typeof(string)));
+            inputs.Add(new ScriptNodeTextInput(this, typeof(string)));
         }
 
         protected override void OnExecute()
@@ -43,7 +44,7 @@
 
         public override string GetNodeDescription()
         {
-            return "This Executes a command Server side. Only thise with \"All-Allowed\" Event persmissions can use this node";
+            return "This Executes a command Server side. Only those with \"All-Allowed\" Event persmissions can use this node";
         }
     }
 }

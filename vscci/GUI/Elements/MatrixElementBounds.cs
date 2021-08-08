@@ -10,19 +10,18 @@
         double transformedX;
         double transformedY;
 
-        public override double renderX { get => GetRenderX(); }
+        double transformedDrawX;
+        double transformedDrawY;
 
-        public override double renderY { get => GetRenderY(); }
+        public override double renderX => transformedX;
 
-        private double GetRenderX()
-        {
-            return transformedX;
-        }
+        public override double renderY => transformedY;
 
-        private double GetRenderY()
-        {
-            return transformedY;
-        }
+        public override double drawX => transformedDrawX;
+        public override double drawY => transformedDrawY;
+
+        public virtual double untransformedRenderX => base.renderX;
+        public virtual double untransformedRenderY => base.renderY;
 
         public static MatrixElementBounds Fixed(int fixedX, int fixedY, Matrix mat)
         {
@@ -51,7 +50,14 @@
             transformedX = base.renderX;
             transformedY = base.renderY;
 
-            mat.TransformPoint(ref transformedX, ref transformedY);
+            transformedDrawX = base.drawX;
+            transformedDrawY = base.drawY;
+
+            if (mat is null == false)
+            {
+                mat.TransformPoint(ref transformedX, ref transformedY);
+                mat.TransformPoint(ref transformedDrawX, ref transformedDrawY);
+            }
         }
     }
 }

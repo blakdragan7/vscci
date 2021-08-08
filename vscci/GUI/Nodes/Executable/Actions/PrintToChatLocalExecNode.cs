@@ -3,6 +3,7 @@
     using Vintagestory.API.Client;
     using VSCCI.GUI.Elements;
     using VSCCI.GUI.Nodes.Attributes;
+    using VSCCI.GUI.Pins;
 
     [NodeData("Actions", "Show Chat Local")]
     [InputPin(typeof(Exec), 0)]

@@ -4,6 +4,7 @@
     using Vintagestory.API.Client;
     using VSCCI.GUI.Elements;
     using VSCCI.GUI.Nodes.Attributes;
+    using VSCCI.GUI.Pins;
 
     [NodeData("Basic", "Not Equals")]
     [InputPin(typeof(DynamicType), 0)]

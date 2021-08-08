@@ -3,6 +3,7 @@
     using Cairo;
     using Vintagestory.API.Client;
     using VSCCI.GUI.Elements;
+    using VSCCI.GUI.Pins;
 
     public abstract class ConstantTextInputScriptNode<T> : ScriptNode
     {
@@ -12,7 +13,7 @@
 
         public ConstantTextInputScriptNode(ICoreClientAPI api, MatrixElementBounds bounds) : base("", api, bounds)
         {
-            input = new ScriptNodeTextInput(this, api, typeof(T));
+            input = new ScriptNodeTextInput(this, typeof(T));
             output = new ScriptNodeOutput(this, "out", typeof(T));
 
             inputs.Add(input);

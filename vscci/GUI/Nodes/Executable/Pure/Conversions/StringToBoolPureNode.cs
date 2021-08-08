@@ -5,6 +5,7 @@
     using Vintagestory.API.Client;
     using VSCCI.GUI.Elements;
     using VSCCI.GUI.Nodes.Attributes;
+    using VSCCI.GUI.Pins;
 
     [NodeData("Conversions", "String To Bool")]
     [InputPin(typeof(string), 0)]

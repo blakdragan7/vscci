@@ -6,6 +6,7 @@
     using System;
     using VSCCI.GUI.Elements;
     using VSCCI.GUI.Nodes.Attributes;
+    using VSCCI.GUI.Pins;
 
     [NodeData("Constants", "Constant Number")]
     [InputPin(typeof(Number), 0)]

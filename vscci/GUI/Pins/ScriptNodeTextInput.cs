@@ -1,9 +1,10 @@
-﻿namespace VSCCI.GUI.Nodes
+﻿namespace VSCCI.GUI.Pins
 {
     using Cairo;
     using System.IO;
     using Vintagestory.API.Client;
     using Vintagestory.API.Common;
+    using VSCCI.GUI.Nodes;
 
     public class ScriptNodeTextInput : ScriptNodeInput
     {
@@ -12,16 +13,13 @@
         public Func<char, bool> IsKeyAllowed;
         public event Action<string> TextChanged;
 
-        ICoreClientAPI api;
-
         bool textInputNeedsCompose;
 
-        public ScriptNodeTextInput(ScriptNode owner, ICoreClientAPI api,  System.Type pinType) : base(owner, "", pinType)
+        public ScriptNodeTextInput(ScriptNode owner, System.Type pinType) : base(owner, "", pinType)
         {
             textInput = new GuiElementTextInput(api, ElementBounds.Empty, OnTextChanged, CairoFont.WhiteSmallText().WithFontSize(20));
             // default to true
             IsKeyAllowed = (char c) => { return true; };
-            this.api = api;
             textInputNeedsCompose = false;
         }
 
@@ -81,23 +79,23 @@
             X = x;
             Y = y;
 
-            owner.Bounds.ParentBounds.ChildBounds.Remove(textInput.Bounds);
+            owner.Bounds.ChildBounds.Remove(textInput.Bounds);
             textInput.Bounds = ElementBounds.Fixed(X, Y, 100, 30);
-            owner.Bounds.ParentBounds.WithChild(textInput.Bounds);
+            owner.Bounds.WithChild(textInput.Bounds);
             textInput.Bounds.CalcWorldBounds();
 
             extents.Width = textInput.Bounds.OuterWidth;
             extents.Height = textInput.Bounds.OuterHeight;
 
-            isDirty = false;
+            isDirty = true;
 
             if (pinSelectBounds != null)
             {
-                owner.Bounds.ParentBounds.ChildBounds.Remove(pinSelectBounds);
+                owner.Bounds.ChildBounds.Remove(pinSelectBounds);
             }
 
             pinSelectBounds = ElementBounds.Fixed(x, y, extents.Width, extents.Height);
-            owner.Bounds.ParentBounds.WithChild(pinSelectBounds);
+            owner.Bounds.WithChild(pinSelectBounds);
             pinSelectBounds.CalcWorldBounds();
 
             if (hoverBounds != null)

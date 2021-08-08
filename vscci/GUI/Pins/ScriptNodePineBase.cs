@@ -1,4 +1,4 @@
-namespace VSCCI.GUI.Nodes
+namespace VSCCI.GUI.Pins
 {
     using Cairo;
     using System;
@@ -8,6 +8,8 @@ namespace VSCCI.GUI.Nodes
     using Vintagestory.API.Common;
     using Vintagestory.API.Common.Entities;
     using Vintagestory.API.MathTools;
+    using VSCCI.Data;
+    using VSCCI.GUI.Nodes;
 
     public class Exec // stub for exec type
     {
@@ -171,6 +173,10 @@ namespace VSCCI.GUI.Nodes
 
         public static double DefaultPinSize = 15;
 
+        private LoadedTexture pinTexture;
+
+        protected ICoreClientAPI api;
+
         protected TextExtents extents;
         protected bool hasConnection;
         protected ElementBounds pinSelectBounds;
@@ -231,6 +237,8 @@ namespace VSCCI.GUI.Nodes
             this.pinConnectionPoint = new PointD();
             this.allowsConnections = true;
             this.Guid = Guid.NewGuid();
+            this.pinTexture = new LoadedTexture(owner.API);
+            this.api = owner.API;
         }
         /*
          * Rendered before Pin but after "RenderBackground
@@ -249,15 +257,37 @@ namespace VSCCI.GUI.Nodes
         /*
          *  Used to render any interactive element
          */
-        public virtual void RenderInteractive(float deltaTime) { }
+        public virtual void RenderInteractive(float deltaTime) 
+        {
+            if(isDirty)
+            {
+                ComposePinsTexture();
+                isDirty = false;
+            }
+
+            api.Render.Render2DTexture(pinTexture.TextureId, pinSelectBounds, Constants.SCRIPT_NODE_PIN_Z_POS);
+        }
 
         /*
          *  Used to setup size and position
          */
         public abstract void SetupSizeAndOffsets(double x, double y, Context ctx, CairoFont font);
 
-        public virtual void OnPinConneced(ScriptNodePinConnection connection) { }
-        public virtual void OnPinDisconnected(ScriptNodePinConnection connection) { }
+        public virtual void OnPinConneced(ScriptNodePinConnection connection) { isDirty = true; }
+        public virtual void OnPinDisconnected(ScriptNodePinConnection connection) { isDirty = true; }
+
+        protected virtual void ComposePinsTexture()
+        {
+            ImageSurface surface = new ImageSurface(Format.ARGB32, pinSelectBounds.OuterWidthInt, pinSelectBounds.OuterHeightInt);
+            Context ctx = genContext(surface);
+
+            RenderPin(ctx, surface);
+
+            generateTexture(surface, ref pinTexture);
+
+            ctx.Dispose();
+            surface.Dispose();
+        }
 
         public virtual void MarkDirty()
         {
@@ -290,6 +320,7 @@ namespace VSCCI.GUI.Nodes
             hasConnection = true;
             OnPinConneced(connection);
 
+            isDirty = true;
             return true;
         }
 
@@ -303,8 +334,9 @@ namespace VSCCI.GUI.Nodes
                 if (connections.Count <= 0)
                 {
                     hasConnection = false;
+                    isDirty = true;
 
-                    if(pinValueType == typeof(DynamicType))
+                    if (pinValueType == typeof(DynamicType))
                     {
                         color = ColorForValueType(pinValueType);
                     }
@@ -337,6 +369,8 @@ namespace VSCCI.GUI.Nodes
             }
 
             connections.Clear();
+
+            pinTexture.Dispose();
         }
 
         public static void RoundRectangle(Context ctx, double x, double y, double width, double height, double radius)
@@ -447,5 +481,19 @@ namespace VSCCI.GUI.Nodes
 
         public virtual void OnKeyDown(ICoreClientAPI api, KeyEvent args)
         { }
+
+        protected Context genContext(ImageSurface surface)
+        {
+            Context ctx = new Context(surface);
+            ctx.SetSourceRGBA(0, 0, 0, 0);
+            ctx.Paint();
+            ctx.Antialias = Antialias.Best;
+            return ctx;
+        }
+
+        protected void generateTexture(ImageSurface surface, ref LoadedTexture intoTexture, bool linearMag = true)
+        {
+            api.Gui.LoadOrUpdateCairoTexture(surface, linearMag, ref intoTexture);
+        }
     }
 }

@@ -7,6 +7,7 @@
     using VSCCI.Data;
     using VSCCI.GUI.Elements;
     using VSCCI.GUI.Nodes.Attributes;
+    using VSCCI.GUI.Pins;
 
     [NodeData("Events", "Donation Event")]
     [OutputPin(typeof(Exec), 0)]

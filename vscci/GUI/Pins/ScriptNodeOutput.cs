@@ -1,9 +1,10 @@
-namespace VSCCI.GUI.Nodes
+namespace VSCCI.GUI.Pins
 {
     using Cairo;
     using System;
     using Vintagestory.API.Client;
     using VSCCI.Data;
+    using VSCCI.GUI.Nodes;
 
     public class ScriptNodeOutput : ScriptNodePinBase
     {
@@ -52,7 +53,7 @@ namespace VSCCI.GUI.Nodes
         {
             ctx.SetSourceColor(PinColor);
             ctx.LineWidth = 2;
-            RoundRectangle(ctx, X + extents.Width - DefaultPinSize, Y + (extents.Height / 2.0), DefaultPinSize, DefaultPinSize, GuiStyle.ElementBGRadius);
+            RoundRectangle(ctx, 0, 0, DefaultPinSize, DefaultPinSize, GuiStyle.ElementBGRadius);
             if (hasConnection)
             {
                 ctx.Fill();
@@ -60,14 +61,6 @@ namespace VSCCI.GUI.Nodes
             else
             {
                 ctx.Stroke();
-            }
-
-            foreach (var connection in Connections)
-            {
-                if (connection.IsConnected)
-                {
-                    connection.Render(ctx, surface);
-                }
             }
         }
 
@@ -85,7 +78,12 @@ namespace VSCCI.GUI.Nodes
         {
             if(CanCreateConnection)
             {
-                return new ScriptNodePinConnection(this);
+                isDirty = true;
+                var conn = ScriptNodePinConnectionManager.TheManage.CreateConnection();
+                if (conn.Connect(this))
+                    return conn;
+
+                return null;
             }
 
             if (connections.Count > 0)
@@ -104,11 +102,11 @@ namespace VSCCI.GUI.Nodes
 
             if (pinSelectBounds != null)
             {
-                owner.Bounds.ParentBounds.ChildBounds.Remove(pinSelectBounds);
+                owner.Bounds.ChildBounds.Remove(pinSelectBounds);
             }
 
             pinSelectBounds = ElementBounds.Fixed(x + extents.Width - DefaultPinSize, y + (extents.Height / 2.0), DefaultPinSize, DefaultPinSize);
-            owner.Bounds.ParentBounds.WithChild(pinSelectBounds);
+            owner.Bounds.WithChild(pinSelectBounds);
             pinSelectBounds.CalcWorldBounds();
 
             if (hoverBounds != null)
@@ -121,9 +119,10 @@ namespace VSCCI.GUI.Nodes
             hoverBounds.CalcWorldBounds();
 
 
-            pinConnectionPoint.X = X + extents.Width - extents.Height + (pinSelectBounds.OuterWidth / 2.0);
-            pinConnectionPoint.Y = Y + (extents.Height / 2.0) + (pinSelectBounds.OuterHeight / 2.0);
-            isDirty = false;
+            pinConnectionPoint.X = owner.Bounds.drawX + X + extents.Width - extents.Height + (pinSelectBounds.OuterWidth / 2.0);
+            pinConnectionPoint.Y = owner.Bounds.drawY + Y + (extents.Height / 2.0) + (pinSelectBounds.OuterHeight / 2.0);
+            
+            isDirty = true;
         }
     }
 }

@@ -1,17 +1,19 @@
-namespace VSCCI.GUI.Nodes
+namespace VSCCI.GUI.Pins
 {
     using Cairo;
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using VSCCI.GUI.Nodes;
 
-    public class ScriptNodePinConnection
+    public class ScriptNodePinConnection : IDisposable
     {
         private ScriptNodeOutput output;
         private ScriptNodeInput input;
         public PointD DrawPoint;
 
         private bool skipFirstRender;
+        private ScriptNodePinConnectionManager manager;
 
         public bool IsConnected => input != null && output != null;
         public bool HasAnyConnection => input != null || output != null;
@@ -24,98 +26,18 @@ namespace VSCCI.GUI.Nodes
 
         public Type ConnectionType { get; private set; }
 
-        public ScriptNodePinConnection(ScriptNodeOutput output)
+        public ScriptNodePinConnection(ScriptNodePinConnectionManager manage)
         {
             this.input = null;
-            this.output = output;
-            this.output.Connect(this);
-            this.DrawPoint = output.PinConnectionPoint;
-            this.ConnectionType = output.PinType;
-            this.skipFirstRender = true;
-        }
-
-        public ScriptNodePinConnection(ScriptNodeInput input)
-        {
             this.output = null;
-            this.input = input;
-            this.input.Connect(this);
-            this.DrawPoint = input.PinConnectionPoint;
-            this.ConnectionType = input.PinType;
+            this.ConnectionType = null;
             this.skipFirstRender = true;
-        }
-
-        public static ScriptNodePinConnection CreateConnectionBetween(ScriptNodeOutput output, ScriptNodeInput input)
-        {
-            var connection = new ScriptNodePinConnection(output);
-            if (connection.Connect(input))
-            {
-                return connection;
-            }
-
-            return null;
-        }
-
-        public static ScriptNodePinConnection CreateConnectionFromBytes(BinaryReader reader, List<ScriptNode> allNodes)
-        {
-            Guid inputGuid;
-            Guid outputGuid;
-
-            ScriptNodeInput input = null;
-            ScriptNodeOutput output = null;
-
-            if(reader.ReadBoolean())
-            {
-                inputGuid = System.Guid.Parse(reader.ReadString());
-            }
-            else
-            {
-                return null;
-            }
-
-            if(reader.ReadBoolean())
-            {
-                outputGuid = System.Guid.Parse(reader.ReadString());
-            }
-            else
-            {
-                return null;
-            }
-
-            foreach(var node in allNodes)
-            {
-                if(input == null)
-                {
-                    input = node.InputForGuid(inputGuid);
-                }
-
-                if(output == null)
-                {
-                    output = node.OutputForGuid(outputGuid);
-                }
-
-                if (input != null && output != null) break;
-            }
-
-            if(input != null && output != null)
-            {
-                return CreateConnectionBetween(output, input);
-            }
-
-            return null;
+            this.manager = manage;
         }
 
         public void Render(Context ctx, ImageSurface surface)
         {
-
-            // hack to fix visual glitch with connections rendering before nodes are composed
-            if (skipFirstRender)
-            {
-                skipFirstRender = false;
-                return;
-            }
-
             ctx.Save();
-
 
             if (output == null && input != null)
             {
@@ -168,8 +90,12 @@ namespace VSCCI.GUI.Nodes
         {
             if (output == null)
             {
-                this.input = input;
-                this.input.Connect(this);
+                if (input.Connect(this))
+                {
+                    this.input = input;
+                    this.ConnectionType = input.PinType;
+                    this.DrawPoint = input.PinConnectionPoint;
+                }
                 return true;
             }
 
@@ -190,6 +116,8 @@ namespace VSCCI.GUI.Nodes
                 if(output.Connect(this))
                 {
                     this.output = output;
+                    this.ConnectionType = output.PinType;
+                    this.DrawPoint = output.PinConnectionPoint;
                     return true;
                 }
                 return false;
@@ -217,6 +145,8 @@ namespace VSCCI.GUI.Nodes
                 input = null;
                 output = null;
 
+                manager.MarkDirty();
+
                 return true;
             }
             return false;
@@ -228,6 +158,7 @@ namespace VSCCI.GUI.Nodes
             {
                 output.Disconnect(this);
                 output = null;
+                manager.MarkDirty();
                 return true;
             }
             return false;
@@ -239,9 +170,15 @@ namespace VSCCI.GUI.Nodes
             {
                 input.Disconnect(this);
                 input = null;
+                manager.MarkDirty();
                 return true;
             }
             return false;
+        }
+
+        public void Dispose()
+        {
+            DisconnectAll();
         }
     }
 }

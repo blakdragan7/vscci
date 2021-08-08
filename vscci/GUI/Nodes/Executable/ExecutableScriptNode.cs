@@ -3,6 +3,7 @@
     using Cairo;
     using Vintagestory.API.Client;
     using VSCCI.GUI.Elements;
+    using VSCCI.GUI.Pins;
 
     public abstract class ExecutableScriptNode : ScriptNode
     {
