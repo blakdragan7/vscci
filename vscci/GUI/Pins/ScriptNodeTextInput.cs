@@ -100,11 +100,11 @@
 
             if (hoverBounds != null)
             {
-                owner.Bounds.ParentBounds.ChildBounds.Remove(hoverBounds);
+                owner.Bounds.ChildBounds.Remove(hoverBounds);
             }
 
             hoverBounds = ElementBounds.Fixed(x, y, extents.Width, extents.Height);
-            owner.Bounds.ParentBounds.WithChild(hoverBounds);
+            owner.Bounds.WithChild(hoverBounds);
             hoverBounds.CalcWorldBounds();
 
             pinConnectionPoint.X = textInput.Bounds.drawX + (textInput.Bounds.InnerHeight / 2.0);
