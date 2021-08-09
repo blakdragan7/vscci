@@ -31,18 +31,21 @@
             var entityString = token.SelectToken("entity").ToString();
             System.Type entityType = System.Type.GetType(entityString);
             Entity e = System.Activator.CreateInstance(entityType) as Entity;
+            EntityProperties type = api.World.GetEntityType(new AssetLocation("thrownbeenade"));
+            Entity entity = api.World.ClassRegistry.CreateEntity(type);
             if (e != null)
             {
-                e.TeleportTo(position);
+                e.ServerPos.SetPos(position);
+                e.Pos.SetFrom(e.ServerPos);
                 api.World.SpawnEntity(e);
             }
         }
     }
 
-    [NodeData("Actions", "Spawn Entity")]
-    [InputPin(typeof(Entity), 1)]
-    [InputPin(typeof(Vec3d), 2)]
-    public class ServerSideSpawnEntityNode : ServerSideExecutableNode<ServerSideCommandExecutable>
+    //[NodeData("Actions", "Spawn Entity")]
+    //[InputPin(typeof(Entity), 1)]
+    //[InputPin(typeof(Vec3d), 2)]
+    public class ServerSideSpawnEntityNode : ServerSideExecutableNode<ServerSideSpawnEntityExecutable>
     {
         internal static Type[] entityTypes = null;
         internal static string[] entityTypeNames = null;
@@ -83,9 +86,9 @@
             }
         }
 
-        public ServerSideSpawnEntityNode(ICoreClientAPI api, MatrixElementBounds bounds) : base("Run Server Command", api, bounds)
+        public ServerSideSpawnEntityNode(ICoreClientAPI api, MatrixElementBounds bounds) : base("Spawn Entity", api, bounds)
         {
-            inputs.Add(new ScriptNodeDropdownInput(this, api, entityTypeNames, entityTypes, typeof(Entity)));
+            inputs.Add(new ScriptNodeDropdownInput(this, api, entityTypeNames, entityTypes, 0, typeof(Entity)));
             inputs.Add(new ScriptNodeInput(this, "Location", typeof(Vec3d)));
         }
 
