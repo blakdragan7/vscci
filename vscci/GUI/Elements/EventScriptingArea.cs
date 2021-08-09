@@ -267,11 +267,7 @@ namespace VSCCI.GUI.Elements
                 activeList.OnMouseDownOnElement(api, args);
             }
 
-            if(api.Input.KeyboardKeyStateRaw[(int)GlKeys.LControl] == false && 
-                api.Input.KeyboardKeyStateRaw[(int)GlKeys.RControl] == false)
-            {
-                selectedNodes.Clear();
-            }
+            selectedNodes.Clear();
 
             foreach (var node in allNodes)
             {

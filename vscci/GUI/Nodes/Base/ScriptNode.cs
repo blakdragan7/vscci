@@ -383,17 +383,6 @@ namespace VSCCI.GUI.Nodes
             var previousHandled = mouse.Handled;
             mouse.Handled = false;
 
-            if (IsPositionInside((int)x, (int)y))
-            {
-                if (button == EnumMouseButton.Left || button == EnumMouseButton.Right)
-                {
-                    OnFocusGained();
-                    state = ScriptNodeState.Selected;
-                }
-
-                mouse.Handled = true;
-            }
-
             foreach (var input in inputs)
             {
                 if (input.OnMouseDown(api, mouse))
@@ -450,7 +439,17 @@ namespace VSCCI.GUI.Nodes
                 }
             }
 
-            if(mouse.Handled == false && state != ScriptNodeState.None)
+            if (IsPositionInside((int)x, (int)y))
+            {
+                if (button == EnumMouseButton.Left || button == EnumMouseButton.Right)
+                {
+                    OnFocusGained();
+                    state = ScriptNodeState.Selected;
+                }
+
+                mouse.Handled = true;
+            }
+            else if(mouse.Handled == false && state != ScriptNodeState.None && CntrlPressed() == false)
             {
                 OnFocusLost();
                 state = ScriptNodeState.None;
@@ -464,6 +463,9 @@ namespace VSCCI.GUI.Nodes
 
         public override void OnMouseUp(ICoreClientAPI api, MouseEvent mouse)
         {
+            var pr = mouse.Handled;
+            mouse.Handled = false;
+
             if (IsPositionInside(mouse.X, mouse.Y))
             {
                 if (state == ScriptNodeState.Dragged)
@@ -494,10 +496,15 @@ namespace VSCCI.GUI.Nodes
                 output.OnMouseUp(api, mouse);
             }
 
-            if (mouse.Handled == false && state != ScriptNodeState.None)
+            if (mouse.Handled == false && state != ScriptNodeState.None && CntrlPressed() == false)
             {
                 OnFocusLost();
                 state = ScriptNodeState.None;
+            }
+
+            if(mouse.Handled == false)
+            {
+                mouse.Handled = pr;
             }
         }
 
@@ -652,6 +659,11 @@ namespace VSCCI.GUI.Nodes
 
             staticTexture.Dispose();
             selectedTexture.Dispose();
+        }
+
+        protected bool CntrlPressed()
+        {
+            return  api.Input.KeyboardKeyStateRaw[(int)GlKeys.LControl] ||  api.Input.KeyboardKeyStateRaw[(int)GlKeys.RControl];
         }
 
         public bool ConnectionWillConnectToPoint(ScriptNodePinConnection connection, double x, double y)
