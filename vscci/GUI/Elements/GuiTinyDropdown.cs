@@ -42,7 +42,7 @@
         private ElementBounds arrowBounds;
 
         private DynamicSelectionChangedDelegate onSelectionChanged;
-        private event EventHandler<int> onSelectionIndexChanged;
+        public event EventHandler<int> onSelectionIndexChanged;
 
         public EnumVerticalAlign VerticalAlign { get => verticalAlign; set => SetVerticalAlign(value); }
         public EnumHorizontalAlign HorizontalAlign { get => horizontalAlign; set => SetHorizontalAlign(value); }
@@ -513,6 +513,11 @@
                     ComposeSelection();
                 }
             }
+        }
+
+        public dynamic GetValue(int index)
+        {
+            return values[index];
         }
 
         public override void Dispose()

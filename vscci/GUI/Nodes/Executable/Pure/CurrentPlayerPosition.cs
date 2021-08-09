@@ -14,16 +14,16 @@
     class CurrentPlayerPosition : ExecutableScriptNode
     {
         public static int OUTPUT_INDEX = 0;
-        public CurrentPlayerPosition(ICoreClientAPI api, MatrixElementBounds bounds) : base("+", api, bounds, true)
+        public CurrentPlayerPosition(ICoreClientAPI api, MatrixElementBounds bounds) : base("Current Player Position", api, bounds, true)
         {
-            outputs.Add(new ScriptNodeOutput(this, "Result", typeof(Vec3d)));
+            outputs.Add(new ScriptNodeOutput(this, "Position", typeof(Vec3d)));
 
             shouldAutoExecuteNext = false;
         }
 
         protected override void OnExecute()
         {
-            outputs[OUTPUT_INDEX].Value = api.World.Player.Entity.Pos;
+            outputs[OUTPUT_INDEX].Value = api.World.Player.Entity.Pos.XYZ;
         }
 
         public override string GetNodeDescription()

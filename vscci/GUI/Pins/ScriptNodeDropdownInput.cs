@@ -24,14 +24,21 @@
             dropdownNeedsCompose = true;
             currentSelectionIndex = 0;
             currentSelection = null;
+            dropElement.onSelectionIndexChanged += onSelectionIndexChanged;
         }
 
-        public ScriptNodeDropdownInput(ScriptNode owner, ICoreClientAPI api, string[] names, dynamic[] values, Type pinType) : base(owner, "", pinType)
+        private void onSelectionIndexChanged(object sender, int e)
         {
-            dropElement = new GuiTinyDropdown(api, values, names, 0, EnumVerticalAlign.Middle, EnumHorizontalAlign.Right, OnItemSelected, ElementBounds.Fixed(0, 0).WithEmptyParent(), CairoFont.WhiteDetailText().WithFontSize(10));
+            currentSelectionIndex = e;
+        }
+
+        public ScriptNodeDropdownInput(ScriptNode owner, ICoreClientAPI api, string[] names, dynamic[] values, int currentSelection, Type pinType) : base(owner, "", pinType)
+        {
+            dropElement = new GuiTinyDropdown(api, values, names, currentSelection, EnumVerticalAlign.Middle, EnumHorizontalAlign.Right, OnItemSelected, ElementBounds.Fixed(0, 0).WithEmptyParent(), CairoFont.WhiteDetailText().WithFontSize(10));
             dropdownNeedsCompose = true;
-            currentSelectionIndex = 0;
-            currentSelection = null;
+            currentSelectionIndex = currentSelection;
+            dropElement.onSelectionIndexChanged += onSelectionIndexChanged;
+            this.currentSelection = values[currentSelection];
             this.api = api;
         }
 
@@ -142,6 +149,7 @@
         {
             base.FromBytes(reader);
             currentSelectionIndex = reader.ReadInt32();
+            currentSelection = dropElement.GetValue(currentSelectionIndex);
 
             api.Event.EnqueueMainThreadTask(() => dropElement.SetSelectedIndex(currentSelectionIndex),
                 "update dropdown pin selection");
