@@ -220,7 +220,7 @@ namespace VSCCI.GUI.Elements
                 var type = System.Type.GetType(typeName);
                 if(type != null && type.IsSubclassOf(typeof(ScriptNode)))
                 {
-                    ScriptNode node = (ScriptNode)System.Activator.CreateInstance(type, api, MakeBoundsAtPoint((int)x, (int)y));
+                    ScriptNode node = SpawnNode(type, MakeBoundsAtPoint((int)x, (int)y));
                     node.Guid = System.Guid.Parse(guidString);
                     node.ReadPinsFromBytes(reader);
 
@@ -267,15 +267,9 @@ namespace VSCCI.GUI.Elements
                 activeList.OnMouseDownOnElement(api, args);
             }
 
-            selectedNodes.Clear();
-
             foreach (var node in allNodes)
             {
                 node.OnMouseDown(api, transformedEvent);
-                if(node.IsSelected)
-                {
-                    selectedNodes.Add(node);
-                }
             }
 
             switch (args.Button)
@@ -489,7 +483,7 @@ namespace VSCCI.GUI.Elements
                 {
                     api.Event.EnqueueMainThreadTask(() =>
                     {
-                        ScriptNode newNode = (ScriptNode)Activator.CreateInstance(type, api, bounds);
+                        ScriptNode newNode = SpawnNode(type, bounds);
 
                         allNodes.Add(newNode);
                     }, "Spawn Node");
@@ -520,7 +514,7 @@ namespace VSCCI.GUI.Elements
                 {
                     api.Event.EnqueueMainThreadTask(() =>
                     {
-                        ScriptNode newNode = (ScriptNode)Activator.CreateInstance(nodeType, api, bounds);
+                        ScriptNode newNode = SpawnNode(nodeType, bounds);
 
                         if(contextOutput != null)
                         {
@@ -538,6 +532,37 @@ namespace VSCCI.GUI.Elements
                         activeList = null;
                     }
                 }
+            }
+        }
+
+        private ScriptNode SpawnNode<t>(ElementBounds bounds)
+        {
+            ScriptNode newNode = (ScriptNode)Activator.CreateInstance(typeof(t), api, bounds);
+            newNode.onSelectedChanged += onSelectedChanged;
+            return newNode;
+        }
+
+        private ScriptNode SpawnNode(Type nodeType, ElementBounds bounds)
+        {
+            if (nodeType.IsSubclassOf(typeof(ScriptNode)) == false)
+                return null;
+
+            ScriptNode newNode = (ScriptNode)Activator.CreateInstance(nodeType, api, bounds);
+            newNode.onSelectedChanged += onSelectedChanged;
+            return newNode;
+        }
+
+        private void onSelectedChanged(object sender, bool isSelected)
+        {
+            ScriptNode node = (ScriptNode)sender;
+            if(isSelected)
+            {
+                if(selectedNodes.Contains(node) == false)
+                    selectedNodes.Add(node);
+            }
+            else
+            {
+                selectedNodes.Remove(node);
             }
         }
 

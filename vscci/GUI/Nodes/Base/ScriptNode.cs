@@ -58,6 +58,8 @@ namespace VSCCI.GUI.Nodes
 
         public Guid Guid;
 
+        public event EventHandler<bool> onSelectedChanged;
+
         public bool IsSelected => state == ScriptNodeState.Selected;
 
         public ICoreClientAPI API => api;
@@ -380,6 +382,7 @@ namespace VSCCI.GUI.Nodes
             var x = mouse.X;
             var y = mouse.Y;
             var button = mouse.Button;
+            var previousState = state;
             var previousHandled = mouse.Handled;
             mouse.Handled = false;
 
@@ -459,10 +462,20 @@ namespace VSCCI.GUI.Nodes
             {
                 mouse.Handled = previousHandled;
             }
+
+            if(state == ScriptNodeState.Selected && previousState != ScriptNodeState.Selected)
+            {
+                onSelectedChanged?.Invoke(this, true);
+            }
+            else if (state != ScriptNodeState.Selected && previousState == ScriptNodeState.Selected)
+            {
+                onSelectedChanged?.Invoke(this, false);
+            }
         }
 
         public override void OnMouseUp(ICoreClientAPI api, MouseEvent mouse)
         {
+            var previousState = state;
             var pr = mouse.Handled;
             mouse.Handled = false;
 
@@ -506,6 +519,15 @@ namespace VSCCI.GUI.Nodes
             {
                 mouse.Handled = pr;
             }
+
+            if (state == ScriptNodeState.Selected && previousState != ScriptNodeState.Selected)
+            {
+                onSelectedChanged?.Invoke(this, true);
+            }
+            else if (state != ScriptNodeState.Selected && previousState == ScriptNodeState.Selected)
+            {
+                onSelectedChanged?.Invoke(this, false);
+            }
         }
 
         public override void OnMouseMove(ICoreClientAPI api, MouseEvent mouse)
@@ -521,6 +543,10 @@ namespace VSCCI.GUI.Nodes
                 Bounds = Bounds.WithFixedOffset(deltaX, deltaY);
                 Bounds.CalcWorldBounds();
 
+                if(state == ScriptNodeState.Selected)
+                {
+                    onSelectedChanged?.Invoke(this, false);
+                }
                 state = ScriptNodeState.Dragged;
                 isDirty = true;
 
