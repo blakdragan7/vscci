@@ -163,9 +163,16 @@
 
         public override bool OnMouseDown(ICoreClientAPI api, MouseEvent mouse)
         {
+            var pr = mouse.Handled;
+            mouse.Handled = false;
             dropElement.OnMouseDown(api, mouse);
+            if(mouse.Handled == false)
+            {
+                mouse.Handled = pr;
+                return false;
+            }
 
-            return mouse.Handled;
+            return true;
         }
 
         public override void OnMouseMove(ICoreClientAPI api, MouseEvent mouse)
