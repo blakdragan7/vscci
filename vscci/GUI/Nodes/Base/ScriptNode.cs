@@ -33,7 +33,8 @@ namespace VSCCI.GUI.Nodes
 
         protected bool isDirty;
 
-        protected ScriptNodeState state;
+        protected ScriptNodeState currentState;
+        protected ScriptNodeState previousState;
 
         protected string hoverText;
 
@@ -60,7 +61,7 @@ namespace VSCCI.GUI.Nodes
 
         public event EventHandler<bool> onSelectedChanged;
 
-        public bool IsSelected => state == ScriptNodeState.Selected;
+        public bool IsSelected => currentState == ScriptNodeState.Selected;
 
         public ICoreClientAPI API => api;
 
@@ -74,7 +75,8 @@ namespace VSCCI.GUI.Nodes
             textUtil = new TextDrawUtil();
             font = CairoFont.WhiteDetailText().WithFontSize(20);
 
-            state = ScriptNodeState.None;
+            currentState = ScriptNodeState.None;
+            previousState = ScriptNodeState.None;
 
             hoveredObject = null;
             activePin = null;
@@ -208,7 +210,7 @@ namespace VSCCI.GUI.Nodes
                 output.RenderInteractive(deltaTime);
             }
 
-            if (state == ScriptNodeState.Selected)
+            if (currentState == ScriptNodeState.Selected)
             {
                 api.Render.Render2DTexture(selectedTexture.TextureId, Bounds, Constants.SCRIPT_NODE_SELECTED_Z_POS);
             }
@@ -375,14 +377,16 @@ namespace VSCCI.GUI.Nodes
             isDirty = true;
         }
 
-        public override void OnMouseDown(ICoreClientAPI api, MouseEvent mouse)
+        public virtual void OnMouseDown(ICoreClientAPI api, NodeMouseEvent @event)
         {
+            var mouse = @event.mouseEvent;
+
             base.OnMouseDown(api, mouse);
 
             var x = mouse.X;
             var y = mouse.Y;
             var button = mouse.Button;
-            var previousState = state;
+            var previousState = currentState;
             var previousHandled = mouse.Handled;
             mouse.Handled = false;
 
@@ -408,7 +412,7 @@ namespace VSCCI.GUI.Nodes
                         else
                         {
                             activePin = input;
-                            state = ScriptNodeState.PinSelected;
+                            SetState(ScriptNodeState.PinSelected);
                         }
                     }
                 }
@@ -436,68 +440,43 @@ namespace VSCCI.GUI.Nodes
                         }
                         else
                         {
-                            state = ScriptNodeState.PinSelected;
+                            SetState(ScriptNodeState.PinSelected);
                         }
                     }
                 }
             }
 
-            if (IsPositionInside((int)x, (int)y))
+            if (@event.intersectingNode == this)
             {
                 if (button == EnumMouseButton.Left || button == EnumMouseButton.Right)
                 {
                     OnFocusGained();
-                    state = ScriptNodeState.Selected;
                 }
 
                 mouse.Handled = true;
             }
-            else if(mouse.Handled == false && state != ScriptNodeState.None && CntrlPressed() == false)
+            else if(mouse.Handled == false && currentState != ScriptNodeState.None && CntrlPressed() == false && @event.intersectingNode == null)
             {
-                OnFocusLost();
-                state = ScriptNodeState.None;
+                if ((currentState == ScriptNodeState.Selected && previousHandled) || currentState != ScriptNodeState.Selected)
+                {
+                    OnFocusLost();
+                    SetState(ScriptNodeState.None);
+                }
             }
 
             if(mouse.Handled == false)
             {
                 mouse.Handled = previousHandled;
             }
-
-            if(state == ScriptNodeState.Selected && previousState != ScriptNodeState.Selected)
-            {
-                onSelectedChanged?.Invoke(this, true);
-            }
-            else if (state != ScriptNodeState.Selected && previousState == ScriptNodeState.Selected)
-            {
-                onSelectedChanged?.Invoke(this, false);
-            }
         }
 
-        public override void OnMouseUp(ICoreClientAPI api, MouseEvent mouse)
+        public virtual void OnMouseUp(ICoreClientAPI api, NodeMouseEvent @event)
         {
-            var previousState = state;
+            var mouse = @event.mouseEvent;
+
+            var previousState = currentState;
             var pr = mouse.Handled;
             mouse.Handled = false;
-
-            if (IsPositionInside(mouse.X, mouse.Y))
-            {
-                if (state == ScriptNodeState.Dragged)
-                {
-                    OnFocusLost();
-                    state = ScriptNodeState.None;
-                }
-
-                else if (activePin != null && activePin.OnMouseUp(api, mouse))
-                {
-                    state = ScriptNodeState.PinSelected;
-                }
-                else
-                {
-                    state = ScriptNodeState.Selected;
-                }
-
-                mouse.Handled = true;
-            }
 
             foreach (var input in inputs)
             {
@@ -509,24 +488,33 @@ namespace VSCCI.GUI.Nodes
                 output.OnMouseUp(api, mouse);
             }
 
-            if (mouse.Handled == false && state != ScriptNodeState.None && CntrlPressed() == false)
+            if (mouse.Handled == false)
+            {
+                if (@event.intersectingNode == this)
+                {
+                    if (currentState == ScriptNodeState.Dragged && @event.nodeSelectCount <= 1)
+                    {
+                        OnFocusLost();
+                        SetState(ScriptNodeState.None);
+                    }
+                    else if (currentState != ScriptNodeState.Dragged)
+                    {
+                        SetState(ScriptNodeState.Selected);
+                    }
+
+                    mouse.Handled = true;
+                }
+            }
+
+            if (mouse.Handled == false && currentState != ScriptNodeState.None && CntrlPressed() == false)
             {
                 OnFocusLost();
-                state = ScriptNodeState.None;
+                SetState(ScriptNodeState.None);
             }
 
             if(mouse.Handled == false)
             {
                 mouse.Handled = pr;
-            }
-
-            if (state == ScriptNodeState.Selected && previousState != ScriptNodeState.Selected)
-            {
-                onSelectedChanged?.Invoke(this, true);
-            }
-            else if (state != ScriptNodeState.Selected && previousState == ScriptNodeState.Selected)
-            {
-                onSelectedChanged?.Invoke(this, false);
             }
         }
 
@@ -538,16 +526,12 @@ namespace VSCCI.GUI.Nodes
             var deltaX = mouse.DeltaX;
             var deltaY = mouse.DeltaY;
 
-            if (hasFocus && api.Input.MouseButton.Left && (Math.Abs(deltaX) > 0 || Math.Abs(deltaY) > 0))
+            if ((hasFocus || currentState == ScriptNodeState.Selected || currentState == ScriptNodeState.Dragged) && api.Input.MouseButton.Left && (Math.Abs(deltaX) > 0 || Math.Abs(deltaY) > 0))
             {
                 Bounds = Bounds.WithFixedOffset(deltaX, deltaY);
                 Bounds.CalcWorldBounds();
 
-                if(state == ScriptNodeState.Selected)
-                {
-                    onSelectedChanged?.Invoke(this, false);
-                }
-                state = ScriptNodeState.Dragged;
+                SetState(ScriptNodeState.Dragged);
                 isDirty = true;
 
                 mouse.Handled = true;
@@ -685,6 +669,28 @@ namespace VSCCI.GUI.Nodes
 
             staticTexture.Dispose();
             selectedTexture.Dispose();
+        }
+
+        protected void SetState(ScriptNodeState state)
+        {
+            if (currentState != state)
+            {
+                if (currentState == ScriptNodeState.Selected && state != ScriptNodeState.Dragged)
+                {
+                    onSelectedChanged?.Invoke(this, false);
+                }
+                else if (state == ScriptNodeState.Selected)
+                {
+                    onSelectedChanged?.Invoke(this, true);
+                }
+                else if(previousState == ScriptNodeState.Selected && currentState == ScriptNodeState.Dragged)
+                {
+                    onSelectedChanged?.Invoke(this, false);
+                }
+
+                previousState = currentState;
+                currentState = state;
+            }
         }
 
         protected bool CntrlPressed()

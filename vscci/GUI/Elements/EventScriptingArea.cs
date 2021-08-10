@@ -267,9 +267,25 @@ namespace VSCCI.GUI.Elements
                 activeList.OnMouseDownOnElement(api, args);
             }
 
+            NodeMouseEvent nodeMouseEvent = new NodeMouseEvent()
+            {
+                intersectingNode = null,
+                mouseEvent = transformedEvent,
+                nodeSelectCount = selectedNodes.Count
+            };
+
             foreach (var node in allNodes)
             {
-                node.OnMouseDown(api, transformedEvent);
+                if(node.IsPositionInside(transformedEvent.X, transformedEvent.Y))
+                {
+                    nodeMouseEvent.intersectingNode = node;
+                    break;
+                }
+            }
+
+            foreach (var node in allNodes)
+            {
+                node.OnMouseDown(api, nodeMouseEvent);
             }
 
             switch (args.Button)
@@ -381,6 +397,7 @@ namespace VSCCI.GUI.Elements
 
             MouseEvent transformedEvent = new MouseEvent((int)transformedX, (int)transformedY, args.DeltaX, args.DeltaY, args.Button);
             var foundConnection = false;
+
             if (connectionManager.HasActiveConnection)
             {
                 foreach (var node in allNodes)
@@ -411,9 +428,25 @@ namespace VSCCI.GUI.Elements
                 }
             }
 
+            NodeMouseEvent nodeMouseEvent = new NodeMouseEvent()
+            {
+                intersectingNode = null,
+                mouseEvent = transformedEvent,
+                nodeSelectCount = selectedNodes.Count
+            };
+
             foreach (var node in allNodes)
             {
-                node.OnMouseUp(api, transformedEvent);
+                if (node.IsPositionInside(transformedEvent.X, transformedEvent.Y))
+                {
+                    nodeMouseEvent.intersectingNode = node;
+                    break;
+                }
+            }
+
+            foreach (var node in allNodes)
+            {
+                node.OnMouseUp(api, nodeMouseEvent);
             }
 
             args.Handled = true;
