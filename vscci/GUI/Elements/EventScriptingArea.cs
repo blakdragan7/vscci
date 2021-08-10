@@ -61,6 +61,8 @@ namespace VSCCI.GUI.Elements
 
         private readonly List<ScriptNode> selectedNodes;
 
+        private readonly DragSelectBox selectBox;
+
         private int texId;
         private ScriptNodeOutput contextOutput;
 
@@ -68,6 +70,7 @@ namespace VSCCI.GUI.Elements
         private int lastMouseY;
 
         private bool isPanningView;
+        private bool selectBoxActive;
 
         private readonly Matrix nodeTransform;
         private Matrix inverseNodeTransform;
@@ -82,6 +85,8 @@ namespace VSCCI.GUI.Elements
             bounds.IsDrawingSurface = true;
             isPanningView = false;
 
+            selectBoxActive = false;
+
             connectionManager = ScriptNodePinConnectionManager.TheManage;
             connectionManager.SetupManager(api, bounds);
 
@@ -95,11 +100,13 @@ namespace VSCCI.GUI.Elements
 
             var b = ElementBounds.Fixed(0, 0, 100, 150);
             bounds.WithChild(b);
+
             var nodeSelectList = new CascadingListElement(api, b);
             nodeSelectList.OnItemSelected += NewNodeSelected;
 
-            b = ElementBounds.Fixed(200, 200, 300, 150);
-            bounds.WithChild(b);
+            var selectBoxBounds = MatrixElementBounds.Fixed(0, 0, nodeTransform);
+            Bounds.WithChild(selectBoxBounds);
+            selectBox = new DragSelectBox(api, selectBoxBounds);
 
             contextSelectionLists = new Dictionary<Type, ISelectableList>()
             {
@@ -144,6 +151,11 @@ namespace VSCCI.GUI.Elements
             }
 
             connectionManager.RenderConnections(deltaTime);
+
+            if(selectBoxActive)
+            {
+                selectBox.RenderInteractiveElements(deltaTime);
+            }
         }
 
         public void AddNode(ScriptNode node)
@@ -308,6 +320,13 @@ namespace VSCCI.GUI.Elements
                     break;
             }
 
+            if(transformedEvent.Handled == false && selectedNodes.Count == 0)
+            {
+                selectBoxActive = true;
+                selectBox.SetStartPosition(args.X, args.Y);
+                selectBox.SetEndPosition(args.X, args.Y);
+            }
+
             args.Handled = true;
 
             lastMouseX = args.X;
@@ -318,6 +337,29 @@ namespace VSCCI.GUI.Elements
         {
             base.OnMouseMove(api, args);
             args.Handled = false;
+
+            if(selectBoxActive)
+            {
+                selectBox.OnMouseMove(api, args);
+
+                foreach(var node in allNodes)
+                {
+                    if(selectBox.NodeIntersects(node))
+                    {
+                        if (selectedNodes.Contains(node) == false)
+                        {
+                            node.SetState(ScriptNodeState.Selected);
+                        }
+                    }
+                    else
+                    {
+                        node.SetState(ScriptNodeState.None);
+                    }
+                }
+
+                args.Handled = true;
+                return;
+            }
 
             if(activeList != null)
             {
@@ -367,6 +409,14 @@ namespace VSCCI.GUI.Elements
         {
             base.OnMouseUpOnElement(api, args);
             args.Handled = false;
+
+            if(selectBoxActive)
+            {
+                selectBoxActive = false;
+                args.Handled = true;
+
+                if (selectedNodes.Count > 0) return;
+            }
 
             if (activeList != null)
             {

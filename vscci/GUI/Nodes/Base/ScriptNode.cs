@@ -671,7 +671,12 @@ namespace VSCCI.GUI.Nodes
             selectedTexture.Dispose();
         }
 
-        protected void SetState(ScriptNodeState state)
+        public void FallbackState()
+        {
+            SetState(previousState);
+        }
+
+        public void SetState(ScriptNodeState state)
         {
             if (currentState != state)
             {
