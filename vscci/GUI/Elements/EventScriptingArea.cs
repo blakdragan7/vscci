@@ -63,7 +63,7 @@ namespace VSCCI.GUI.Elements
 
         private readonly DragSelectBox selectBox;
 
-        private int texId;
+        private LoadedTexture loadedTexture;
         private ScriptNodeOutput contextOutput;
 
         private int lastMouseX;
@@ -82,6 +82,8 @@ namespace VSCCI.GUI.Elements
 
         public EventScriptingArea(ICoreClientAPI api, ElementBounds bounds) : base(api, bounds)
         {
+            loadedTexture = new LoadedTexture(api);
+
             bounds.IsDrawingSurface = true;
             isPanningView = false;
 
@@ -137,13 +139,13 @@ namespace VSCCI.GUI.Elements
                 activeList.OnRender(ctx, surface, deltaTime);
             }
 
-            generateTexture(surface, ref texId);
+            generateTexture(surface, ref loadedTexture);
 
             ctx.Dispose();
             surface.Dispose();
 
             
-            api.Render.Render2DTexture(texId, Bounds);
+            api.Render.Render2DTexture(loadedTexture.TextureId, Bounds);
 
             foreach (var node in allNodes)
             {
@@ -173,6 +175,28 @@ namespace VSCCI.GUI.Elements
             {
                 node.ComposeElements(ctxStatic, surface);
             }
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+
+            /*foreach(var node in allNodes)
+            {
+                node.Dispose();
+            }*/
+
+            foreach(var list in contextSelectionLists)
+            {
+                var el = list.Value as GuiElement;
+                el?.Dispose();
+            }
+
+            //allNodes.Clear();
+            contextSelectionLists.Clear();
+            selectBox.Dispose();
+            loadedTexture.Dispose();
+            connectionManager.Dispose();
         }
 
         public void ToBytes(BinaryWriter writer)

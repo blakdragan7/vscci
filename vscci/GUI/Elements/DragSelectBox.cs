@@ -108,6 +108,13 @@
                 matBounds.OuterWidthInt, matBounds.OuterHeightInt, Constants.SCRIPT_NODE_HOVER_TEXT_Z_POS);
         }
 
+
+        public override void Dispose()
+        {
+            base.Dispose();
+
+            texture.Dispose();
+        }
         private void ComposeTexture()
         {
             var surface = new ImageSurface(Format.Argb32, Bounds.OuterWidthInt, Bounds.OuterHeightInt);

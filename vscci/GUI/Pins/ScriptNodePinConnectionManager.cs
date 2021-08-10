@@ -56,6 +56,8 @@
             {
                 conn.Dispose();
             }
+
+            texture.Dispose();
         }
 
         public void RenderConnections(float deltaTime)
