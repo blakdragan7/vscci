@@ -21,7 +21,15 @@ namespace VSCCI.GUI.Elements
         {
             if (obj == null) return false;
             var o = obj as ContextValue;
-            if (o is null) return false;
+            if (o is null)
+            {
+                var b = obj as Type;
+                if(b is null)
+                    return false;
+
+                return NodeType == b;
+            }
+
             return NodeType.Equals(o.NodeType);
         }
 
@@ -42,7 +50,7 @@ namespace VSCCI.GUI.Elements
             if (rhs is null)
                 return lhs is null;
 
-            return lhs.NodeType == rhs.NodeType;
+            return lhs.NodeType.Equals(rhs.NodeType);
         }
 
         public static bool operator !=(ContextValue lhs, ContextValue rhs)
@@ -50,7 +58,7 @@ namespace VSCCI.GUI.Elements
             if (lhs is null && rhs is null) return false;
             else if (lhs is null || rhs is null) return true;
 
-            return lhs.NodeType != rhs.NodeType;
+            return !lhs.NodeType.Equals(rhs.NodeType);
         }
     }
 

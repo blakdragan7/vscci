@@ -18,6 +18,10 @@
             if (obj == null) return false;
             var o = obj as ListItem;
             if (o is null) return false;
+
+            if (o.Value is ContextValue)
+                return o.Value.Equals(Value);
+
             return Value.Equals(o.Value);
         }
 
@@ -179,7 +183,10 @@
             List<ListItem> list = null;
             if (items.TryGetValue(item.Catagory, out list))
             {
-                list.Add(item);
+                if (list.Contains(item) == false)
+                {
+                    list.Add(item);
+                }
             }
             else
             {
