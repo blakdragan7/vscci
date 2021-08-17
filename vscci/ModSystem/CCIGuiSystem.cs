@@ -71,7 +71,7 @@ namespace VSCCI.ModSystem
                 default:
                     break;
             }
-        }
+        }  
 
         private void OnVsCCICommand(int groupId, CmdArgs arg)
         {

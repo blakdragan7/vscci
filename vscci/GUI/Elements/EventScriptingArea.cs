@@ -80,7 +80,7 @@ namespace VSCCI.GUI.Elements
 
         private ScriptNodePinConnectionManager connectionManager;
 
-        public EventScriptingArea(ICoreClientAPI api, ElementBounds bounds) : base(api, bounds)
+        public EventScriptingArea(ICoreClientAPI api, List<ScriptNode>  allNodes, ElementBounds bounds) : base(api, bounds)
         {
             loadedTexture = new LoadedTexture(api);
 
@@ -94,7 +94,7 @@ namespace VSCCI.GUI.Elements
 
             activeList = null;
             contextOutput = null;
-            allNodes = new List<ScriptNode>();
+            this.allNodes = allNodes;
             selectedNodes = new List<ScriptNode>();
 
             nodeTransform = new Matrix();
@@ -181,22 +181,15 @@ namespace VSCCI.GUI.Elements
         {
             base.Dispose();
 
-            /*foreach(var node in allNodes)
-            {
-                node.Dispose();
-            }*/
-
             foreach(var list in contextSelectionLists)
             {
                 var el = list.Value as GuiElement;
                 el?.Dispose();
             }
 
-            //allNodes.Clear();
             contextSelectionLists.Clear();
             selectBox.Dispose();
             loadedTexture.Dispose();
-            connectionManager.Dispose();
         }
 
         public void ToBytes(BinaryWriter writer)

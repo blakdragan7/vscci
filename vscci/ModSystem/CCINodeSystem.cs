@@ -57,6 +57,7 @@
         {
             base.StartClientSide(api);
             capi = api;
+
         }
 
         public void RegisterNode(EventBasedExecutableScriptNode node)
@@ -65,12 +66,12 @@
             {
                 capi.Event.EnqueueMainThreadTask(() =>
                 {
-                    eventNodes.Add(node);
+                    eventNodes?.Add(node);
                 }, "Node System List Add");
             }
             else
             {
-                eventNodes.Add(node);
+                eventNodes?.Add(node);
             }
         }
 
@@ -80,12 +81,12 @@
             {
                 capi.Event.EnqueueMainThreadTask(() =>
                 {
-                    eventNodes.Remove(node);
+                    eventNodes?.Remove(node);
                 }, "Node System List Remove");
             }
             else
             {
-                eventNodes.Remove(node);
+                eventNodes?.Remove(node);
             }
         }
 

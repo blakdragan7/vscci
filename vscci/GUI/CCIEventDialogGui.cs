@@ -2,9 +2,12 @@ namespace VSCCI.GUI
 {
     using System;
     using System.IO;
+    using System.Collections.Generic;
     using Vintagestory.API.Client;
 
     using VSCCI.GUI.Elements;
+    using VSCCI.GUI.Nodes;
+    using VSCCI.GUI.Pins;
 
     public class CCIEventDialogGui : GuiDialog
     {
@@ -12,17 +15,17 @@ namespace VSCCI.GUI
 
         private bool needsKeyboardEvents;
 
+        private readonly List<ScriptNode> allNodes;
+
         public override string ToggleKeyCombinationCode => "ccievent";
         public override string DebugName => "ccieventgui";
 
         public override bool ShouldReceiveKeyboardEvents() => needsKeyboardEvents;
 
-        //public override float ZSize => 3000;
-
-
         public CCIEventDialogGui(ICoreClientAPI capi) : base(capi)
         {
             needsKeyboardEvents = false;
+            allNodes = new List<ScriptNode>();
             OnOwnPlayerDataReceived();
         }
 
@@ -36,14 +39,18 @@ namespace VSCCI.GUI
 
             dialogBounds.WithChild(scriptAreaBounds);
 
-            scriptingArea = new EventScriptingArea(capi, scriptAreaBounds);
+            scriptingArea = new EventScriptingArea(capi, allNodes, scriptAreaBounds);
 
             SingleComposer = capi.Gui.CreateCompo("ccievent", dialogBounds)
                 .AddDialogTitleBarWithBg("CCI Event", () => TryClose(), CairoFont.WhiteSmallishText())
                 .AddInteractiveElement(scriptingArea)
                 .Compose();
 
-            LoadFromFile();
+            // if there isnt any nodes yet, try to load them.
+            if (allNodes.Count == 0)
+            {
+                LoadFromFile();
+            }
         }
 
         public void LoadFromFile()
@@ -120,6 +127,19 @@ namespace VSCCI.GUI
                 return true;
             }
             return false;
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+
+            foreach (var node in allNodes)
+            {
+                node.Dispose();
+            }
+
+            allNodes.Clear();
+            ScriptNodePinConnectionManager.TheManage.Dispose();
         }
     }
 }
