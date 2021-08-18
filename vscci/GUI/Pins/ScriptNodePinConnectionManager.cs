@@ -36,6 +36,7 @@
             }
 
             theManager = this;
+            connections = new List<ScriptNodePinConnection>();
         }
 
         public void SetupManager(ICoreClientAPI api, ElementBounds bounds)
@@ -45,9 +46,8 @@
             this.isDirty = true;
             this.activeConnection = null;
 
-            connections = new List<ScriptNodePinConnection>();
-
-            texture = new LoadedTexture(api);
+            if(texture is null)
+                texture = new LoadedTexture(api);
         }
 
         public void Dispose()
@@ -58,6 +58,7 @@
             }
 
             texture.Dispose();
+            texture = null;
         }
 
         public void RenderConnections(float deltaTime)
