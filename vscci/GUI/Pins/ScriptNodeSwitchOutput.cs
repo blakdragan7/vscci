@@ -31,7 +31,6 @@
         {
             cancelButton.ComposeElements(ctx, surface);
             valueInput.ComposeElements(ctx, surface);
-            isDirty = false;
         }
 
         public override void RenderText(TextDrawUtil textUtil, CairoFont font, Context ctx, ImageSurface surface)
