@@ -122,6 +122,16 @@
             }
         }
 
+        public void ExecuteOutput(ScriptNodeOutput output)
+        {
+            var connection = output.TopConnection();
+            if (connection != null && connection.IsConnected)
+            {
+                var exec = connection.Input as ExecInputNode;
+                exec?.ExecOwner.Execute();
+            }
+        }
+
         public void ExecuteNodeAtIndex(int index)
         {
             if (isPure || shouldAutoExecuteNext == false)

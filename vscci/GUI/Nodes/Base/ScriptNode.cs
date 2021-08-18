@@ -272,7 +272,7 @@ namespace VSCCI.GUI.Nodes
             return inputs[index];
         }
 
-        public void ReadPinsFromBytes(BinaryReader reader)
+        public virtual void ReadPinsFromBytes(BinaryReader reader)
         {
             foreach (var pin in inputs)
             {
@@ -287,7 +287,7 @@ namespace VSCCI.GUI.Nodes
             isDirty = true;
         }
 
-        public void WrtiePinsToBytes(BinaryWriter writer)
+        public virtual void WrtiePinsToBytes(BinaryWriter writer)
         {
             foreach(var pin in inputs)
             {
@@ -375,6 +375,18 @@ namespace VSCCI.GUI.Nodes
         public void MarkDirty()
         {
             isDirty = true;
+
+            foreach(var input in inputs)
+            {
+                input.MarkDirty();
+            }
+
+            foreach (var output in outputs)
+            {
+                output.MarkDirty();
+            }
+
+            ScriptNodePinConnectionManager.TheManage.MarkDirty();
         }
 
         public virtual void OnMouseDown(ICoreClientAPI api, NodeMouseEvent @event)
