@@ -489,11 +489,11 @@ namespace VSCCI.GUI.Elements
                     }
                 }
 
-                if(foundConnection == false)
+                if (foundConnection == false)
                 {
-                    if(contextSelectionLists.TryGetValue(connectionManager.ActiveType, out activeList))
+                    if (contextSelectionLists.TryGetValue(connectionManager.ActiveType, out activeList))
                     {
-                        activeList.SetPosition(args.X - (activeList.ListBounds.OuterWidth / 4.0), 
+                        activeList.SetPosition(args.X - (activeList.ListBounds.OuterWidth / 4.0),
                             args.Y - (activeList.ListBounds.OuterHeight / 4.0));
                         selectListActiveDownEvent = args;
                         contextOutput = connectionManager.ActiveOutput;
@@ -507,28 +507,30 @@ namespace VSCCI.GUI.Elements
                     connectionManager.RemoveActiveConnection();
                 }
             }
-
-            NodeMouseEvent nodeMouseEvent = new NodeMouseEvent()
+            else
             {
-                intersectingNode = null,
-                mouseEvent = transformedEvent,
-                nodeSelectCount = selectedNodes.Count
-            };
 
-            foreach (var node in allNodes)
-            {
-                if (node.IsPositionInside(transformedEvent.X, transformedEvent.Y))
+                NodeMouseEvent nodeMouseEvent = new NodeMouseEvent()
                 {
-                    nodeMouseEvent.intersectingNode = node;
-                    break;
+                    intersectingNode = null,
+                    mouseEvent = transformedEvent,
+                    nodeSelectCount = selectedNodes.Count
+                };
+
+                foreach (var node in allNodes)
+                {
+                    if (node.IsPositionInside(transformedEvent.X, transformedEvent.Y))
+                    {
+                        nodeMouseEvent.intersectingNode = node;
+                        break;
+                    }
+                }
+
+                foreach (var node in allNodes)
+                {
+                    node.OnMouseUp(api, nodeMouseEvent);
                 }
             }
-
-            foreach (var node in allNodes)
-            {
-                node.OnMouseUp(api, nodeMouseEvent);
-            }
-
             args.Handled = true;
         }
 

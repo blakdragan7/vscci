@@ -458,7 +458,7 @@ namespace VSCCI.GUI.Nodes
                 }
             }
 
-            if (@event.intersectingNode == this)
+            if (@event.intersectingNode == this && mouse.Handled == false)
             {
                 if (button == EnumMouseButton.Left || button == EnumMouseButton.Right)
                 {
@@ -492,12 +492,12 @@ namespace VSCCI.GUI.Nodes
 
             foreach (var input in inputs)
             {
-                input.OnMouseUp(api, mouse);
+                mouse.Handled |= input.OnMouseUp(api, mouse);
             }
 
             foreach (var output in outputs)
             {
-                output.OnMouseUp(api, mouse);
+                mouse.Handled |= output.OnMouseUp(api, mouse);
             }
 
             if (mouse.Handled == false)
