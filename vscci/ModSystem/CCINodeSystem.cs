@@ -7,9 +7,9 @@
 
     using VSCCI.Data;
     using VSCCI.GUI.Nodes;
-    using System.Collections.Generic;
-    using System.Threading;
+
     using System;
+    using System.Collections.Generic;
 
     class CCINodeSystem : ModSystem
     {
