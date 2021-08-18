@@ -62,6 +62,12 @@ namespace VSCCI.GUI.Elements
         }
     }
 
+    internal class NodeCopyInfo
+    {
+        // the bytes representing the copied nodes
+        public byte[] nodeData;
+    }
+
     public class EventScriptingArea : GuiElement, IByteSerializable
     {
         private readonly Dictionary<Type, ISelectableList> contextSelectionLists;
@@ -70,6 +76,8 @@ namespace VSCCI.GUI.Elements
         private readonly List<ScriptNode> selectedNodes;
 
         private readonly DragSelectBox selectBox;
+
+        private NodeCopyInfo copyData;
 
         private LoadedTexture loadedTexture;
         private ScriptNodeOutput contextOutput;
@@ -100,18 +108,28 @@ namespace VSCCI.GUI.Elements
             connectionManager = ScriptNodePinConnectionManager.TheManage;
             connectionManager.SetupManager(api, bounds);
 
+            copyData = null;
+
             activeList = null;
             contextOutput = null;
             this.allNodes = allNodes;
             selectedNodes = new List<ScriptNode>();
 
-            foreach(var node in allNodes)
-            {
-                node.onSelectedChanged += onSelectedChanged;
-            }
-
             nodeTransform = new Matrix();
             inverseNodeTransform = new Matrix();
+
+            Bounds.CalcWorldBounds();
+
+            foreach (var node in allNodes)
+            {
+                node.onSelectedChanged += onSelectedChanged;
+
+                MatrixElementBounds lb = node.Bounds as MatrixElementBounds;
+                lb.WithMatrix(nodeTransform);
+
+                Bounds.WithChild(node.Bounds);
+                node.MarkDirty();
+            }
 
             var b = ElementBounds.Fixed(0, 0, 100, 150);
             bounds.WithChild(b);
@@ -337,6 +355,8 @@ namespace VSCCI.GUI.Elements
 
                 case EnumMouseButton.Middle:
                     isPanningView = true;
+                    transformedEvent.Handled = true;
+
                     break;
 
                 case EnumMouseButton.Right:
@@ -509,7 +529,6 @@ namespace VSCCI.GUI.Elements
             }
             else
             {
-
                 NodeMouseEvent nodeMouseEvent = new NodeMouseEvent()
                 {
                     intersectingNode = null,
@@ -551,6 +570,14 @@ namespace VSCCI.GUI.Elements
 
                 selectedNodes.Clear();
             }
+            else if(args.KeyCode == (int)GlKeys.C && (api.Input.KeyboardKeyStateRaw[(int)GlKeys.LControl] || api.Input.KeyboardKeyStateRaw[(int)GlKeys.RControl]))
+            {
+                args.Handled |= CreateCopyData();
+            }
+            else if (args.KeyCode == (int)GlKeys.V && (api.Input.KeyboardKeyStateRaw[(int)GlKeys.LControl] || api.Input.KeyboardKeyStateRaw[(int)GlKeys.RControl]))
+            {
+                args.Handled |= PasteFromCopyData();
+            }
             if (activeList != null)
             {
                 activeList.OnKeyDown(api, args);
@@ -581,6 +608,112 @@ namespace VSCCI.GUI.Elements
                     node.OnKeyPress(api, args);
                 }
             }
+        }
+
+        private bool CreateCopyData()
+        {
+            if (selectedNodes.Count > 0)
+            {
+                copyData = new NodeCopyInfo();
+
+                var avgX = 0.0;
+                var avgY = 0.0;
+
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    using (BinaryWriter bw = new BinaryWriter(ms))
+                    {
+                        List<ScriptNodePinConnection> connections = new List<ScriptNodePinConnection>();
+
+                        bw.Write(selectedNodes.Count);
+
+                        foreach (var node in selectedNodes)
+                        {
+                            avgX += node.Bounds.drawX;
+                            avgY += node.Bounds.drawY;
+                        }
+
+                        avgX /= selectedNodes.Count;
+                        avgY /= selectedNodes.Count;
+
+                        foreach (var node in selectedNodes)
+                        {
+                            bw.Write(node.GetType().AssemblyQualifiedName);
+
+                            bw.Write(node.Bounds.drawX - avgX);
+                            bw.Write(node.Bounds.drawY - avgY);
+
+                            node.WrtiePinsToBytes(bw);
+                            node.AddConnectionsToList(connections);
+                        }
+
+                        bw.Write(connections.Count);
+
+                        foreach (var connection in connections)
+                        {
+                            connection.WriteToBytes(bw);
+                        }
+                    }
+
+                    copyData.nodeData = ms.ToArray();
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool PasteFromCopyData()
+        {
+            if (copyData != null)
+            {
+                double tx = api.Input.MouseX;
+                double ty = api.Input.MouseY;
+
+                inverseNodeTransform.TransformPoint(ref tx, ref ty);
+
+                double relX = tx - Bounds.absX;
+                double relY = ty - Bounds.absY;
+
+                using (MemoryStream ms = new MemoryStream(copyData.nodeData))
+                {
+                    using (BinaryReader reader = new BinaryReader(ms))
+                    {
+                        var newNodes = new List<ScriptNode>();
+
+                        var numNode = reader.ReadInt32();
+
+                        for (var i = 0; i < numNode; i++)
+                        {
+                            var typeName = reader.ReadString();
+
+                            var dx = reader.ReadDouble();
+                            var dy = reader.ReadDouble();
+
+                            var type = System.Type.GetType(typeName);
+                            if (type != null && type.IsSubclassOf(typeof(ScriptNode)))
+                            {
+                                ScriptNode node = SpawnNode(type, MakeBoundsAtPoint((int)(relX + dx), (int)(relY + dy)));
+                                node.ReadPinsFromBytes(reader);
+
+                                newNodes.Add(node);
+                                allNodes.Add(node);
+                            }
+                            else
+                            {
+                                api.Logger.Error("Error reading Node Type from Copy Data {0}", typeName);
+                            }
+                        }
+
+                        connectionManager.FromBytes(reader, newNodes);
+                    }
+                }
+
+                return true;
+            }
+
+            return false;
         }
 
         private void NewNodeSelected(object sender, ListItem item)

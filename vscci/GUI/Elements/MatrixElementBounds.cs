@@ -33,6 +33,11 @@
             return new MatrixElementBounds (){ mat = mat, fixedX = fixedX, fixedY = fixedY, fixedWidth = fixedWidth, fixedHeight = fixedHeight, BothSizing = ElementSizing.Fixed };
         }
 
+        public static MatrixElementBounds WithBounds(ElementBounds bounds, Matrix mat)
+        {
+            return new MatrixElementBounds() { mat = mat, fixedX = bounds.fixedX, fixedY = bounds.fixedY, fixedWidth = bounds.fixedWidth, fixedHeight = bounds.fixedHeight, BothSizing = ElementSizing.Fixed };
+        }
+
         public MatrixElementBounds WithMatrix(Matrix mat)
         {
             transformedX = base.renderX;
