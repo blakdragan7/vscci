@@ -198,6 +198,8 @@ namespace VSCCI.GUI.Nodes
                 surface.Dispose();
             }
 
+            api.Render.PushScissor(Bounds.ParentBounds, true);
+
             api.Render.Render2DTexturePremultipliedAlpha(staticTexture.TextureId, Bounds, Constants.SCRIPT_NODE_Z_POS);
 
             foreach (var input in inputs)
@@ -219,6 +221,8 @@ namespace VSCCI.GUI.Nodes
             {
                 hoverTextElement.RenderInteractiveElements(deltaTime);
             }
+
+            api.Render.PopScissor();
         }
 
         public void AddConnectionsToList(List<ScriptNodePinConnection> connections)

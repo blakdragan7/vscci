@@ -175,6 +175,7 @@ namespace VSCCI.GUI.Elements
             ctx.Dispose();
             surface.Dispose();
 
+            api.Render.PushScissor(Bounds, true);
             
             api.Render.Render2DTexture(loadedTexture.TextureId, Bounds);
 
@@ -188,6 +189,13 @@ namespace VSCCI.GUI.Elements
             if(selectBoxActive)
             {
                 selectBox.RenderInteractiveElements(deltaTime);
+            }
+
+            api.Render.PopScissor();
+
+            if(api.Render.ScissorStack.Count > 0)
+            {
+                api.Render.GlScissorFlag(true);
             }
         }
 
@@ -747,9 +755,17 @@ namespace VSCCI.GUI.Elements
                 {
                     api.Event.EnqueueMainThreadTask(() =>
                     {
-                        ScriptNode newNode = SpawnNode(nodeType, bounds);
+                        ScriptNode newNode;
+                        if (nodeType == typeof(ScriptNodeReRoute))
+                        {
+                            newNode = SpawnReRouteNode(bounds, contextOutput);
+                        }
+                        else
+                        {
+                            newNode = SpawnNode(nodeType, bounds);
+                        }
 
-                        if(contextOutput != null)
+                        if (contextOutput != null)
                         {
                             var input = newNode.InputForIndex(pinIndex);
                             if(input != null)
@@ -768,19 +784,26 @@ namespace VSCCI.GUI.Elements
             }
         }
 
-        private ScriptNode SpawnNode<t>(ElementBounds bounds)
+        private ScriptNode SpawnNode<t>(MatrixElementBounds bounds)
         {
             ScriptNode newNode = (ScriptNode)Activator.CreateInstance(typeof(t), api, bounds);
             newNode.onSelectedChanged += onSelectedChanged;
             return newNode;
         }
 
-        private ScriptNode SpawnNode(Type nodeType, ElementBounds bounds)
+        private ScriptNode SpawnNode(Type nodeType, MatrixElementBounds bounds)
         {
             if (nodeType.IsSubclassOf(typeof(ScriptNode)) == false)
                 return null;
 
             ScriptNode newNode = (ScriptNode)Activator.CreateInstance(nodeType, api, bounds);
+            newNode.onSelectedChanged += onSelectedChanged;
+            return newNode;
+        }
+
+        private ScriptNodeReRoute SpawnReRouteNode(MatrixElementBounds bounds, ScriptNodeOutput output)
+        {
+            ScriptNodeReRoute newNode = new ScriptNodeReRoute(api, output.PinType, bounds);
             newNode.onSelectedChanged += onSelectedChanged;
             return newNode;
         }
@@ -810,17 +833,26 @@ namespace VSCCI.GUI.Elements
                 var attrs = (NodeDataAttribute[])type.GetCustomAttributes(typeof(NodeDataAttribute), true);
                 if (attrs.Length > 0)
                 {
-                    globalSelectionList.AddListItem(attrs[0].Category, attrs[0].ListName, type);
+                    if (type != typeof(ScriptNodeReRoute))
+                    {
+                        globalSelectionList.AddListItem(attrs[0].Category, attrs[0].ListName, type);
+                    }
 
                     var inputs = (InputPinAttribute[])type.GetCustomAttributes(typeof(InputPinAttribute), true);
 
                     foreach(var input in inputs)
                     {
                         // add dynamic to everything
-                        if(input.PinType == typeof(DynamicType))
+                        if (input.PinType == typeof(DynamicType))
                         {
                             foreach (var contextListPair in contextSelectionLists)
                             {
+                                // skip the global list since it was added to above
+                                if(globalSelectionList == contextListPair.Value)
+                                {
+                                    continue;
+                                }
+
                                 contextListPair.Value.AddListItem(attrs[0].Category, attrs[0].ListName, new ContextValue()
                                 {
                                     Index = input.Index,
@@ -829,32 +861,34 @@ namespace VSCCI.GUI.Elements
                             }
                             continue;
                         }
-
-                        ISelectableList contextList = null;
-                        if(contextSelectionLists.TryGetValue(input.PinType, out contextList))
-                        {
-                            contextList.AddListItem(attrs[0].Category, attrs[0].ListName, new ContextValue() 
-                            {
-                                Index = input.Index,
-                                NodeType = type
-                            });
-                        }
                         else
                         {
-                            var b = ElementBounds.Fixed(0, 0, 100, 150);
-                            Bounds.WithChild(b);
-                            b.CalcWorldBounds();
-
-                            contextList = new UniqueSelectableListElement(api, b);
-                            contextList.AddListItem(attrs[0].Category, attrs[0].ListName, new ContextValue()
+                            ISelectableList contextList = null;
+                            if (contextSelectionLists.TryGetValue(input.PinType, out contextList))
                             {
-                                Index = input.Index,
-                                NodeType = type
-                            });
+                                contextList.AddListItem(attrs[0].Category, attrs[0].ListName, new ContextValue()
+                                {
+                                    Index = input.Index,
+                                    NodeType = type
+                                });
+                            }
+                            else
+                            {
+                                var b = ElementBounds.Fixed(0, 0, 100, 150);
+                                Bounds.WithChild(b);
+                                b.CalcWorldBounds();
 
-                            contextList.OnItemSelected += NewNodeSelectedContext;
+                                contextList = new UniqueSelectableListElement(api, b);
+                                contextList.AddListItem(attrs[0].Category, attrs[0].ListName, new ContextValue()
+                                {
+                                    Index = input.Index,
+                                    NodeType = type
+                                });
 
-                            contextSelectionLists.Add(input.PinType, contextList);
+                                contextList.OnItemSelected += NewNodeSelectedContext;
+
+                                contextSelectionLists.Add(input.PinType, contextList);
+                            }
                         }
                     }
                 }

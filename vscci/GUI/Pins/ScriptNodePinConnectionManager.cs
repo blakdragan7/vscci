@@ -57,7 +57,7 @@
                 conn.Dispose();
             }
 
-            texture.Dispose();
+            texture?.Dispose();
             texture = null;
         }
 
