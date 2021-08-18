@@ -105,6 +105,11 @@ namespace VSCCI.GUI.Elements
             this.allNodes = allNodes;
             selectedNodes = new List<ScriptNode>();
 
+            foreach(var node in allNodes)
+            {
+                node.onSelectedChanged += onSelectedChanged;
+            }
+
             nodeTransform = new Matrix();
             inverseNodeTransform = new Matrix();
 
