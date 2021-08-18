@@ -10,15 +10,24 @@
         double transformedX;
         double transformedY;
 
+        double transformedRenderX;
+        double transformedRenderY;
+
         double transformedDrawX;
         double transformedDrawY;
 
-        public override double renderX => transformedX;
+        public override double renderX => transformedRenderX;
 
-        public override double renderY => transformedY;
+        public override double renderY => transformedRenderY;
 
         public override double drawX => transformedDrawX;
         public override double drawY => transformedDrawY;
+
+        public override double absX => transformedX;
+        public override double absY => transformedY;
+
+        public virtual double untransformedAbsY => base.absY;
+        public virtual double untransformedAbsX => base.absX;
 
         public virtual double untransformedRenderX => base.renderX;
         public virtual double untransformedRenderY => base.renderY;
@@ -40,11 +49,11 @@
 
         public MatrixElementBounds WithMatrix(Matrix mat)
         {
-            transformedX = base.renderX;
-            transformedY = base.renderY;
+            transformedRenderX = base.renderX;
+            transformedRenderY = base.renderY;
 
             this.mat = mat;
-            mat.TransformPoint(ref transformedX, ref transformedY);
+            mat.TransformPoint(ref transformedRenderX, ref transformedRenderY);
             return this;
         }
 
@@ -52,16 +61,20 @@
         {
             base.CalcWorldBounds();
 
-            transformedX = base.renderX;
-            transformedY = base.renderY;
+            transformedRenderX = base.renderX;
+            transformedRenderY = base.renderY;
 
             transformedDrawX = base.drawX;
             transformedDrawY = base.drawY;
 
+            transformedX = base.absX;
+            transformedY = base.absY;
+
             if (mat is null == false)
             {
-                mat.TransformPoint(ref transformedX, ref transformedY);
+                mat.TransformPoint(ref transformedRenderX, ref transformedRenderY);
                 mat.TransformPoint(ref transformedDrawX, ref transformedDrawY);
+                mat.TransformPoint(ref transformedX, ref transformedY);
             }
         }
     }

@@ -137,7 +137,7 @@ namespace VSCCI.GUI.Elements
             var nodeSelectList = new CascadingListElement(api, b);
             nodeSelectList.OnItemSelected += NewNodeSelected;
 
-            var selectBoxBounds = MatrixElementBounds.Fixed(0, 0, nodeTransform);
+            var selectBoxBounds = ElementBounds.Fixed(0, 0);
             Bounds.WithChild(selectBoxBounds);
             selectBox = new DragSelectBox(api, selectBoxBounds);
 
@@ -315,12 +315,7 @@ namespace VSCCI.GUI.Elements
 
             args.Handled = false;
 
-            double transformedX = args.X;
-            double transformedY = args.Y;
-
-            inverseNodeTransform.TransformPoint(ref transformedX, ref transformedY);
-
-            MouseEvent transformedEvent = new MouseEvent((int)transformedX, (int)transformedY, args.DeltaX, args.DeltaY, args.Button);
+            MouseEvent localEvent = new MouseEvent(args.X, args.Y, args.DeltaX, args.DeltaY, args.Button);
 
             if (activeList != null)
             {
@@ -330,13 +325,13 @@ namespace VSCCI.GUI.Elements
             NodeMouseEvent nodeMouseEvent = new NodeMouseEvent()
             {
                 intersectingNode = null,
-                mouseEvent = transformedEvent,
+                mouseEvent = localEvent,
                 nodeSelectCount = selectedNodes.Count
             };
 
             foreach (var node in allNodes)
             {
-                if(node.IsPositionInside(transformedEvent.X, transformedEvent.Y))
+                if(node.IsPositionInside(localEvent.X, localEvent.Y))
                 {
                     nodeMouseEvent.intersectingNode = node;
                     break;
@@ -355,13 +350,13 @@ namespace VSCCI.GUI.Elements
 
                 case EnumMouseButton.Middle:
                     isPanningView = true;
-                    transformedEvent.Handled = true;
+                    localEvent.Handled = true;
 
                     break;
 
                 case EnumMouseButton.Right:
                     // open context window
-                    if (transformedEvent.Handled != true)
+                    if (localEvent.Handled != true)
                     {
                         activeList = contextSelectionLists[typeof(DynamicType)];
                         activeList.SetPosition(args.X - (activeList.ListBounds.OuterWidth / 4.0), args.Y - (activeList.ListBounds.OuterHeight / 4.0));
@@ -370,7 +365,7 @@ namespace VSCCI.GUI.Elements
                     break;
             }
 
-            if(transformedEvent.Handled == false && selectedNodes.Count == 0)
+            if(localEvent.Handled == false && selectedNodes.Count == 0)
             {
                 selectBoxActive = true;
                 selectBox.SetStartPosition(args.X, args.Y);
@@ -431,19 +426,14 @@ namespace VSCCI.GUI.Elements
             }
             else
             {
-                double transformedX = args.X;
-                double transformedY = args.Y;
-
-                inverseNodeTransform.TransformPoint(ref transformedX, ref transformedY);
-
-                MouseEvent transformedEvent = new MouseEvent((int)transformedX, (int)transformedY, args.X - lastMouseX, args.Y - lastMouseY, args.Button);
+                MouseEvent localEvent = new MouseEvent(args.X, args.Y, args.X - lastMouseX, args.Y - lastMouseY, args.Button);
                 
                 foreach (var node in allNodes)
                 {
-                    node.OnMouseMove(api, transformedEvent);
+                    node.OnMouseMove(api, localEvent);
                 }
 
-                if(transformedEvent.Handled)
+                if(localEvent.Handled)
                 {
                     connectionManager.MarkDirty();
                 }
@@ -490,19 +480,14 @@ namespace VSCCI.GUI.Elements
                 inverseNodeTransform.Invert();
             }
             
-            double transformedX = args.X;
-            double transformedY = args.Y;
-
-            inverseNodeTransform.TransformPoint(ref transformedX, ref transformedY);
-
-            MouseEvent transformedEvent = new MouseEvent((int)transformedX, (int)transformedY, args.DeltaX, args.DeltaY, args.Button);
+            MouseEvent localEvent = new MouseEvent(args.X, args.Y, args.DeltaX, args.DeltaY, args.Button);
             var foundConnection = false;
 
             if (connectionManager.HasActiveConnection)
             {
                 foreach (var node in allNodes)
                 {
-                    if (connectionManager.ConnectActiveConnectionToNodeAtPoint(node, transformedX, transformedY))
+                    if (connectionManager.ConnectActiveConnectionToNodeAtPoint(node, args.X, args.Y))
                     {
                         foundConnection = true;
                         break;
@@ -532,13 +517,13 @@ namespace VSCCI.GUI.Elements
                 NodeMouseEvent nodeMouseEvent = new NodeMouseEvent()
                 {
                     intersectingNode = null,
-                    mouseEvent = transformedEvent,
+                    mouseEvent = localEvent,
                     nodeSelectCount = selectedNodes.Count
                 };
 
                 foreach (var node in allNodes)
                 {
-                    if (node.IsPositionInside(transformedEvent.X, transformedEvent.Y))
+                    if (node.IsPositionInside(localEvent.X, localEvent.Y))
                     {
                         nodeMouseEvent.intersectingNode = node;
                         break;

@@ -15,7 +15,7 @@
 
 
         private bool isDirty;
-        public DragSelectBox(ICoreClientAPI api, MatrixElementBounds bounds) : base(api, bounds)
+        public DragSelectBox(ICoreClientAPI api, ElementBounds bounds) : base(api, bounds)
         {
             startX = 0;
             startY = 0;
@@ -103,9 +103,7 @@
                 ComposeTexture();
             }
 
-            var matBounds = (MatrixElementBounds)Bounds;
-            api.Render.Render2DTexture(texture.TextureId, (float)matBounds.untransformedRenderX, (float)matBounds.untransformedRenderY,
-                matBounds.OuterWidthInt, matBounds.OuterHeightInt, Constants.SCRIPT_NODE_HOVER_TEXT_Z_POS);
+            api.Render.Render2DTexture(texture.TextureId, Bounds, Constants.SCRIPT_NODE_HOVER_TEXT_Z_POS);
         }
 
 
