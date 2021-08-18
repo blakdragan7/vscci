@@ -169,7 +169,7 @@
 
         public override bool OnMouseDown(ICoreClientAPI api, MouseEvent mouse)
         {
-            if (PointIsWithinSelectionBounds(mouse.X, mouse.Y))
+            if (textInput.IsPositionInside(mouse.X, mouse.Y))
             {
                 textInput.OnFocusGained();
                 textInput.OnMouseDownOnElement(api, mouse);
