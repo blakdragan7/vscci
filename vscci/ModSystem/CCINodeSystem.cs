@@ -9,6 +9,7 @@
     using VSCCI.GUI.Nodes;
 
     using System;
+    using System.Threading;
     using System.Collections.Generic;
 
     class CCINodeSystem : ModSystem
@@ -16,7 +17,11 @@
         private ICoreServerAPI sapi;
         private ICoreClientAPI capi;
 
+        private readonly object eventLockObject = new object();
+        private readonly object serverMessageLockObject = new object();
+
         private List<EventBasedExecutableScriptNode> eventNodes;
+        private Dictionary<Guid, ServerSideExecutableNode> serverNodes;
 
         private static CCINodeSystem instance = null;
 
@@ -26,13 +31,15 @@
         {
             instance = this;
             eventNodes = new List<EventBasedExecutableScriptNode>();
+            serverNodes = new Dictionary<Guid, ServerSideExecutableNode>();
         }
 
         public override void Start(ICoreAPI api)
         {
             base.Start(api);
             api.Network.RegisterChannel(Constants.NETWORK_NODE_CHANNEL)
-                .RegisterMessageType<ServerNodeExecutionData>();
+                .RegisterMessageType<ServerNodeExecutionData>()
+                .RegisterMessageType<PlayerPositionData>();
             api.Event.RegisterEventBusListener(OnEvent);
         }
 
@@ -49,7 +56,7 @@
             if (ConfigData.PlayerIsAllowed(player))
             {
                 ServerSideAction executable = (ServerSideAction)Activator.CreateInstance(Type.GetType(data.AssemblyQualifiedName));
-                executable.RunServerSide(player, sapi, data.Data);
+                executable.RunServerSide(player, sapi, data);
             }
         }
 
@@ -58,58 +65,63 @@
             base.StartClientSide(api);
             capi = api;
 
+            api.Network.GetChannel(Constants.NETWORK_NODE_CHANNEL)
+                .SetMessageHandler<PlayerPositionData>(ReceivedPlayerPosition);
         }
 
-        public void RegisterNode(EventBasedExecutableScriptNode node)
+        public void RegisterNodeForEvents(EventBasedExecutableScriptNode node)
         {
-            if (capi != null)
-            {
-                capi.Event.EnqueueMainThreadTask(() =>
-                {
-                    eventNodes?.Add(node);
-                }, "Node System List Add");
-            }
-            else
+            lock (eventLockObject)
             {
                 eventNodes?.Add(node);
             }
         }
 
-        public void UnregisterNode(EventBasedExecutableScriptNode node)
+        public void UnregisterNodeForEvents(EventBasedExecutableScriptNode node)
         {
-            if (capi != null)
-            {
-                capi.Event.EnqueueMainThreadTask(() =>
-                {
-                    eventNodes?.Remove(node);
-                }, "Node System List Remove");
-            }
-            else
+            lock (eventLockObject)
             {
                 eventNodes?.Remove(node);
             }
         }
 
+        public void RegisterNodeForServerMessages(ServerSideExecutableNode node)
+        {
+            lock (serverMessageLockObject)
+            {
+                serverNodes.Add(node.Guid, node);
+            }
+        }
+
+        public void UnregisterNodeForServerMessages(ServerSideExecutableNode node)
+        {
+            lock (serverMessageLockObject)
+            {
+                serverNodes.Remove(node.Guid);
+            }
+        }
+
+        private void ReceivedPlayerPosition(PlayerPositionData data)
+        {
+            lock (serverMessageLockObject)
+            {
+                ServerSideExecutableNode node = null;
+                if (serverNodes.TryGetValue(data.Guid, out node))
+                {
+                    node.ReceivedServerMessage(data);
+                }
+            }
+        }
+
         private void OnEvent(string eventName, ref EnumHandling handling, IAttribute data)
         {
-            if (capi != null)
-            {
-                // TODO: make a better way for this to be thread safe
-                capi.Event.EnqueueMainThreadTask(() =>
-                {
-                    foreach (var node in eventNodes)
-                    {
-                        node.OnEvent(eventName, data);
-                    }
-                }, "Node System On Event");
-            }
-            else
+            lock (eventLockObject)
             {
                 foreach (var node in eventNodes)
                 {
                     node.OnEvent(eventName, data);
                 }
-            }
+            };
         }
     }
 }

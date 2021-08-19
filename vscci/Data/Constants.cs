@@ -35,6 +35,7 @@ namespace VSCCI.Data
         public const string NETWORK_GUI_CHANNEL            = "cci_guiupdate_channel";
         public const string NETWORK_EVENT_CHANNEL          = "cci_event_channel";
         public const string NETWORK_NODE_CHANNEL           = "cci_node_channel";
+        public const int NETWORK_DEFAULT_TIMEUOT_MS        = 5000;
 
         // CCI Event Constants
         public const string EVENT_BITS_RECIEVED            = "ccieb";

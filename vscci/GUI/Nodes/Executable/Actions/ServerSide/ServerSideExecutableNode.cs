@@ -10,19 +10,25 @@
 
     public abstract class ServerSideAction
     {
-        public abstract void RunServerSide(IServerPlayer player, ICoreServerAPI api, string data);
+        public abstract void RunServerSide(IServerPlayer player, ICoreServerAPI api, ServerNodeExecutionData data);
     }
 
     [InputPin(typeof(Exec), 0)]
     [OutputPin(typeof(Exec), 0)]
-    public abstract class ServerSideExecutableNode<T> : ExecutableScriptNode where T : ServerSideAction
+    public abstract class ServerSideExecutableNode : ExecutableScriptNode
     {
         private LoadedTexture notAllowedTexture;
 
         protected string data;
+        protected System.Type actionType;
 
-        public ServerSideExecutableNode(string title, ICoreClientAPI api, MatrixElementBounds bounds) : base(title, api, bounds, false)
+        public ServerSideExecutableNode(string title, System.Type actionType, ICoreClientAPI api, MatrixElementBounds bounds) : base(title, api, bounds, false)
         {
+            if (actionType.IsSubclassOf(typeof(ServerSideAction)) == false)
+                throw new System.ArgumentException("actionType must be a subclass of ServerSideAction");
+
+            this.actionType = actionType;
+
             notAllowedTexture = new LoadedTexture(api);
         }
 
@@ -30,9 +36,17 @@
         {
             api.Network.GetChannel(Constants.NETWORK_NODE_CHANNEL).SendPacket(new ServerNodeExecutionData()
             {
-                AssemblyQualifiedName = typeof(T).AssemblyQualifiedName,
-                Data = data
+                AssemblyQualifiedName = actionType.AssemblyQualifiedName,
+                Data = data,
+                Guid = Guid
             });
+        }
+
+        public override void ComposeElements(Context ctxStatic, ImageSurface surface)
+        {
+            base.ComposeElements(ctxStatic, surface);
+
+            ComposeNotAllowedTexture();
         }
 
         public override void RenderInteractiveElements(float deltaTime)
@@ -40,10 +54,15 @@
             base.RenderInteractiveElements(deltaTime);
 
             // visually render that this node won't do anything because we don't have permission
-            if(ConfigData.clientData.PlayerIsAllowedServerEvents == false)
+            if (ConfigData.clientData.PlayerIsAllowedServerEvents == false)
             {
-                
+                api.Render.Render2DTexture(notAllowedTexture.TextureId, Bounds, Constants.SCRIPT_NODE_Z_POS);
             }
+        }
+
+        public virtual void ReceivedServerMessage(object data)
+        {
+
         }
 
         private void ComposeNotAllowedTexture()

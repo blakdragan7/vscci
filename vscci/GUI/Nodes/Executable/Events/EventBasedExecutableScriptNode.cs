@@ -11,14 +11,14 @@
     {
         public EventBasedExecutableScriptNode(string title, ICoreClientAPI api, MatrixElementBounds bounds) : base(title, api, bounds, true, false)
         {
-            CCINodeSystem.NodeSystem.RegisterNode(this);
+            CCINodeSystem.NodeSystem.RegisterNodeForEvents(this);
         }
 
         public override void Dispose()
         {
             base.Dispose();
 
-            CCINodeSystem.NodeSystem.UnregisterNode(this);
+            CCINodeSystem.NodeSystem.UnregisterNodeForEvents(this);
         }
 
         public abstract void OnEvent(string eventName, IAttribute data);

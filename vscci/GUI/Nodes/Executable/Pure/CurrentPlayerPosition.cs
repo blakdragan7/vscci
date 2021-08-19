@@ -8,9 +8,7 @@
     using VSCCI.GUI.Pins;
 
     [NodeData("Util", "Current Player Position")]
-    [InputPin(typeof(Number), 0)]
-    [InputPin(typeof(Number), 1)]
-    [OutputPin(typeof(Number), 0)]
+    [OutputPin(typeof(Vec3d), 0)]
     class CurrentPlayerPosition : ExecutableScriptNode
     {
         public static int OUTPUT_INDEX = 0;

@@ -8,18 +8,18 @@
     using VSCCI.Data;
     using VSCCI.GUI.Pins;
 
-    public class ServerSideCommandExecutable : ServerSideAction
+    public class ServerSideCommandAction : ServerSideAction
     {
-        public override void RunServerSide(IServerPlayer player, ICoreServerAPI api, string data)
+        public override void RunServerSide(IServerPlayer player, ICoreServerAPI api, ServerNodeExecutionData data)
         {
         }
     }
 
     [NodeData("Actions", "Run Server Command")]
     [InputPin(typeof(string), 1)]
-    public class ServerSideCommandExecutionNode : ServerSideExecutableNode<ServerSideCommandExecutable>
+    public class ServerSideCommandExecutionNode : ServerSideExecutableNode
     {
-        public ServerSideCommandExecutionNode(ICoreClientAPI api, MatrixElementBounds bounds) : base("Run Server Command", api, bounds)
+        public ServerSideCommandExecutionNode(ICoreClientAPI api, MatrixElementBounds bounds) : base("Run Server Command", typeof(ServerSideCommandAction), api, bounds)
         {
             inputs.Add(new ScriptNodeTextInput(this, typeof(string)));
         }

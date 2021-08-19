@@ -14,12 +14,13 @@
     using VSCCI.GUI.Nodes.Attributes;
     using VSCCI.Extensions;
     using VSCCI.GUI.Pins;
+    using VSCCI.Data;
 
-    public class ServerSideSpawnEntityExecutable : ServerSideAction
+    public class ServerSideSpawnEntityAction : ServerSideAction
     {
-        public override void RunServerSide(IServerPlayer player, ICoreServerAPI api, string data)
+        public override void RunServerSide(IServerPlayer player, ICoreServerAPI api, ServerNodeExecutionData data)
         {
-            var token = JToken.Parse(data);
+            var token = JToken.Parse(data.Data);
 
             string posd = token.SelectToken("pos").ToString();
             var parts = posd.Split(',');
@@ -45,7 +46,7 @@
     //[NodeData("Actions", "Spawn Entity")]
     //[InputPin(typeof(Entity), 1)]
     //[InputPin(typeof(Vec3d), 2)]
-    public class ServerSideSpawnEntityNode : ServerSideExecutableNode<ServerSideSpawnEntityExecutable>
+    public class ServerSideSpawnEntityNode : ServerSideExecutableNode
     {
         internal static Type[] entityTypes = null;
         internal static string[] entityTypeNames = null;
@@ -86,7 +87,7 @@
             }
         }
 
-        public ServerSideSpawnEntityNode(ICoreClientAPI api, MatrixElementBounds bounds) : base("Spawn Entity", api, bounds)
+        public ServerSideSpawnEntityNode(ICoreClientAPI api, MatrixElementBounds bounds) : base("Spawn Entity", typeof(ServerSideSpawnEntityAction), api, bounds)
         {
             inputs.Add(new ScriptNodeDropdownInput(this, api, entityTypeNames, entityTypes, 0, typeof(Entity)));
             inputs.Add(new ScriptNodeInput(this, "Location", typeof(Vec3d)));

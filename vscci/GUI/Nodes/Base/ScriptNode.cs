@@ -57,7 +57,7 @@ namespace VSCCI.GUI.Nodes
         private HoverTextElement hoverTextElement;
         public bool IsDirty => isDirty;
 
-        public Guid Guid;
+        public Guid Guid { get; private set; }
 
         public event EventHandler<bool> onSelectedChanged;
 
@@ -306,7 +306,7 @@ namespace VSCCI.GUI.Nodes
 
         public void RegeneratedGUIDs()
         {
-            Guid = Guid.NewGuid();
+            SetGuid(Guid.NewGuid());
 
             foreach(var input in inputs)
             {
@@ -318,6 +318,12 @@ namespace VSCCI.GUI.Nodes
                 output.Guid = Guid.NewGuid();
             }
         }
+
+        public virtual void SetGuid(Guid newGuid)
+        {
+            Guid = newGuid;
+        }
+
         protected virtual void ComposeSizeAndOffsets(Context ctx, CairoFont font)
         {
             var x = 0.0;

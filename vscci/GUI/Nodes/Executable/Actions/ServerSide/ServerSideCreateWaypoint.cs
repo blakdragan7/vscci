@@ -12,7 +12,7 @@
 
     public class CreateWaypointAction : ServerSideAction
     {
-        public override void RunServerSide(IServerPlayer player, ICoreServerAPI api, string data)
+        public override void RunServerSide(IServerPlayer player, ICoreServerAPI api, ServerNodeExecutionData data)
         {
         }
     }
@@ -23,13 +23,13 @@
     [InputPin(typeof(bool), 2)]
     [InputPin(typeof(Vec3d), 3)]
     [OutputPin(typeof(Exec), 0)]
-    public class ServerSideCreateWaypoint : ServerSideExecutableNode<CreateWaypointAction>
+    public class ServerSideCreateWaypoint : ServerSideExecutableNode
     {
         ScriptNodeInput nameInput;
         ScriptNodeInput pinnedInput;
         ScriptNodeInput positionInput;
 
-        public ServerSideCreateWaypoint(ICoreClientAPI api, MatrixElementBounds bounds) : base("Create Waypoint", api, bounds)
+        public ServerSideCreateWaypoint(ICoreClientAPI api, MatrixElementBounds bounds) : base("Create Waypoint", typeof(CreateWaypointAction), api, bounds)
         {
             nameInput = new ScriptNodeInput(this, "Name", typeof(string));
             pinnedInput = new ScriptNodeBoolInput(this, "Pinned");
@@ -42,24 +42,24 @@
 
         protected override void OnExecute()
         {
-            string name = nameInput.GetInput();
-            bool pinned = pinnedInput.GetInput();
-
-            var colorText = "white";
-            var icon = "default";
-
-            Vec3d WorldPosd = positionInput.GetInput();
-            Vec3i WorldPos = new Vec3i(WorldPosd.XInt, WorldPosd.YInt, WorldPosd.ZInt);
-
             if (ConfigData.clientData.PlayerIsAllowedServerEvents)
             {
+                string name = nameInput.GetInput();
+                bool pinned = pinnedInput.GetInput();
+
+                var colorText = "white";
+                var icon = "default";
+
+                Vec3d WorldPosd = positionInput.GetInput();
+                Vec3i WorldPos = new Vec3i(WorldPosd.XInt, WorldPosd.YInt, WorldPosd.ZInt);
+
                 api.SendChatMessage(string.Format("/waypoint addati {0} ={1} ={2} ={3} {4} {5} {6}", icon, WorldPos.X.ToString(GlobalConstants.DefaultCultureInfo), WorldPos.Y.ToString(GlobalConstants.DefaultCultureInfo), WorldPos.Z.ToString(GlobalConstants.DefaultCultureInfo), pinned, colorText, name));
             }
         }
 
         public override string GetNodeDescription()
         {
-            return "Creates a waypoint on the given players map";
+            return "Creates a waypoint on the current players map";
         }
     }
 }
