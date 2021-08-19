@@ -289,7 +289,7 @@ namespace VSCCI.GUI.Elements
                 if(type != null && type.IsSubclassOf(typeof(ScriptNode)))
                 {
                     ScriptNode node = SpawnNode(type, MakeBoundsAtPoint((int)x, (int)y));
-                    node.Guid = System.Guid.Parse(guidString);
+                    node.SetGuid(System.Guid.Parse(guidString));
                     node.ReadPinsFromBytes(reader);
 
                     allNodes.Add(node);
