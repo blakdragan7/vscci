@@ -168,7 +168,7 @@ namespace VSCCI.GUI.Nodes
             ctx.Dispose();
         }
 
-        void ComposeSelectedTexture()
+        private void ComposeSelectedTexture()
         {
             ImageSurface surface = new ImageSurface(Format.ARGB32, Bounds.OuterWidthInt, Bounds.OuterHeightInt); ;
             Context ctx = genContext(surface);
@@ -304,6 +304,20 @@ namespace VSCCI.GUI.Nodes
             }
         }
 
+        public void RegeneratedGUIDs()
+        {
+            Guid = Guid.NewGuid();
+
+            foreach(var input in inputs)
+            {
+                input.Guid = Guid.NewGuid();
+            }
+
+            foreach (var output in outputs)
+            {
+                output.Guid = Guid.NewGuid();
+            }
+        }
         protected virtual void ComposeSizeAndOffsets(Context ctx, CairoFont font)
         {
             var x = 0.0;

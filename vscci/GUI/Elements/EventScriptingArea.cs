@@ -317,6 +317,7 @@ namespace VSCCI.GUI.Elements
                 node.OnMouseWheel(api, args);
             }
         }
+
         public override void OnMouseDownOnElement(ICoreClientAPI api, MouseEvent args)
         {
             base.OnMouseDownOnElement(api, args);
@@ -700,6 +701,11 @@ namespace VSCCI.GUI.Elements
                         }
 
                         connectionManager.FromBytes(reader, newNodes);
+
+                        foreach (var node in newNodes)
+                        {
+                            node.RegeneratedGUIDs();
+                        }
                     }
                 }
 
