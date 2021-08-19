@@ -15,7 +15,7 @@
         public static int MILISECONDS_INPUT_INDEX = 1;
         public DelayExecutableNode(ICoreClientAPI api, MatrixElementBounds bounds) : base("Delay", api, bounds)
         {
-            inputs.Add(new ScriptNodeInput(this, "miliSeconds", typeof(Number)));
+            inputs.Add(new ScriptNodeNumberInput(this, "miliSeconds"));
         }
 
         protected override void OnExecute()

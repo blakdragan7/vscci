@@ -11,43 +11,17 @@
     [NodeData("Constants", "Constant Number")]
     [InputPin(typeof(Number), 0)]
     [OutputPin(typeof(Number), 0)]
-    class ConstantNumberScriptNode : ConstantTextInputScriptNode<Number>
+    class ConstantNumberScriptNode : ScriptNode
     {
-        private static List<char> numbers = new List<char>()
+        public ConstantNumberScriptNode(ICoreClientAPI api, MatrixElementBounds bounds) : base("", api, bounds)
         {
-            '0',
-            '1',
-            '2',
-            '3',
-            '4',
-            '5',
-            '6',
-            '7',
-            '8',
-            '9',
-            '.'
-        };
-        public ConstantNumberScriptNode(ICoreClientAPI api, MatrixElementBounds bounds) : base(api, bounds)
-        {
+            inputs.Add(new ScriptNodeNumberInput(this, InputUpdated, ""));
+            outputs.Add(new ScriptNodeOutput(this, "Out", typeof(Number)));
         }
 
-        public override bool ValidateKey(char key)
+        private void InputUpdated(string _)
         {
-            return numbers.Contains(key);
-        }
-
-        protected override Number ParseValue(string text)
-        {
-            try
-            {
-                return Number.Parse(text);
-            }
-            catch(Exception exc)
-            {
-                api.Logger.Error("Error trying to parse text {0} on Constant NumberType {1}", text, exc.Message);
-            }
-
-            return 0;
+            outputs[0].Value = inputs[0].GetInput();
         }
 
         public override string GetNodeDescription()

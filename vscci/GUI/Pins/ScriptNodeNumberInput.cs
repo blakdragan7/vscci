@@ -11,9 +11,17 @@
     public class ScriptNodeNumberInput : ScriptNodeInput
     {
         protected GuiElementNumberInput numberInput;
+        System.Action<string> TextChanged;
 
         public ScriptNodeNumberInput(ScriptNode owner, string name) : base(owner, name, typeof(Number))
         {
+            numberInput = new GuiElementNumberInput(api, ElementBounds.Empty, OnTextChanged, CairoFont.WhiteSmallText().WithFontSize(20));
+            // default to true
+            isDirty = false;
+        }
+        public ScriptNodeNumberInput(ScriptNode owner, System.Action<string> TextChanged, string name) : base(owner, name, typeof(Number))
+        {
+            this.TextChanged = TextChanged;
             numberInput = new GuiElementNumberInput(api, ElementBounds.Empty, OnTextChanged, CairoFont.WhiteSmallText().WithFontSize(20));
             // default to true
             isDirty = false;
@@ -198,6 +206,7 @@
         }
         private void OnTextChanged(string text)
         {
+            TextChanged?.Invoke(text);
         }
     }
 }
