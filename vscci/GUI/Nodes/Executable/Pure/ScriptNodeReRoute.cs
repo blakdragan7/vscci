@@ -17,6 +17,7 @@
         public ScriptNodeReRoute(ICoreClientAPI api, MatrixElementBounds bounds) : base("", api, bounds, true)
         {
             type = null;
+            shouldAutoExecuteNext = false;
         }
 
         public ScriptNodeReRoute(ICoreClientAPI api, Type pinType, MatrixElementBounds bounds) : base("", api, bounds, true)
