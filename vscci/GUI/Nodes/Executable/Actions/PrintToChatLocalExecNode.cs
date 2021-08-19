@@ -25,8 +25,6 @@
             {
                 api.Event.EnqueueMainThreadTask(() => api.ShowChatMessage(message) , "Print To Chat Local");
             }
-
-            ExecuteNextNode();
         }
 
         public override string GetNodeDescription()
