@@ -145,6 +145,7 @@ namespace VSCCI.GUI.Pins
                 input = null;
                 output = null;
 
+                manager.RemoveConnection(this);
                 manager.MarkDirty();
 
                 return true;
