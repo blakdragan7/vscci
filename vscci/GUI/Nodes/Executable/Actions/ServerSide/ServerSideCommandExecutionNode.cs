@@ -8,7 +8,7 @@
     using VSCCI.Data;
     using VSCCI.GUI.Pins;
 
-    public class ServerSideCommandExecutable : ServerSideExecutable
+    public class ServerSideCommandExecutable : ServerSideAction
     {
         public override void RunServerSide(IServerPlayer player, ICoreServerAPI api, string data)
         {

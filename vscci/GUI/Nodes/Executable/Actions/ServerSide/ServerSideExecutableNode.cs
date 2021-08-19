@@ -8,14 +8,14 @@
     using VSCCI.GUI.Nodes.Attributes;
     using VSCCI.GUI.Pins;
 
-    public abstract class ServerSideExecutable
+    public abstract class ServerSideAction
     {
         public abstract void RunServerSide(IServerPlayer player, ICoreServerAPI api, string data);
     }
 
     [InputPin(typeof(Exec), 0)]
     [OutputPin(typeof(Exec), 0)]
-    public abstract class ServerSideExecutableNode<T> : ExecutableScriptNode where T : ServerSideExecutable
+    public abstract class ServerSideExecutableNode<T> : ExecutableScriptNode where T : ServerSideAction
     {
         private LoadedTexture notAllowedTexture;
 

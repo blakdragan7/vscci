@@ -15,7 +15,7 @@
     using VSCCI.Extensions;
     using VSCCI.GUI.Pins;
 
-    public class ServerSideSpawnEntityExecutable : ServerSideExecutable
+    public class ServerSideSpawnEntityExecutable : ServerSideAction
     {
         public override void RunServerSide(IServerPlayer player, ICoreServerAPI api, string data)
         {

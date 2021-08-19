@@ -48,7 +48,7 @@
         {
             if (ConfigData.PlayerIsAllowed(player))
             {
-                ServerSideExecutable executable = (ServerSideExecutable)Activator.CreateInstance(Type.GetType(data.AssemblyQualifiedName));
+                ServerSideAction executable = (ServerSideAction)Activator.CreateInstance(Type.GetType(data.AssemblyQualifiedName));
                 executable.RunServerSide(player, sapi, data.Data);
             }
         }
