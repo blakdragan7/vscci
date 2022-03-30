@@ -1,4 +1,6 @@
-﻿namespace VSCCI.GUI.Pins
+﻿using System;
+
+namespace VSCCI.GUI.Pins
 {
     using Cairo;
     using System.IO;
