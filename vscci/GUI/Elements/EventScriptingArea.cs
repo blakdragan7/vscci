@@ -558,6 +558,7 @@ namespace VSCCI.GUI.Elements
 
                     allNodes.Remove(selectedNode);
                     selectedNode.Dispose();
+                    selectedNode.RemoveAllConnections();
 
                     args.Handled = true;
                 }
@@ -773,6 +774,8 @@ namespace VSCCI.GUI.Elements
 
                         if (contextOutput != null)
                         {
+                            contextOutput.ClearConnections();
+                            
                             var input = newNode.InputForIndex(pinIndex);
                             if(input != null)
                                 connectionManager.CreateConnectionBetween(contextOutput, input);
