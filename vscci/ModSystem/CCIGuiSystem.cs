@@ -36,6 +36,8 @@ namespace VSCCI.ModSystem
             api.Event.RegisterEventBusListener(OnEvent);
             api.Network.GetChannel(Constants.NETWORK_GUI_CHANNEL)
                 .SetMessageHandler<CCIServerEventStatusUpdate>(OnServerUpdateMessage);
+
+            eventGui.LoadFromFile();
         }
 
         private void OnServerUpdateMessage(CCIServerEventStatusUpdate update)

@@ -700,11 +700,24 @@ namespace VSCCI.GUI.Nodes
                 output.Dispose();
             }
 
-            inputs.Clear();
-            outputs.Clear();
-
             staticTexture.Dispose();
             selectedTexture.Dispose();
+        }
+
+        public void RemoveAllConnections()
+        {
+            foreach (var input in inputs)
+            {
+                input.ClearConnections();
+            }
+
+            foreach (var output in outputs)
+            {
+                output.ClearConnections();
+            }
+
+            inputs.Clear();
+            outputs.Clear();
         }
 
         public void FallbackState()

@@ -179,7 +179,6 @@ namespace VSCCI.GUI.Pins
 
         public void Dispose()
         {
-            DisconnectAll();
         }
     }
 }

@@ -360,7 +360,7 @@ namespace VSCCI.GUI.Pins
             }
         }
 
-        public virtual void Dispose()
+        public void ClearConnections()
         {
             ScriptNodePinConnection[] copy = new ScriptNodePinConnection[connections.Count];
             connections.CopyTo(copy);
@@ -370,7 +370,10 @@ namespace VSCCI.GUI.Pins
             }
 
             connections.Clear();
+        }
 
+        public virtual void Dispose()
+        {
             pinTexture.Dispose();
         }
 

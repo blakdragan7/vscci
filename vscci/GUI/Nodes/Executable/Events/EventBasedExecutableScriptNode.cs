@@ -18,7 +18,7 @@
         {
             base.Dispose();
 
-            CCINodeSystem.NodeSystem.UnregisterNodeForEvents(this);
+            //CCINodeSystem.NodeSystem.UnregisterNodeForEvents(this);
         }
 
         public abstract void OnEvent(string eventName, IAttribute data);

@@ -50,6 +50,17 @@
                 texture = new LoadedTexture(api);
         }
 
+        public void DisconnectAll()
+        {
+            ScriptNodePinConnection[] nodePinConnections = new ScriptNodePinConnection[connections.Count];
+            connections.CopyTo(nodePinConnections);
+
+            foreach (var conn in nodePinConnections)
+            {
+                conn.DisconnectAll();
+            }
+        }
+
         public void Dispose()
         {
             foreach(var conn in connections)

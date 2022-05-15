@@ -45,18 +45,14 @@ namespace VSCCI.GUI
                 .AddDialogTitleBarWithBg("CCI Event", () => TryClose(), CairoFont.WhiteSmallishText())
                 .AddInteractiveElement(scriptingArea)
                 .Compose();
-
-            // if there isnt any nodes yet, try to load them.
-            if (allNodes.Count == 0)
-            {
-                LoadFromFile();
-            }
         }
 
         public void LoadFromFile()
         {
             try
             {
+                ResetNodesForLoad();
+
                 var path = "vscci_event_" + capi.World.SavegameIdentifier + ".data";
                 using (BinaryReader reader = new BinaryReader(File.Open(path, FileMode.Open)))
                 {
@@ -136,6 +132,14 @@ namespace VSCCI.GUI
             foreach (var node in allNodes)
             {
                 node.Dispose();
+            }
+        }
+
+        public void ResetNodesForLoad()
+        {
+            foreach (var node in allNodes)
+            {
+                node.RemoveAllConnections();
             }
 
             allNodes.Clear();
