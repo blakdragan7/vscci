@@ -24,6 +24,11 @@ namespace VSCCI.Data
             return attr.GetValue() == value as object;
         }
 
+        public IAttribute Clone()
+        {
+            return new ProtoDataTypeAttribute<T>(value);
+        }
+
         public int GetAttributeId()
         {
             return Constants.PROTO_TYPE_ATTRIBUTE_ID;
