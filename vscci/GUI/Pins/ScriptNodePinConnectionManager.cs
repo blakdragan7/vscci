@@ -70,6 +70,7 @@
 
             texture?.Dispose();
             texture = null;
+            connections.Clear();
         }
 
         public void RenderConnections(float deltaTime)

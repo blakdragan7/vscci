@@ -196,6 +196,7 @@ namespace VSCCI.GUI.Nodes
 
                 ctx.Dispose();
                 surface.Dispose();
+                isDirty = false;
             }
 
             api.Render.PushScissor(Bounds.ParentBounds, true);
@@ -288,7 +289,7 @@ namespace VSCCI.GUI.Nodes
                 pin.FromBytes(reader);
             }
 
-            isDirty = true;
+            MarkDirty();
         }
 
         public virtual void WrtiePinsToBytes(BinaryWriter writer)
@@ -392,8 +393,6 @@ namespace VSCCI.GUI.Nodes
             }
 
             ctx.Restore();
-
-            isDirty = false;
         }
 
         public void MarkDirty()
@@ -568,7 +567,7 @@ namespace VSCCI.GUI.Nodes
                 Bounds.CalcWorldBounds();
 
                 SetState(ScriptNodeState.Dragged);
-                isDirty = true;
+                MarkDirty();
 
                 mouse.Handled = true;
 
