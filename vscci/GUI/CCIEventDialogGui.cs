@@ -3,6 +3,7 @@ namespace VSCCI.GUI
     using System;
     using System.IO;
     using System.Collections.Generic;
+    using System.Windows.Forms;
     using Vintagestory.API.Client;
 
     using VSCCI.GUI.Elements;
@@ -36,15 +37,105 @@ namespace VSCCI.GUI
             var dialogBounds = ElementBounds.Fixed(EnumDialogArea.CenterMiddle, 0, 0, 1200, 700)
             .WithFixedAlignmentOffset(-GuiStyle.DialogToScreenPadding, 0);
             var scriptAreaBounds = ElementBounds.Fixed(0, 32, 1200, 668);
+            var importBounds = ElementBounds.Fixed(1140-60, 644, 50, 10);
+            var exportBounds = ElementBounds.Fixed(1140, 644, 50, 10);
 
+            scriptAreaBounds.WithChildren(importBounds, exportBounds);
             dialogBounds.WithChild(scriptAreaBounds);
 
             scriptingArea = new EventScriptingArea(capi, allNodes, scriptAreaBounds);
 
             SingleComposer = capi.Gui.CreateCompo("ccievent", dialogBounds)
                 .AddDialogTitleBarWithBg("CCI Event", () => TryClose(), CairoFont.WhiteSmallishText())
+                .AddButton("Import", OnImport, importBounds, CairoFont.WhiteSmallishText())
+                .AddButton("Export", OnExport, exportBounds, CairoFont.WhiteSmallishText())
                 .AddInteractiveElement(scriptingArea)
                 .Compose();
+        }
+
+        public bool OnExport()
+        {
+            string path = "";
+
+            using (SaveFileDialog openFileDialog = new SaveFileDialog())
+            {
+                openFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                openFileDialog.Filter = "vscci save file | *.data";
+                openFileDialog.FilterIndex = 2;
+                openFileDialog.RestoreDirectory = true;
+
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    //Get the path of specified file
+                    path = openFileDialog.FileName;
+                    if (Path.GetExtension(path) != ".data")
+                    {
+                        path += ".data";
+                    }
+
+                    try
+                    {
+                        FileMode mode = File.Exists(path) ? FileMode.Truncate : FileMode.Create;
+                        using (BinaryWriter writer = new BinaryWriter(File.Open(path, mode, FileAccess.Write)))
+                        {
+                            scriptingArea.ToBytes(writer);
+                        };
+                    }
+                    catch (FileNotFoundException)
+                    {
+                        // skip
+                    }
+                    catch (Exception exc)
+                    {
+                        capi.Logger.Error("Error Loading Save File {0}", exc.Message);
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        public bool OnImport()
+        {
+
+            string path = "";
+
+            using (OpenFileDialog openFileDialog = new OpenFileDialog())
+            {
+                openFileDialog.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                openFileDialog.Filter = "vscci save file | *.data";
+                openFileDialog.FilterIndex = 2;
+                openFileDialog.RestoreDirectory = true;
+
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    //Get the path of specified file
+                    path = openFileDialog.FileName;
+
+                    try
+                    {
+                        ResetNodesForLoad();
+                        ScriptNodePinConnectionManager.TheManage.SetupManager(capi, scriptingArea.Bounds);
+
+                        using (BinaryReader reader = new BinaryReader(File.Open(path, FileMode.Open)))
+                        {
+                            scriptingArea.FromBytes(reader, capi.World);
+                        };
+
+                        SaveToFile();
+                    }
+                    catch (FileNotFoundException)
+                    {
+                        // skip
+                    }
+                    catch (Exception exc)
+                    {
+                        capi.Logger.Error("Error Loading Save File {0}", exc.Message);
+                    }
+                }
+            }
+
+            return true;
         }
 
         public void LoadFromFile()
