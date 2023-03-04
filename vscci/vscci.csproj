@@ -75,6 +75,7 @@
     <PackageReference Include="SocketIoClientDotNet" Version="0.9.13" />
     <PackageReference Include="TwitchLib.Api" Version="3.2.3" />
     <PackageReference Include="WebSocket4Net" Version="0.14.1" />
+    <PackageReference Include="System.Windows.Forms"/>
   </ItemGroup>
 
   <!-- Template ReleaseAndZip: -->
