@@ -31,7 +31,7 @@ namespace VSCCI.ModSystem
 
             this.api = api;
 
-            api.RegisterCommand("vscci", "Interface to vscci", "config | event", OnVsCCICommand);
+            api.RegisterCommand("vscci", "Interface to vscci", "config | event | export | import", OnVsCCICommand);
 
             api.Event.RegisterEventBusListener(OnEvent);
             api.Network.GetChannel(Constants.NETWORK_GUI_CHANNEL)
@@ -79,7 +79,7 @@ namespace VSCCI.ModSystem
         {
             if(arg.Length == 0)
             {
-                api.ShowChatMessage("Need at least one argument");
+                api.ShowChatMessage("Invalid Arguments, usage .vscci {config | event | export | import}");
                 return;
             }
 
@@ -91,8 +91,40 @@ namespace VSCCI.ModSystem
                 case "event":
                     eventGui.TryOpen();
                     break;
+                case "export":
+                    if (arg.Length != 2)
+                    {
+                        api.ShowChatMessage("Invalid arguments for export, usage .vscci export file_path");
+                    }
+
+                    if (eventGui.Export(arg[1]))
+                    {
+                        api.ShowChatMessage("Successfully exported " + arg[1]);
+                    }
+                    else
+                    {
+                        api.ShowChatMessage("Failed to export " + arg[1]);
+                    }
+
+                    break;
+                case "import":
+                    if (arg.Length != 2)
+                    {
+                        api.ShowChatMessage("Invalid arguments for export, usage .vscci export file_path");
+                    }
+
+                    if (eventGui.Import(arg[1]))
+                    {
+                        api.ShowChatMessage("Successfully imported " + arg[1]);
+                    }
+                    else
+                    {
+                        api.ShowChatMessage("Failed to import " + arg[1]);
+                    }
+
+                    break;
                 default:
-                    api.ShowChatMessage("Invalid Arguments");
+                    api.ShowChatMessage("Invalid Arguments, usage .vscci {config | event | export | import}");
                     break;
             }
         }
