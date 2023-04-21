@@ -69,8 +69,8 @@
   <ItemGroup Label="VSModTemplate Includes">
     <!-- This is what allows us to do the fancy IL weaving so we end up with a single dependency-version-independent release .dll! -->
     <PackageReference Include="EngineIoClientDotNet" Version="0.9.22" />
-    <PackageReference Include="ILRepack.Lib.Task" Version="0.1.7" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="ILRepack" Version="2.0.18" />
+    <PackageReference Include="ILRepack.Lib.MSBuild.Task" Version="2.0.18.2" />
     <!-- Actual project includes -->
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="SocketIoClientDotNet" Version="0.9.13" />
