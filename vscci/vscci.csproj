@@ -70,10 +70,11 @@
     <!-- This is what allows us to do the fancy IL weaving so we end up with a single dependency-version-independent release .dll! -->
     <PackageReference Include="EngineIoClientDotNet" Version="0.9.22" />
     <PackageReference Include="ILRepack.Lib.Task" Version="0.1.7" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <!-- Actual project includes -->
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="SocketIoClientDotNet" Version="0.9.13" />
-    <PackageReference Include="TwitchLib.Api" Version="3.2.3" />
+    <PackageReference Include="TwitchLib.Api" Version="3.2.4" />
     <PackageReference Include="WebSocket4Net" Version="0.14.1" />
   </ItemGroup>
 

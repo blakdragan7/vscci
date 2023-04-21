@@ -432,7 +432,7 @@ namespace VSCCI.CCIIntegrations.Twitch
                     channelID
                 };
 
-                var channelInfo = await apiClient.Helix.Streams.GetStreamsAsync(null, null, 1, null, null, "live", userIds, null);
+                var channelInfo = await apiClient.Helix.Streams.GetStreamsAsync(userIds: userIds);
 
                 if (channelInfo.Streams.Length > 0)
                 {
