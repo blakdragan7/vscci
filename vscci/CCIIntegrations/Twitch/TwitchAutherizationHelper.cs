@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace VSCCI.CCIIntegrations.Twitch
 {
     using System.Collections.Generic;
@@ -58,7 +60,12 @@ namespace VSCCI.CCIIntegrations.Twitch
             }
 
             var url = Constants.TWITCH_ID_URL + $"client_id={Constants.TWITCH_CLIENT_ID}&redirect_uri={Constants.TWITCH_REDIRECT_URI}&response_type=token&scope={scopeStr}";
-            NetUtil.OpenUrlInBrowser(url);
+            ProcessStartInfo psi = new ProcessStartInfo()
+            {
+                FileName = url,
+                UseShellExecute = true
+            };
+            Process.Start(psi);
 
             listener.Start();
             listener.BeginGetContext(OnReceiveAuthInfo, this);

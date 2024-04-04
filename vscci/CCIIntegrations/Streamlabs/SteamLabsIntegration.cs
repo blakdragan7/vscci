@@ -1,4 +1,5 @@
 
+
 namespace VSCCI.CCIIntegrations.Streamlabs
 {
     using Vintagestory.API.Client;
@@ -32,7 +33,7 @@ namespace VSCCI.CCIIntegrations.Streamlabs
                 CreateSocket();
             }
             if(connected == false)
-                socket.Connect();
+                socket?.Connect();
         }
 
         public override void Disconnect()
@@ -57,17 +58,13 @@ namespace VSCCI.CCIIntegrations.Streamlabs
 
         public override void SetRawAuthData(string authData)
         {
-            if (authToken != authData)
-            {
-                authToken = authData;
+            if (authToken == authData) return;
+            authToken = authData;
 
-                // reset socket if we changed auth token
-                if (connected)
-                {
-                    socket.Disconnect();
-                    socket = null;
-                }
-            }
+            // reset socket if we changed auth token
+            if (!connected) return;
+            socket?.Disconnect();
+            socket = null;
         }
 
         public override void SetAuthDataFromSaveData(string savedAuth)

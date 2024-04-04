@@ -36,7 +36,7 @@
             }
 
             if (connected == false)
-                seClient.Connect();
+                seClient?.Connect();
         }
 
         public override void Disconnect()
@@ -326,7 +326,7 @@
                     type = CCIType.Streamelements,
                     status = "Error"
                 }));
-            CallLoginError(new OnAuthFailedArgs() { Message = e.ToString()});
+            CallLoginError(new OnAuthFailedArgs() { Message = e?.ToString()});
         }
 
         private void OnAuthenticated(object sender, StreamElementsNET.Models.Internal.Authenticated e)

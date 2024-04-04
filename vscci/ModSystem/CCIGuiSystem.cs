@@ -1,3 +1,5 @@
+using System;
+
 namespace VSCCI.ModSystem
 {
     using Vintagestory.API.Client;
@@ -30,8 +32,16 @@ namespace VSCCI.ModSystem
             eventGui = new CCIEventDialogGui(api);
 
             this.api = api;
+            CommandArgumentParsers parsers = api.ChatCommands.Parsers;
+            api.ChatCommands.GetOrCreate("vscci").WithDescription("Interface to vscci")
+                .RequiresPlayer()
+                .WithArgs(parsers.Word("command", 
+                    new string[]
+                    {
+                        "config", "event", "import", "export"
 
-            api.RegisterCommand("vscci", "Interface to vscci", "config | event | export | import", OnVsCCICommand);
+                    }), new StringArgParser("path", false))
+                .HandleWith(OnVsCCICommand);
 
             api.Event.RegisterEventBusListener(OnEvent);
             api.Network.GetChannel(Constants.NETWORK_GUI_CHANNEL)
@@ -75,15 +85,14 @@ namespace VSCCI.ModSystem
             }
         }  
 
-        private void OnVsCCICommand(int groupId, CmdArgs arg)
+        private TextCommandResult OnVsCCICommand(TextCommandCallingArgs arg)
         {
-            if(arg.Length == 0)
+            if(arg.ArgCount == 0)
             {
-                api.ShowChatMessage("Invalid Arguments, usage .vscci {config | event | export | import}");
-                return;
+                return TextCommandResult.Error("Invalid Arguments, usage .vscci {config | event | export | import}");
             }
 
-            switch(arg[0])
+            switch(arg[0] as string)
             {
                 case "config":
                     configGui.TryOpen();
@@ -92,12 +101,12 @@ namespace VSCCI.ModSystem
                     eventGui.TryOpen();
                     break;
                 case "export":
-                    if (arg.Length != 2)
+                    if (arg.ArgCount != 2)
                     {
                         api.ShowChatMessage("Invalid arguments for export, usage .vscci export file_path");
                     }
 
-                    if (eventGui.Export(arg[1]))
+                    if (eventGui.Export(arg[1] as string))
                     {
                         api.ShowChatMessage("Successfully exported " + arg[1]);
                     }
@@ -108,12 +117,12 @@ namespace VSCCI.ModSystem
 
                     break;
                 case "import":
-                    if (arg.Length != 2)
+                    if (arg.ArgCount != 2)
                     {
                         api.ShowChatMessage("Invalid arguments for export, usage .vscci export file_path");
                     }
 
-                    if (eventGui.Import(arg[1]))
+                    if (eventGui.Import(arg[1] as string))
                     {
                         api.ShowChatMessage("Successfully imported " + arg[1]);
                     }
@@ -127,6 +136,8 @@ namespace VSCCI.ModSystem
                     api.ShowChatMessage("Invalid Arguments, usage .vscci {config | event | export | import}");
                     break;
             }
+
+            return TextCommandResult.Success();
         }
     }
 }

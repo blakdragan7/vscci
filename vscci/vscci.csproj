@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup Label="VSModTemplate Properties">
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <!-- These are necessary because we're kind of jury rigging everything together between .NET Standard 2.0 and .NET 4.5.2. -->
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
@@ -16,7 +16,6 @@
     <!-- We have a custom Configuration, so need to add it here -->
     <Configurations>Debug;Release;ReleaseAndZip</Configurations>
   </PropertyGroup>
-
   <PropertyGroup Label="VSModTemplate Debug Properties" Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
@@ -24,33 +23,12 @@
 
   <!-- Template default references: -->
   <ItemGroup Label="VSModTemplate References">
-    <Reference Include="VintagestoryAPI">
-      <HintPath>$(VINTAGE_STORY)/VintagestoryAPI.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="VintagestoryLib">
-      <HintPath>$(VINTAGE_STORY)/VintagestoryLib.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="VSSurvivalMod">
-      <HintPath>$(VINTAGE_STORY)/Mods/VSSurvivalMod.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="VSEssentials">
-      <HintPath>$(VINTAGE_STORY)/Mods/VSEssentials.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="VSCreativeMod">
-      <HintPath>$(VINTAGE_STORY)/Mods/VSCreativeMod.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Harmony">
       <HintPath>$(VINTAGE_STORY)/Lib/0Harmony.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="protobuf-net">
-      <HintPath>$(VINTAGE_STORY)/Lib/protobuf-net.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>C:\Users\jcope\AppData\Roaming\Vintagestory\Lib\protobuf-net.dll</HintPath>
     </Reference>
     <Reference Include="SQLite">
       <HintPath>$(VINTAGE_STORY)/Lib/System.Data.SQLite.dll</HintPath>
@@ -60,22 +38,34 @@
       <HintPath>$(VINTAGE_STORY)/Lib/cairo-sharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="VintagestoryAPI">
+      <HintPath>C:\Users\jcope\AppData\Roaming\Vintagestory\VintagestoryAPI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="VSCreativeMod">
+      <HintPath>C:\Users\jcope\AppData\Roaming\Vintagestory\Mods\VSCreativeMod.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="VSSurvivalMod">
+      <HintPath>C:\Users\jcope\AppData\Roaming\Vintagestory\Mods\VSSurvivalMod.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
   </ItemGroup>
   <PropertyGroup>
     <NoWarn>NU1605</NoWarn>
     <RootNamespace>VSCCI</RootNamespace>
   </PropertyGroup>
+
   <!-- Template includes: -->
   <ItemGroup Label="VSModTemplate Includes">
     <!-- This is what allows us to do the fancy IL weaving so we end up with a single dependency-version-independent release .dll! -->
     <PackageReference Include="EngineIoClientDotNet" Version="0.9.22" />
+    <PackageReference Include="SocketIoClientDotNet" Version="0.9.22" />
     <PackageReference Include="ILRepack" Version="2.0.18" />
     <PackageReference Include="ILRepack.Lib.MSBuild.Task" Version="2.0.18.2" />
     <!-- Actual project includes -->
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="SocketIoClientDotNet" Version="0.9.13" />
     <PackageReference Include="TwitchLib.Api" Version="3.2.4" />
-    <PackageReference Include="WebSocket4Net" Version="0.14.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
   <!-- Template ReleaseAndZip: -->
@@ -105,11 +95,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
   <ItemGroup>
     <Folder Include="assets/" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\StreamElementsNET\StreamElementsNET\StreamElementsNET\StreamElementsNET.csproj" />
     <ProjectReference Include="..\TwitchLib.PubSub\TwitchLib.PubSub\TwitchLib.PubSub.csproj" />

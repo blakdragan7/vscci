@@ -1,15 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <!-- We have a custom Configuration, so need to add it here -->
     <Configurations>Debug;Release;ReleaseAndZip</Configurations>
   </PropertyGroup>
-
   <PropertyGroup Label="VSModTemplate Debug Properties" Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DebugType>full</DebugType>
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
-
   <!--#if false -->
   <!-- This is kind of silly, but it just makes it easier for handling the Template solution. It should never enter the created project. -->
   <ItemGroup Label="VSModTemplate Project References">
@@ -19,7 +17,6 @@
     </Reference>
   </ItemGroup>
   <!--#endif -->
-
   <!-- Template includes: -->
   <ItemGroup Label="VSModTemplate Includes">
     <Reference Include="VintagestoryAPI">
@@ -27,7 +24,6 @@
       <Private>false</Private>
     </Reference>
   </ItemGroup>
-
   <ItemGroup>
     <None Update="modinfo.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
