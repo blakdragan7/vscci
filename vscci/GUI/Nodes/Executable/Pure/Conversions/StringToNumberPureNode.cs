@@ -1,7 +1,5 @@
 ﻿namespace VSCCI.GUI.Nodes
 {
-    using Cairo;
-    using System;
     using Vintagestory.API.Client;
     using VSCCI.GUI.Elements;
     using VSCCI.GUI.Nodes.Attributes;

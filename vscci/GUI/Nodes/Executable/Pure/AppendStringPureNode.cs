@@ -1,6 +1,5 @@
 ﻿namespace VSCCI.GUI.Nodes
 {
-    using Cairo;
     using Vintagestory.API.Client;
     using VSCCI.GUI.Elements;
     using VSCCI.GUI.Nodes.Attributes;
@@ -27,8 +26,10 @@
 
         protected override void OnExecute()
         {
-            string first = inputs[INPUT_ONE_INDEX].GetInput();
-            string second = inputs[INPUT_TWO_INDEX].GetInput();
+            dynamic firstInput = inputs[INPUT_ONE_INDEX].GetInput();
+            dynamic secondInput = inputs[INPUT_TWO_INDEX].GetInput();
+            string first = firstInput is string ? firstInput : firstInput.ToString();
+            string second = secondInput is string ? secondInput : secondInput.ToString();
 
             outputs[OUTPUT_INDEX].Value = first + second;
         }

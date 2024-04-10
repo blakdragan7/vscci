@@ -86,6 +86,8 @@
         private ListItemSelection itemSelection;
         private CategorySelection categorySelection;
 
+        private GuiElementScrollbar scrollBar;
+
         private double yAdvance;
         private double yScrollOffset;
         private double ySubScrollOffset;
@@ -190,10 +192,10 @@
             }
             else
             {
-                list = new List<ListItem>();
-                list.Add(item);
-
-                items.Add(item.Catagory, list);
+                items.Add(item.Catagory, new List<ListItem>
+                {
+                    item
+                });
             }
         }
 

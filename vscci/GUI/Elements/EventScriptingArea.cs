@@ -475,6 +475,11 @@ namespace VSCCI.GUI.Elements
                 {
                     activeList.ResetSelections();
                     activeList = null;
+
+                    if (contextOutput != null)
+                    {
+                        contextOutput.ClearConnections();
+                    }
                 }
             }
             else
